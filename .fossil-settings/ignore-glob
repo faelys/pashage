@@ -1,0 +1,6 @@
+git/
+.shellspec-local
+.shellspec-quick.log
+bin/
+coverage/
+report/
