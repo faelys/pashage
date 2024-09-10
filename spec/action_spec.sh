@@ -86,7 +86,7 @@ Describe 'Action Functions'
     It 'renames a file without re-encrypting'
       result() {
         %text:expand
-        #|$ mkdir -p ${PREFIX}/sub
+        #|$ mkdir -p -- ${PREFIX}/sub
         #|$ scm_begin
         #|$ scm_mv sub/secret.age sub/renamed.age
         #|$ scm_commit Move sub/secret.age to sub/renamed.age
@@ -101,7 +101,7 @@ Describe 'Action Functions'
       SCM_ACTION=scm_cp
       result() {
         %text:expand
-        #|$ mkdir -p ${PREFIX}/sub/
+        #|$ mkdir -p -- ${PREFIX}/sub/
         #|$ scm_begin
         #|$ do_decrypt ${PREFIX}/root.age
         #|$ do_encrypt sub/root.age
@@ -118,7 +118,7 @@ Describe 'Action Functions'
       SCM_ACTION=scm_cp
       result() {
         %text:expand
-        #|$ mkdir -p ${PREFIX}/sub
+        #|$ mkdir -p -- ${PREFIX}/sub
         #|$ scm_begin
         #|$ do_decrypt ${PREFIX}/root.age
         #|$ do_encrypt sub/moved.age
@@ -136,7 +136,7 @@ Describe 'Action Functions'
       SCM_ACTION=scm_cp
       result() {
         %text:expand
-        #|$ mkdir -p ${PREFIX}/sub/
+        #|$ mkdir -p -- ${PREFIX}/sub/
         #|$ scm_begin
         #|$ scm_cp root.age sub/root.age
         #|$ scm_commit Copy root.age to sub/root.age
@@ -149,7 +149,7 @@ Describe 'Action Functions'
     It 'does not re-encrypt a non-encrypted file'
       result() {
         %text:expand
-        #|$ mkdir -p ${PREFIX}/sub/
+        #|$ mkdir -p -- ${PREFIX}/sub/
         #|$ scm_begin
         #|$ scm_mv notes.txt sub/notes.txt
         #|$ scm_commit Move notes.txt to sub/notes.txt
@@ -163,7 +163,7 @@ Describe 'Action Functions'
       DECISION=force
       result() {
         %text:expand
-        #|$ mkdir -p ${PREFIX}/sub/
+        #|$ mkdir -p -- ${PREFIX}/sub/
         #|$ scm_begin
         #|$ scm_mv notes.txt sub/notes.txt
         #|$ scm_commit Move notes.txt to sub/notes.txt
@@ -194,10 +194,10 @@ Describe 'Action Functions'
       }
       result() {
         %text:expand
-        #|$ mkdir -p ${PREFIX}/sub
+        #|$ mkdir -p -- ${PREFIX}/sub
         #|$ scm_begin
         #|$ yesno sub/secret.age already exists. Overwrite?
-        #|$ rm -f ${PREFIX}/sub/secret.age
+        #|$ rm -f -- ${PREFIX}/sub/secret.age
         #|$ do_decrypt ${PREFIX}/root.age
         #|$ do_encrypt sub/secret.age
         #|$ scm_rm root.age
@@ -212,7 +212,7 @@ Describe 'Action Functions'
     It 'moves a whole directory with identity'
       result() {
         %text:expand
-        #|$ mkdir -p ${PREFIX}/subdir/sub/
+        #|$ mkdir -p -- ${PREFIX}/subdir/sub/
         #|$ scm_begin
         #|$ scm_mv sub/ subdir/sub/
         #|$ scm_commit Move sub/ to subdir/sub/
@@ -225,13 +225,13 @@ Describe 'Action Functions'
     It 'recursively re-enecrypts a directory'
       result() {
         %text:expand
-        #|$ mkdir -p ${PREFIX}/subdir/new-bare/
+        #|$ mkdir -p -- ${PREFIX}/subdir/new-bare/
         #|$ scm_begin
         #|$ do_decrypt ${PREFIX}/sub/bare/deep.age
         #|$ do_encrypt subdir/new-bare/deep.age
         #|$ scm_rm sub/bare/deep.age
         #|$ scm_add subdir/new-bare/deep.age
-        #|$ mkdir -p ${PREFIX}/subdir/new-bare/sub
+        #|$ mkdir -p -- ${PREFIX}/subdir/new-bare/sub
         #|$ do_decrypt ${PREFIX}/sub/bare/sub/deepest.age
         #|$ do_encrypt subdir/new-bare/sub/deepest.age
         #|$ scm_rm sub/bare/sub/deepest.age
@@ -255,11 +255,11 @@ Describe 'Action Functions'
       }
       result() {
         %text:expand
-        #|$ mkdir -p ${PREFIX}/subdir/new-bare/
+        #|$ mkdir -p -- ${PREFIX}/subdir/new-bare/
         #|$ scm_begin
         #|$ yesno Reencrypt sub/bare/deep into subdir/new-bare/deep?
         #|$ scm_cp sub/bare/deep.age subdir/new-bare/deep.age
-        #|$ mkdir -p ${PREFIX}/subdir/new-bare/sub
+        #|$ mkdir -p -- ${PREFIX}/subdir/new-bare/sub
         #|$ yesno Reencrypt sub/bare/sub/deepest into subdir/new-bare/sub/deepest?
         #|$ do_decrypt ${PREFIX}/sub/bare/sub/deepest.age
         #|$ do_encrypt subdir/new-bare/sub/deepest.age
@@ -346,7 +346,7 @@ Describe 'Action Functions'
     When call do_decrypt '/path/to/encrypted/file.age'
     The output should equal 'cleartext'
     The error should equal \
-      '$ age -d -i /path/to/identity /path/to/encrypted/file.age'
+      '$ age -d -i /path/to/identity -- /path/to/encrypted/file.age'
   End
 
   Describe 'do_decrypt_gpg'
@@ -356,7 +356,7 @@ Describe 'Action Functions'
       unset GPG
       When call do_decrypt_gpg /path/to/encrypted/file.gpg
       The error should equal \
-        '$ gpg -d --quiet --yes --compress-algo=none --no-encrypt-to /path/to/encrypted/file.gpg'
+        '$ gpg -d --quiet --yes --compress-algo=none --no-encrypt-to -- /path/to/encrypted/file.gpg'
     End
 
     It 'uses gpg when agent is available'
@@ -365,7 +365,7 @@ Describe 'Action Functions'
       unset GPG
       When call do_decrypt_gpg /path/to/encrypted/file.gpg
       The error should equal \
-        '$ gpg -d --quiet --yes --compress-algo=none --no-encrypt-to --batch --use-agent /path/to/encrypted/file.gpg'
+        '$ gpg -d --quiet --yes --compress-algo=none --no-encrypt-to --batch --use-agent -- /path/to/encrypted/file.gpg'
     End
 
     It 'uses gpg2'
@@ -374,7 +374,7 @@ Describe 'Action Functions'
       unset GPG
       When call do_decrypt_gpg /path/to/encrypted/file.gpg
       The error should equal \
-        '$ gpg2 -d --quiet --yes --compress-algo=none --no-encrypt-to --batch --use-agent /path/to/encrypted/file.gpg'
+        '$ gpg2 -d --quiet --yes --compress-algo=none --no-encrypt-to --batch --use-agent -- /path/to/encrypted/file.gpg'
     End
 
     It 'uses user-provided command'
@@ -383,7 +383,7 @@ Describe 'Action Functions'
       GPG=user_cmd
       When call do_decrypt_gpg /path/to/encrypted/file.gpg
       The error should equal \
-        '$ user_cmd -d --quiet --yes --compress-algo=none --no-encrypt-to /path/to/encrypted/file.gpg'
+        '$ user_cmd -d --quiet --yes --compress-algo=none --no-encrypt-to -- /path/to/encrypted/file.gpg'
     End
 
     It 'bails out when command cannot be guessed'
@@ -913,7 +913,7 @@ Describe 'Action Functions'
       result(){
         %text:expand
         #|$ scm_begin
-        #|$ mkdir -p ${PREFIX}
+        #|$ mkdir -p -- ${PREFIX}
         #|Cannot replace directory suspicious.age
       }
       When run do_generate suspicious 10 '[:alnum:]'
@@ -926,7 +926,7 @@ Describe 'Action Functions'
       result(){
         %text:expand
         #|$ scm_begin
-        #|$ mkdir -p ${PREFIX}/sub
+        #|$ mkdir -p -- ${PREFIX}/sub
         #|$ do_encrypt sub/new.age
         #|> 0123456789
         #|$ scm_add ${PREFIX}/sub/new.age
@@ -945,7 +945,7 @@ Describe 'Action Functions'
       result(){
         %text:expand
         #|$ scm_begin
-        #|$ mkdir -p ${PREFIX}
+        #|$ mkdir -p -- ${PREFIX}
         #|$ do_encrypt existing.age
         #|> 0123456789
         #|$ scm_add ${PREFIX}/existing.age
@@ -968,7 +968,7 @@ Describe 'Action Functions'
       result(){
         %text:expand
         #|$ scm_begin
-        #|$ mkdir -p ${PREFIX}
+        #|$ mkdir -p -- ${PREFIX}
         #|$ yesno An entry already exists for existing. Overwrite it?
         #|$ do_encrypt existing.age
         #|> 0123456789
@@ -993,7 +993,7 @@ Describe 'Action Functions'
       result(){
         %text:expand
         #|$ scm_begin
-        #|$ mkdir -p ${PREFIX}
+        #|$ mkdir -p -- ${PREFIX}
         #|$ yesno An entry already exists for existing. Overwrite it?
       }
       When call do_generate existing 10 '[alnum:]'
@@ -1016,7 +1016,7 @@ Describe 'Action Functions'
       result(){
         %text:expand
         #|$ scm_begin
-        #|$ mkdir -p ${PREFIX}
+        #|$ mkdir -p -- ${PREFIX}
         #|$ do_decrypt ${PREFIX}/existing.age
         #|$ do_encrypt existing-XXXXXXXXX.age
         #|> 0123456789
@@ -1093,7 +1093,7 @@ Describe 'Action Functions'
     It 'initializes the store'
       result() {
         %text:expand
-        #|$ mkdir -p ${PREFIX}
+        #|$ mkdir -p -- ${PREFIX}
         #|$ scm_begin
         #|$ scm_add .age-recipients
         #|$ do_reencrypt_dir ${PREFIX}
@@ -1110,7 +1110,7 @@ Describe 'Action Functions'
     It 'initializes a subdirectory'
       result() {
         %text:expand
-        #|$ mkdir -p ${PREFIX}/sub
+        #|$ mkdir -p -- ${PREFIX}/sub
         #|$ scm_begin
         #|$ scm_add sub/.age-recipients
         #|$ do_reencrypt_dir ${PREFIX}/sub
@@ -1133,7 +1133,7 @@ Describe 'Action Functions'
       DECISION=keep
       result() {
         %text:expand
-        #|$ mkdir -p ${PREFIX}
+        #|$ mkdir -p -- ${PREFIX}
         #|$ scm_begin
         #|$ scm_add .age-recipients
         #|$ scm_commit Set age recipients at store root
@@ -1182,7 +1182,7 @@ Describe 'Action Functions'
       result() {
         %text:expand
         #|$ scm_begin
-        #|$ mkdir -p ${PREFIX}/subdir
+        #|$ mkdir -p -- ${PREFIX}/subdir
         #|$ do_encrypt subdir/new.age
         #|> line 1
         #|$ scm_add subdir/new.age
@@ -1205,7 +1205,7 @@ Describe 'Action Functions'
       result() {
         %text:expand
         #|$ scm_begin
-        #|$ mkdir -p ${PREFIX}/subdir
+        #|$ mkdir -p -- ${PREFIX}/subdir
         #|$ do_encrypt subdir/new.age
         #|> line 1
         #|> line 2
@@ -1241,7 +1241,7 @@ Describe 'Action Functions'
       e_result() {
         %text:expand
         #|$ scm_begin
-        #|$ mkdir -p ${PREFIX}/subdir
+        #|$ mkdir -p -- ${PREFIX}/subdir
         #|$ do_encrypt subdir/new.age
         #|> line 3
         #|$ scm_add subdir/new.age
@@ -1271,7 +1271,7 @@ Describe 'Action Functions'
         %text:expand
         #|$ yesno An entry already exists for existing. Overwrite it?
         #|$ scm_begin
-        #|$ mkdir -p ${PREFIX}
+        #|$ mkdir -p -- ${PREFIX}
         #|$ do_encrypt existing.age
         #|> password
         #|$ scm_add existing.age
@@ -1314,7 +1314,7 @@ Describe 'Action Functions'
       result() {
         %text:expand
         #|$ scm_begin
-        #|$ mkdir -p ${PREFIX}
+        #|$ mkdir -p -- ${PREFIX}
         #|$ do_encrypt existing.age
         #|> password
         #|$ scm_add existing.age
@@ -1442,7 +1442,7 @@ Describe 'Action Functions'
         %text:expand
         #|$ do_decrypt ${PREFIX}/subdir/subsub/deep.age
         #|$ do_encrypt subdir/subsub/deep-XXXXXXXXX.age
-        #|$ mv -f ${PREFIX}/subdir/subsub/deep-XXXXXXXXX.age ${PREFIX}/subdir/subsub/deep.age
+        #|$ mv -f -- ${PREFIX}/subdir/subsub/deep-XXXXXXXXX.age ${PREFIX}/subdir/subsub/deep.age
         #|$ scm_add subdir/subsub/deep.age
       }
       When call do_reencrypt subdir/subsub/deep
@@ -1455,11 +1455,11 @@ Describe 'Action Functions'
         %text:expand
         #|$ do_decrypt ${PREFIX}/subdir/middle.age
         #|$ do_encrypt subdir/middle-XXXXXXXXX.age
-        #|$ mv -f ${PREFIX}/subdir/middle-XXXXXXXXX.age ${PREFIX}/subdir/middle.age
+        #|$ mv -f -- ${PREFIX}/subdir/middle-XXXXXXXXX.age ${PREFIX}/subdir/middle.age
         #|$ scm_add subdir/middle.age
         #|$ do_decrypt ${PREFIX}/subdir/subsub/deep.age
         #|$ do_encrypt subdir/subsub/deep-XXXXXXXXX.age
-        #|$ mv -f ${PREFIX}/subdir/subsub/deep-XXXXXXXXX.age ${PREFIX}/subdir/subsub/deep.age
+        #|$ mv -f -- ${PREFIX}/subdir/subsub/deep-XXXXXXXXX.age ${PREFIX}/subdir/subsub/deep.age
         #|$ scm_add subdir/subsub/deep.age
       }
       When call do_reencrypt subdir/
@@ -1481,7 +1481,7 @@ Describe 'Action Functions'
         #|$ yesno Re-encrypt subdir/subsub/deep?
         #|$ do_decrypt ${PREFIX}/subdir/subsub/deep.age
         #|$ do_encrypt subdir/subsub/deep-XXXXXXXXX.age
-        #|$ mv -f ${PREFIX}/subdir/subsub/deep-XXXXXXXXX.age ${PREFIX}/subdir/subsub/deep.age
+        #|$ mv -f -- ${PREFIX}/subdir/subsub/deep-XXXXXXXXX.age ${PREFIX}/subdir/subsub/deep.age
         #|$ scm_add subdir/subsub/deep.age
       }
       When call do_reencrypt subdir

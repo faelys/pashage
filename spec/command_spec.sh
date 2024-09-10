@@ -29,10 +29,11 @@ Describe 'Command Functions'
         ;;
       -d)
         [ "$2" = '-i' ] || echo "Unexpected age -d \$2: \"$2\"" >&2
-        @grep -v '^age' "$4" >&2 && echo "Bad encrypted file \"$4\"" >&2
-        @grep -qFx "ageRecipient:$(@cat "$3")" "$4" \
+        [ "$4" = '--' ] || echo "Unexpected age -d \$4: \"$4\"" >&2
+        @grep -v '^age' "$5" >&2 && echo "Bad encrypted file \"$4\"" >&2
+        @grep -qFx "ageRecipient:$(@cat "$3")" "$5" \
           || echo "Bad identity \"$3\": $(@cat "$3")" >&2
-        @sed -n 's/^age://p' "$4"
+        @sed -n 's/^age://p' "$5"
         ;;
       *)
         echo "Unexpected age \$1: \"$1\"" >&2

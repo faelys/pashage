@@ -638,7 +638,7 @@ Describe 'Command-Line Parsing'
       PREFIX="${SHELLSPEC_WORKDIR}/repo/sub"
       result() {
         %text:expand
-        #|$ mkdir -p ${PREFIX}
+        #|$ mkdir -p -- ${PREFIX}
         #|$ git -C ${PREFIX} init
         #|$ scm_begin
         #|$ scm_add .

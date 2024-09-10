@@ -116,14 +116,14 @@ platform_tmpdir() {
 # Remove a ramdisk-based tmpdir
 platform_tmpdir_rm() {
 	[ -z "${SECURE_TMPDIR-}" ] && return 0
-	rm -rf "${SECURE_TMPDIR}"
+	rm -rf -- "${SECURE_TMPDIR}"
 	unset SECURE_TMPDIR
 }
 
 # Remove a presumed disk-based tmpdir
 platform_tmpdir_shred() {
 	[ -z "${SECURE_TMPDIR-}" ] && return 0
-	find "${SECURE_TMPDIR}" -type f -exec rm -P -f '{}' +
-	rm -rf "${SECURE_TMPDIR}"
+	find -f "${SECURE_TMPDIR}" -- -type f -exec rm -P -f '{}' +
+	rm -rf -- "${SECURE_TMPDIR}"
 	unset SECURE_TMPDIR
 }

@@ -151,7 +151,7 @@ yesno() {
 #   $1: path
 scm_add() {
 	[ -d "${PREFIX}/.git" ] || return 0
-	git -C "${PREFIX}" add "$1"
+	git -C "${PREFIX}" add -- "$1"
 }
 
 # Start a sequence of changes, asserting nothing is pending
@@ -183,7 +183,7 @@ scm_cp() {
 #   $1: path
 scm_del() {
 	[ -d "${PREFIX}/.git" ] || return 0
-	git -C "${PREFIX}" rm -qr "$1"
+	git -C "${PREFIX}" rm -qr -- "$1"
 }
 
 # Move a file or directory in the filesystem and put it in pending changes
@@ -191,15 +191,15 @@ scm_del() {
 #   $2: destination
 scm_mv() {
 	if [ -d "${PREFIX}/.git" ]; then
-		git -C "${PREFIX}" mv "$1" "$2"
+		git -C "${PREFIX}" mv -- "$1" "$2"
 	else
-		mv "${PREFIX}/$1" "${PREFIX}/$2"
+		mv -- "${PREFIX}/$1" "${PREFIX}/$2"
 	fi
 }
 
 # Delete a file or directory from filesystem and put it in pending chnages
 scm_rm() {
-	rm -rf "${PREFIX:?}/$1"
+	rm -rf -- "${PREFIX:?}/$1"
 	scm_del "$1"
 }
 
@@ -245,10 +245,10 @@ do_copy_move() {
 				die "Error: ${DEST%/} is not a directory"
 			fi
 		fi
-		mkdir -p "${PREFIX}/${DEST}"
+		mkdir -p -- "${PREFIX}/${DEST}"
 
 	elif [ "$2" = "${2%/}/" ]; then
-		mkdir -p "${PREFIX}/$2"
+		mkdir -p -- "${PREFIX}/$2"
 		[ -d "${PREFIX}/$2" ] || die "Error: $2 is not a directory"
 		DEST="$2$(basename "${SRC}")"
 		LOCAL_ACTION=do_copy_move_file
@@ -269,7 +269,7 @@ do_copy_move() {
 			DEST="$2"
 		fi
 
-		mkdir -p "$(dirname "${PREFIX}/${DEST}")"
+		mkdir -p -- "$(dirname "${PREFIX}/${DEST}")"
 		LOCAL_ACTION=do_copy_move_file
 	fi
 
@@ -350,7 +350,7 @@ do_copy_move_dir() {
 				do_copy_move_file "${SRC}" "${DEST}"
 			elif [ -d "${ARG}" ] && [ "${ARG}" = "${ARG%/.*}" ]
 			then
-				mkdir -p "${PREFIX}/${DEST}"
+				mkdir -p -- "${PREFIX}/${DEST}"
 				do_copy_move_dir "${SRC}/" "${DEST}/"
 			fi
 		done
@@ -374,7 +374,7 @@ do_copy_move_file() {
 			unset ANSWER
 		fi
 
-		rm -f "${PREFIX}/$2"
+		rm -f -- "${PREFIX}/$2"
 	fi
 
 	if [ "$1" = "${1%.age}.age" ]; then
@@ -413,7 +413,7 @@ do_copy_move_file() {
 #   $1: full path of the encrypted file
 #   IDENTITIES_FILE: full path of age identity
 do_decrypt() {
-	checked "${AGE}" -d -i "${IDENTITIES_FILE}" "$1"
+	checked "${AGE}" -d -i "${IDENTITIES_FILE}" -- "$1"
 }
 
 # Decrypt a GPG secret file into standard output
@@ -430,6 +430,7 @@ do_decrypt_gpg() {
 		fi
 	fi
 
+	set -- -- "$@"
 	if [ -n "${GPG_AGENT_INFO-}" ] || [ "${GPG}" = "gpg2" ]; then
 		set -- "--batch" "--use-agent" "$@"
 	fi
@@ -459,7 +460,7 @@ do_deinit() {
 		do_reencrypt_dir "${PREFIX}/$1"
 	fi
 	scm_commit "Deinitialize ${LOC}"
-	rmdir -p "${PREFIX}/$1" 2>/dev/null || true
+	rmdir -p -- "${PREFIX}/$1" 2>/dev/null || true
 
 	unset LOC
 	unset TARGET
@@ -501,7 +502,7 @@ do_delete() {
 	scm_begin
 	scm_rm "${TARGET}"
 	scm_commit "Remove ${NAME} from store."
-	rmdir -p "$(dirname "${PREFIX}/${TARGET}")" 2>/dev/null || true
+	rmdir -p  -- "$(dirname "${PREFIX}/${TARGET}")" 2>/dev/null || true
 }
 
 # Edit a secret interactively
@@ -545,7 +546,7 @@ do_edit() {
 		printf '%s\n' "New password for ${NAME} not saved."
 	elif [ -n "${OLD_VALUE}" ] \
 	    && printf '%s\n' "${OLD_VALUE}" \
-	        | diff - "${TMPFILE}" >/dev/null 2>&1
+	        | diff -- - "${TMPFILE}" >/dev/null 2>&1
 	then
 		printf '%s\n' "Password for ${NAME} unchanged."
 		rm "${TMPFILE}"
@@ -621,7 +622,7 @@ do_encrypt() {
 #   DECISION: whether to ask before overwrite
 #   OVERWRITE: whether to re-use existing secret data
 do_generate() {
-	NEW_PASS="$(LC_ALL=C tr -dc "$3" </dev/urandom \
+	NEW_PASS="$(LC_ALL=C tr -dc -- "$3" </dev/urandom \
 	    | LC_ALL=C dd ibs=1 obs=1 count="$2" 2>/dev/null || true)"
 	NEW_PASS_LEN="$(strlen "${NEW_PASS}")"
 
@@ -632,7 +633,7 @@ do_generate() {
 	unset NEW_PASS_LEN
 
 	scm_begin
-	mkdir -p "$(dirname "${PREFIX}/$1.age")"
+	mkdir -p -- "$(dirname "${PREFIX}/$1.age")"
 
 	if [ -d "${PREFIX}/$1.age" ]; then
 		die "Cannot replace directory $1.age"
@@ -716,7 +717,7 @@ do_init() {
 	TARGET="${SUBDIR}/.age-recipients"
 	shift
 
-	mkdir -p "${SUBDIR}"
+	mkdir -p -- "${SUBDIR}"
 
 	if ! [ -f "${TARGET}" ] || [ "${OVERWRITE}" = yes ]; then
 		: >|"${TARGET}"
@@ -750,7 +751,7 @@ do_insert() {
 	fi
 
 	scm_begin
-	mkdir -p "$(dirname "${PREFIX}/$1.age")"
+	mkdir -p -- "$(dirname "${PREFIX}/$1.age")"
 
 	if [ "${MULTILINE}" = yes ]; then
 		printf '%s\n' \
@@ -858,7 +859,7 @@ do_reencrypt_file() {
 	WIP_FILE="$(mktemp "${PREFIX}/$1-XXXXXXXXX.age")"
 	do_decrypt "${PREFIX}/$1.age" \
 	    | do_encrypt "${WIP_FILE#"${PREFIX}"/}"
-	mv -f "${WIP_FILE}" "${PREFIX}/$1.age"
+	mv -f -- "${WIP_FILE}" "${PREFIX}/$1.age"
 	unset WIP_FILE
 	scm_add "$1.age"
 }
@@ -1161,7 +1162,7 @@ cmd_git() {
 		platform_tmpdir
 		TMPDIR="${SECURE_TMPDIR}" git -C "${PREFIX}" "$@"
 	elif [ "$1" = init ]; then
-		mkdir -p "${PREFIX}"
+		mkdir -p -- "${PREFIX}"
 		git -C "${PREFIX}" "$@"
 		scm_begin
 		scm_add '.'
