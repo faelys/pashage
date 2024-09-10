@@ -22,7 +22,7 @@ Security is not branded as a core objective, because the author does not
 have the clout to declare anything secure, and you should probably not
 trust random READMEs anyway.
 However the simplicity should help you assess whether this password store
-is a worthwhile compromise for _your_ threat model.
+is a worthwhile trade-off for _your_ threat model.
 
 For the reference, the author has views [similar to those of Filippo
 Valsorda](https://words.filippo.io/dispatches/passage/) and considers

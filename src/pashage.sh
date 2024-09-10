@@ -208,7 +208,7 @@ scm_rm() {
 # ACTIONS #
 ###########
 
-# Copy or move (depending on ${ACTION}) a secret file or dectory
+# Copy or move (depending on ${ACTION}) a secret file or directory
 #   $1: source name
 #   $2: destination name
 #   ACTION: Copy or Move
