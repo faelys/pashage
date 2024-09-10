@@ -1,0 +1,1393 @@
+#!/bin/sh
+# pashage - age-backed POSIX password manager
+# Copyright (C) 2024  Natasha Kerensikova
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+#############################
+# INTERNAL HELPER FUNCTIONS #
+#############################
+
+# Check a path and abort if it looks suspicious
+#   $1: path to check
+check_sneaky_path() {
+	if [ "$1" = ".." ] \
+	    || [ "$1" = "../${1#../}" ] \
+	    || [ "$1" = "${1%/..}/.." ] \
+	    || ! [ "$1" = "${1##*/../}" ] \
+	    && [ -n "$1" ]
+	then
+		die "Encountered path considered sneaky: \"$1\""
+	fi
+}
+
+# Check paths and abort if any looks suspicious
+check_sneaky_paths() {
+	for ARG in "$@"; do
+		check_sneaky_path "${ARG}"
+	done
+	unset ARG
+}
+
+# Run the arguments as a command an die on failure
+checked() {
+	if "$@"; then
+		:
+	else
+		CODE="$?"
+		printf '%s\n' "Fatal(${CODE}): $*" >&2
+		exit "${CODE}"
+	fi
+}
+
+# Output an error message and quit immediately
+die() {
+	printf '%s\n' "$*" >&2
+	exit 1
+}
+
+# Checks whether a globs expands correctly
+# This lets the shell expand the glob as an argument list, and counts on
+# the glob being passed unchanged as $1 otherwise.
+glob_exists() {
+	if [ -e "$1" ]; then
+		ANSWER=y
+	else
+		ANSWER=n
+	fi
+}
+
+# Find the deepest recipient file above the given path
+set_LOCAL_RECIPIENT_FILE() {
+	LOCAL_RECIPIENT_FILE="/$1"
+
+	while [ -n "${LOCAL_RECIPIENT_FILE}" ] \
+	   && ! [ -f "${PREFIX}${LOCAL_RECIPIENT_FILE}/.age-recipients" ]
+	do
+		LOCAL_RECIPIENT_FILE="${LOCAL_RECIPIENT_FILE%/*}"
+	done
+
+	if ! [ -f "${PREFIX}${LOCAL_RECIPIENT_FILE}/.age-recipients" ]; then
+		LOCAL_RECIPIENT_FILE=
+		return 0
+	fi
+
+	LOCAL_RECIPIENT_FILE="${PREFIX}${LOCAL_RECIPIENT_FILE}/.age-recipients"
+}
+
+# Count how many characters are in the first argument
+#   $1: string to measure
+strlen(){
+	RESULT=0
+	STR="$1"
+	while [ -n "${STR}" ]; do
+		RESULT=$((RESULT + 1))
+		STR="${STR#?}"
+	done
+	printf '%s\n' "${RESULT}"
+	unset RESULT
+	unset STR
+}
+
+# Output a usage error message message
+usage1() {
+	die "Usage: ${PROGRAM} ${COMMAND}" "$@"
+}
+
+# Ask for confirmation
+#   $1: Prompt
+yesno() {
+	printf '%s [y/n]' "$1"
+
+	if type stty >/dev/null 2>&1 && stty >/dev/null 2>&1; then
+
+		# Enable raw input to allow for a single byte to be read from
+		# stdin without needing to wait for the user to press Return.
+		stty -icanon
+
+		ANSWER=''
+
+		while [ "${ANSWER}" = "${ANSWER#[NnYy]}" ]; do
+			# Read a single byte from stdin using 'dd'.
+			# POSIX 'read' has no support for single/'N' byte
+			# based input from the user.
+			ANSWER=$(dd ibs=1 count=1 2>/dev/null)
+		done
+
+		# Disable raw input, leaving the terminal how we *should*
+		# have found it.
+		stty icanon
+
+		printf '\n'
+	else
+		read -r ANSWER
+		ANSWER="${ANSWER%"${ANSWER#?}"}"
+	fi
+
+	if [ "${ANSWER}" = Y ]; then
+		ANSWER=y
+	fi
+}
+
+
+
+##################
+# SCM MANAGEMENT #
+##################
+
+# Add a file or directory to pending changes
+#   $1: path
+scm_add() {
+	[ -d "${PREFIX}/.git" ] || return 0
+	git -C "${PREFIX}" add "$1"
+}
+
+# Start a sequence of changes, asserting nothing is pending
+scm_begin() {
+	[ -d "${PREFIX}/.git" ] || return 0
+	if [ -n "$(git -C "${PREFIX}" status --porcelain || true)" ]; then
+		die "There are already pending changes."
+	fi
+}
+
+# Commit pending changes
+#   $1: commit message
+scm_commit() {
+	[ -d "${PREFIX}/.git" ] || return 0
+	if [ -n "$(git -C "${PREFIX}" status --porcelain || true)" ]; then
+		git -C "${PREFIX}" commit -m "$1"
+	fi
+}
+
+# Copy a file or directory in the filesystem and put it in pending changes
+#   $1: source
+#   $2: destination
+scm_cp() {
+	cp -r "${PREFIX}/$1" "${PREFIX}/$2"
+	scm_add "$2"
+}
+
+# Add deletion of a file or directory to pending changes
+#   $1: path
+scm_del() {
+	[ -d "${PREFIX}/.git" ] || return 0
+	git -C "${PREFIX}" rm -qr "$1"
+}
+
+# Move a file or directory in the filesystem and put it in pending changes
+#   $1: source
+#   $2: destination
+scm_mv() {
+	if [ -d "${PREFIX}/.git" ]; then
+		git -C "${PREFIX}" mv "$1" "$2"
+	else
+		mv "${PREFIX}/$1" "${PREFIX}/$2"
+	fi
+}
+
+# Delete a file or directory from filesystem and put it in pending chnages
+scm_rm() {
+	rm -rf "${PREFIX:?}/$1"
+	scm_del "$1"
+}
+
+
+###########
+# ACTIONS #
+###########
+
+# Copy or move (depending on ${ACTION}) a secret file or dectory
+#   $1: source name
+#   $2: destination name
+#   ACTION: Copy or Move
+#   DECISION: whether to re-encrypt or copy/move
+#   OVERWRITE: whether to overwrite without confirmation
+#   SCM_ACTION: scm_cp or scm_mv
+do_copy_move() {
+	if [ "$1" = "${1%/}/" ]; then
+		if ! [ -d "${PREFIX}/$1" ]; then
+			die "Error: $1 is not in the password store."
+		fi
+		SRC="$1"
+	elif [ -e "${PREFIX}/$1.age" ] && ! [ -d "${PREFIX}/$1.age" ]; then
+		SRC="$1.age"
+	elif [ -n "$1" ] && [ -d "${PREFIX}/$1" ]; then
+		SRC="$1/"
+	elif [ -e "${PREFIX}/$1" ]; then
+		SRC="$1"
+	else
+		die "Error: $1 is not in the password store."
+	fi
+
+	if [ -z "${SRC}" ] || [ "${SRC}" = "${SRC%/}/" ]; then
+		LOCAL_ACTION=do_copy_move_dir
+		if [ -d "${PREFIX}/$2" ]; then
+			DEST="${2%/}${2:+/}$(basename "${SRC%/}")/"
+			if [ -e "${PREFIX}/${DEST}" ]; then
+				die "Error: $2 already contains" \
+				    "$(basename "${SRC%/}")"
+			fi
+		else
+			DEST="${2%/}${2:+/}"
+			if [ -e "${PREFIX}/${DEST%/}" ]; then
+				die "Error: ${DEST%/} is not a directory"
+			fi
+		fi
+		mkdir -p "${PREFIX}/${DEST}"
+
+	elif [ "$2" = "${2%/}/" ]; then
+		mkdir -p "${PREFIX}/$2"
+		[ -d "${PREFIX}/$2" ] || die "Error: $2 is not a directory"
+		DEST="$2$(basename "${SRC}")"
+		LOCAL_ACTION=do_copy_move_file
+
+	elif [ -d "${PREFIX}/$2" ]; then
+		DEST="${2%/}/$(basename "${SRC}")"
+		if [ -d "${PREFIX}/${DEST}" ]; then
+			die "Error: $2 already contains $(basename "${SRC}")"
+		fi
+		LOCAL_ACTION=do_copy_move_file
+
+	else
+		if [ "${SRC}" = "${SRC%.age}.age" ] \
+		    && ! [ "$2" = "${2%.age}.age" ]
+		then
+			DEST="$2.age"
+		else
+			DEST="$2"
+		fi
+
+		mkdir -p "$(dirname "${PREFIX}/${DEST}")"
+		LOCAL_ACTION=do_copy_move_file
+	fi
+
+	case "${DECISION}" in
+	    force|interactive)
+		ANSWER=y
+		;;
+	    keep)
+		ANSWER=n
+		;;
+	    default)
+		if [ "${SRC}" = "${SRC%/}/" ]; then
+			# Handled in do_copy_move_dir
+			ANSWER=y
+		else
+			set_LOCAL_RECIPIENT_FILE "${SRC}"
+			SRC_FILE="${LOCAL_RECIPIENT_FILE}"
+			set_LOCAL_RECIPIENT_FILE "${DEST}"
+			DST_FILE="${LOCAL_RECIPIENT_FILE}"
+
+			if [ "${SRC_FILE}" = "${DST_FILE}" ]; then
+				ANSWER=n
+			elif [ -n "${SRC_FILE}" ] \
+			    && [ -n "${DST_FILE}" ] \
+			    && diff "${SRC_FILE}" "${DST_FILE}" >/dev/null 2>&1
+			then
+				ANSWER=n
+			else
+				ANSWER=y
+			fi
+
+			unset DST_FILE
+			unset SRC_FILE
+		fi
+		;;
+	    *)
+		die "Unexpected DECISION value \"${DECISION}\""
+		;;
+	esac
+
+	scm_begin
+	SCM_COMMIT_MSG="${ACTION} ${SRC} to ${DEST}"
+
+	if [ "${ANSWER}" = y ]; then
+		"${LOCAL_ACTION}" "${SRC}" "${DEST}"
+	else
+		"${SCM_ACTION}" "${SRC}" "${DEST}"
+	fi
+
+	scm_commit "${SCM_COMMIT_MSG}"
+
+	unset LOCAL_ACTION
+	unset SRC
+	unset DEST
+	unset SCM_COMMIT_MSG
+}
+
+# Copy or move a secret directory (depending on ${ACTION})
+#   $1: source directory name (with a trailing slash)
+#   $2: destination directory name (with a trailing slash)
+#   DECISION: whether to re-encrypt or copy/move
+#   SCM_ACTION: scm_cp or scm_mv
+do_copy_move_dir() {
+	[ "$1" = "${1%/}/" ] || [ -z "$1" ] || die 'Internal error'
+	[ "$2" = "${2%/}/" ] || [ -z "$2" ] || die 'Internal error'
+
+	if [ -e "${PREFIX}/$1.age-recipients" ] \
+	    && { [ "${DECISION}" = keep ] || [ "${DECISION}" = default ]; }
+	then
+		# Recipiends are transported too, no need to reencrypt
+		"${SCM_ACTION}" "$1" "$2"
+	else
+		for ARG in "${PREFIX}/$1".* "${PREFIX}/$1"*; do
+			SRC="${ARG#"${PREFIX}/"}"
+			DEST="$2$(basename "${ARG}")"
+
+			if [ -f "${ARG}" ]; then
+				do_copy_move_file "${SRC}" "${DEST}"
+			elif [ -d "${ARG}" ] && [ "${ARG}" = "${ARG%/.*}" ]
+			then
+				mkdir -p "${PREFIX}/${DEST}"
+				do_copy_move_dir "${SRC}/" "${DEST}/"
+			fi
+		done
+
+		unset ARG
+	fi
+}
+
+# Copy or move a secret file (depending on ${ACTION})
+#   $1: source file name
+#   $2: destination file name
+#   ACTION: Copy or Move
+#   DECISION: whether to re-encrypt or copy/move
+#   OVERWRITE: whether to overwrite without confirmation
+#   SCM_ACTION: scm_cp or scm_mv
+do_copy_move_file() {
+	if [ -e "${PREFIX}/$2" ]; then
+		if ! [ "${OVERWRITE}" = yes ]; then
+			yesno "$2 already exists. Overwrite?"
+			[ "${ANSWER}" = y ] || return 0
+			unset ANSWER
+		fi
+
+		rm -f "${PREFIX}/$2"
+	fi
+
+	if [ "$1" = "${1%.age}.age" ]; then
+		case "${DECISION}" in
+		    keep)
+			ANSWER=n
+			;;
+		    interactive)
+			yesno "Reencrypt ${1%.age} into ${2%.age}?"
+			;;
+		    default|force)
+			ANSWER=y
+			;;
+		    *)
+			die "Unexpected DECISION value \"${DECISION}\""
+			;;
+		esac
+	else
+		ANSWER=n
+	fi
+
+	if [ "${ANSWER}" = y ]; then
+		do_decrypt "${PREFIX}/$1" | do_encrypt "$2"
+		if [ "${ACTION}" = Move ]; then
+			scm_rm "$1"
+		fi
+		scm_add "$2"
+	else
+		"${SCM_ACTION}" "$1" "$2"
+	fi
+
+	unset ANSWER
+}
+
+# Decrypt a secret file into standard output
+#   $1: full path of the encrypted file
+#   IDENTITIES_FILE: full path of age identity
+do_decrypt() {
+	checked "${AGE}" -d -i "${IDENTITIES_FILE}" "$1"
+}
+
+# Decrypt a GPG secret file into standard output
+#   $1: pull path of the encrypted file
+#   GPG: (optional) gpg command
+do_decrypt_gpg() {
+	if [ -z "${GPG-}" ]; then
+		if type gpg2 >/dev/null 2>&1; then
+			GPG=gpg2
+		elif type gpg >/dev/null 2>&1; then
+			GPG=gpg
+		else
+			die "GPG does not seem available"
+		fi
+	fi
+
+	if [ -n "${GPG_AGENT_INFO-}" ] || [ "${GPG}" = "gpg2" ]; then
+		set -- "--batch" "--use-agent" "$@"
+	fi
+	set -- "--quiet" \
+	    "--yes" \
+	    "--compress-algo=none" \
+	    "--no-encrypt-to" \
+	    "$@"
+
+	checked "${GPG}" -d "$@"
+}
+
+# Remove identities from a subdirectory
+#   $1: relative subdirectory (may be empty)
+#   DECISION: whether to re-encrypt or not
+do_deinit() {
+	LOC="${1:-store root}"
+	TARGET="${1%/}${1:+/}.age-recipients"
+
+	if ! [ -f "${PREFIX}/${TARGET}" ]; then
+		die "No existing recipient to remove at ${LOC}"
+ 	fi
+
+	scm_begin
+	scm_rm "${TARGET}"
+	if ! [ "${DECISION}" = keep ]; then
+		do_reencrypt_dir "${PREFIX}/$1"
+	fi
+	scm_commit "Deinitialize ${LOC}"
+	rmdir -p "${PREFIX}/$1" 2>/dev/null || true
+
+	unset LOC
+	unset TARGET
+}
+
+# Delete a file or directory from the password store
+#   $1: file or directory name
+#   DECISION: whether to ask before deleting
+do_delete() {
+	# Distinguish between file or directory
+	if [ "$1" = "${1%/}/" ]; then
+		NAME="$1"
+		TARGET="$1"
+		if ! [ -e "${PREFIX}/${NAME%/}" ]; then
+			die "Error: $1 is not in the password store."
+		fi
+		if ! [ -d "${PREFIX}/${NAME%/}" ]; then
+			die "Error: $1 is not a directory."
+		fi
+	elif [ -f "${PREFIX}/$1.age" ]; then
+		NAME="$1"
+		TARGET="$1.age"
+	elif [ -d "${PREFIX}/$1" ]; then
+		NAME="$1/"
+		TARGET="$1/"
+	else
+		die "Error: $1 is not in the password store."
+	fi
+
+	if [ "${DECISION}" = force ]; then
+		printf '%s\n' "Removing ${NAME}"
+	else
+		yesno "Are you sure you would like to delete ${NAME}?"
+		[ "${ANSWER}" = y ] || return 0
+		unset ANSWER
+	fi
+
+	# Perform the deletion
+	scm_begin
+	scm_rm "${TARGET}"
+	scm_commit "Remove ${NAME} from store."
+	rmdir -p "$(dirname "${PREFIX}/${TARGET}")" 2>/dev/null || true
+}
+
+# Edit a secret interactively
+#   $1: pass-name
+#   EDIT_CMD, EDITOR, VISUAL: editor command
+do_edit() {
+	NAME="${1#/}"
+	TARGET="${PREFIX}/${NAME}.age"
+
+	TMPNAME="${NAME}"
+	while ! [ "${TMPNAME}" = "${TMPNAME#*/}" ]; do
+		TMPNAME="${TMPNAME%%/*}-${TMPNAME#*/}"
+	done
+
+	TMPFILE="$(mktemp -u "${SECURE_TMPDIR}/XXXXXX")-${TMPNAME}.txt"
+
+	if [ -f "${TARGET}" ]; then
+		ACTION="Edit"
+		do_decrypt "${TARGET}" >"${TMPFILE}"
+		OLD_VALUE="$(cat "${TMPFILE}")"
+	else
+		ACTION="Add"
+		OLD_VALUE=
+	fi
+
+	scm_begin
+
+	if [ -z "${EDIT_CMD-}" ]; then
+		if [ -n "${VISUAL-}" ] && ! [ "${TERM:-dumb}" = dumb ]; then
+			EDIT_CMD="${VISUAL}"
+		elif [ -n "${EDITOR-}" ]; then
+			EDIT_CMD="${EDITOR}"
+		else
+			EDIT_CMD="vi"
+		fi
+	fi
+
+	${EDIT_CMD} "${TMPFILE}"
+
+	if ! [ -f "${TMPFILE}" ]; then
+		printf '%s\n' "New password for ${NAME} not saved."
+	elif [ -n "${OLD_VALUE}" ] \
+	    && printf '%s\n' "${OLD_VALUE}" \
+	        | diff - "${TMPFILE}" >/dev/null 2>&1
+	then
+		printf '%s\n' "Password for ${NAME} unchanged."
+		rm "${TMPFILE}"
+	else
+		OVERWRITE=once
+		do_encrypt "${NAME}.age" <"${TMPFILE}"
+		scm_add "${NAME}.age"
+		scm_commit "${ACTION} password for ${NAME} using ${EDIT_CMD}"
+		rm "${TMPFILE}"
+	fi
+
+	unset ACTION
+	unset OLD_VALUE
+	unset NAME
+	unset TARGET
+	unset TMPNAME
+	unset TMPFILE
+}
+
+# Encrypt a secret on standard input into a file
+#   $1: relative path of the encrypted file
+do_encrypt() {
+	TARGET="$1"
+	set --
+
+	if [ -n "${PASHAGE_RECIPIENTS_FILE-}" ]; then
+		set -- "$@" -R "${PASHAGE_RECIPIENTS_FILE}"
+	fi
+
+	if [ -n "${PASSAGE_RECIPIENTS_FILE-}" ]; then
+		set -- "$@" -R "${PASSAGE_RECIPIENTS_FILE}"
+	fi
+
+	if [ -n "${PASHAGE_RECIPIENTS-}" ]; then
+		for ARG in ${PASHAGE_RECIPIENTS}; do
+			set -- "$@" -r "${ARG}"
+		done
+		unset ARG
+	fi
+
+	if [ -n "${PASSAGE_RECIPIENTS-}" ]; then
+		for ARG in ${PASSAGE_RECIPIENTS}; do
+			set -- "$@" -r "${ARG}"
+		done
+		unset ARG
+	fi
+
+	set_LOCAL_RECIPIENT_FILE "${TARGET}"
+
+	if [ -n "${LOCAL_RECIPIENT_FILE}" ]; then
+		set -- "$@" -R "${LOCAL_RECIPIENT_FILE}"
+	else
+		set -- "$@" -i "${IDENTITIES_FILE}"
+	fi
+
+	unset LOCAL_RECIPIENT_FILE
+
+	if [ -e "${PREFIX}/${TARGET}" ] && ! [ "${OVERWRITE}" = yes ]; then
+		if [ "${OVERWRITE}" = once ]; then
+			OVERWRITE=no
+		else
+			die "Refusing to overwite ${TARGET}"
+		fi
+	fi
+	"${AGE}" -e "$@" -o "${PREFIX}/${TARGET}"
+	unset TARGET
+}
+
+# Generate a new secret
+#   $1: secret name
+#   $2: new password length
+#   $3: new password charset
+#   DECISION: whether to ask before overwrite
+#   OVERWRITE: whether to re-use existing secret data
+do_generate() {
+	NEW_PASS="$(LC_ALL=C tr -dc "$3" </dev/urandom \
+	    | LC_ALL=C dd ibs=1 obs=1 count="$2" 2>/dev/null || true)"
+	NEW_PASS_LEN="$(strlen "${NEW_PASS}")"
+
+	if [ "${NEW_PASS_LEN}" -ne "$2" ]; then
+		die "Error while generating password:" \
+		    "${NEW_PASS_LEN}/$2 bytes read"
+	fi
+	unset NEW_PASS_LEN
+
+	scm_begin
+	mkdir -p "$(dirname "${PREFIX}/$1.age")"
+
+	if [ -d "${PREFIX}/$1.age" ]; then
+		die "Cannot replace directory $1.age"
+
+	elif [ -e "${PREFIX}/$1.age" ] && [ "${OVERWRITE}" = yes ]; then
+		printf '%s\n' "Decrypting previous secret for $1"
+		OLD_SECRET="$(do_decrypt "${PREFIX}/$1.age" | tail -n +2)"
+		WIP_FILE="$(mktemp "${PREFIX}/$1-XXXXXXXXX.age")"
+		do_encrypt "${WIP_FILE#"${PREFIX}"/}" <<-EOF
+			${NEW_PASS}
+			${OLD_SECRET}
+		EOF
+		mv "${WIP_FILE}" "${PREFIX}/$1.age"
+		VERB="Replace"
+		unset OLD_SECRET
+		unset WIP_FILE
+
+	else
+		if [ -e "${PREFIX}/$1.age" ]; then
+			if ! [ "${DECISION}" = force ]; then
+				yesno "An entry already exists for $1. Overwrite it?"
+				[ "${ANSWER}" = y ] || return 0
+				unset ANSWER
+			fi
+
+			OVERWRITE=once
+		fi
+
+		do_encrypt "$1.age" <<-EOF
+			${NEW_PASS}
+		EOF
+
+		VERB="Add"
+	fi
+
+	scm_add "${PREFIX}/$1.age"
+	scm_commit "${VERB} generated password for $1"
+
+	unset VERB
+
+	do_show "$1" <<-EOF
+		${NEW_PASS}
+	EOF
+
+	unset NEW_PASS
+}
+
+# Recursively grep decrypted secrets in current directory
+#   $1: current subdirectory name
+#   ... grep arguments
+do_grep() {
+	SUBDIR="$1"
+	shift
+
+	glob_exists ./*
+	[ "${ANSWER}" = y ] || return 0
+	unset ANSWER
+
+	for ARG in *; do
+		if [ -d "${ARG}" ]; then
+			( cd "${ARG}" && do_grep "${SUBDIR}${ARG}/" "$@" )
+		elif [ "${ARG}" = "${ARG%.age}.age" ]; then
+			FOUND="$(do_decrypt "${ARG}" | grep "$@")"
+			if [ -n "${FOUND}" ]; then
+				printf '%s%s\n%s\n' \
+				      "${BLUE_TEXT}${SUBDIR}" \
+				      "${BOLD_TEXT}${ARG%.age}${NORMAL_TEXT}:" \
+				      "${FOUND}"
+			fi
+		fi
+	done
+}
+
+# Add identities to a subdirectory
+#   $1: relative subdirectory (may be empty)
+#   ... identities
+#   DECISION: whether to re-encrypt or not
+do_init() {
+	LOC="${1:-store root}"
+	SUBDIR="${PREFIX}${1:+/}${1%/}"
+	TARGET="${SUBDIR}/.age-recipients"
+	shift
+
+	mkdir -p "${SUBDIR}"
+
+	if ! [ -f "${TARGET}" ] || [ "${OVERWRITE}" = yes ]; then
+		: >|"${TARGET}"
+	fi
+
+	scm_begin
+	printf '%s\n' "$@" >>"${TARGET}"
+	scm_add "${TARGET#"${PREFIX}/"}"
+	if ! [ "${DECISION}" = keep ]; then
+		do_reencrypt_dir "${SUBDIR}"
+	fi
+	scm_commit "Set age recipients at ${LOC}"
+	printf '%s\n' "Password store recipients set at ${LOC}"
+
+	unset LOC
+	unset TARGET
+	unset SUBDIR
+}
+
+# Insert a new secret from standard input
+#   $1: entry name
+#   ECHO: whether interactive echo is kept
+#   OVERWRITE: whether to overwrite without confirmation
+#   MULTILINE: whether whole standard input is used
+do_insert() {
+	if [ -e "${PREFIX}/$1.age" ] && [ "${OVERWRITE}" = no ]; then
+		yesno "An entry already exists for $1. Overwrite it?"
+		[ "${ANSWER}" = y ] || return 0
+		unset ANSWER
+		OVERWRITE=once
+	fi
+
+	scm_begin
+	mkdir -p "$(dirname "${PREFIX}/$1.age")"
+
+	if [ "${MULTILINE}" = yes ]; then
+		printf '%s\n' \
+		    "Enter contents of $1 and press Ctrl+D when finished:"
+		do_encrypt "$1.age"
+
+	elif [ "${ECHO}" = yes ] \
+	    || ! type stty >/dev/null 2>&1 \
+	    || ! stty >/dev/null 2>&1
+	then
+		printf 'Enter password for %s: ' "$1"
+		head -n 1 | do_encrypt "$1.age"
+
+	else
+		while true; do
+			printf 'Enter password for %s:  ' "$1"
+			stty -echo
+			read -r LINE1
+			printf '\nRetype password for %s: ' "$1"
+			read -r LINE2
+			stty echo
+			printf '\n'
+
+			if [ "${LINE1}" = "${LINE2}" ]; then
+				break
+			else
+				unset LINE1 LINE2
+				echo "Passwords don't match"
+			fi
+		done
+
+		printf '%s\n' "${LINE1}" | do_encrypt "$1.age"
+		unset LINE1 LINE2
+	fi
+
+	scm_add "$1.age"
+	scm_commit "Add given password for $1 to store."
+}
+
+# Display a single directory or entry
+#   $1: entry name
+do_list_or_show() {
+	if [ -z "$1" ]; then
+		do_tree "${PREFIX}" "Password Store"
+	elif [ -f "${PREFIX}/$1.age" ]; then
+		do_decrypt "${PREFIX}/$1.age" | do_show "$1"
+	elif [ -d "${PREFIX}/$1" ]; then
+		do_tree "${PREFIX}/$1" "$1"
+	elif [ -f "${PREFIX}/$1.gpg" ]; then
+		do_decrypt_gpg "${PREFIX}/$1.gpg" | do_show "$1"
+	else
+		die "Error: $1 is not in the password store."
+	fi
+}
+
+# Re-encrypts a file or a directory
+#   $1: entry name
+#   DECISION: whether to ask before re-encryption
+do_reencrypt() {
+	if [ "$1" = "${1%/}/" ]; then
+		if ! [ -d "${PREFIX}/${1%/}" ]; then
+			die "Error: $1 is not in the password store."
+		fi
+		do_reencrypt_dir "${PREFIX}/${1%/}"
+
+	elif [ -f "${PREFIX}/$1.age" ]; then
+		do_reencrypt_file "$1"
+
+	elif [ -d "${PREFIX}/$1" ]; then
+		do_reencrypt_dir "${PREFIX}/$1"
+
+	else
+		die "Error: $1 is not in the password store."
+	fi
+}
+
+# Recursively re-encrypts a directory
+#   $1: absolute directory path
+#   DECISION: whether to ask before re-encryption
+do_reencrypt_dir() {
+	for ENTRY in "$1"/*; do
+		if [ -d "${ENTRY}" ]; then
+			if ! [ -e "${ENTRY}/.age-recipients" ] \
+			    || [ "${DECISION}" = force ]
+			then
+				( do_reencrypt_dir "${ENTRY}" )
+			fi
+		elif [ "${ENTRY}" = "${ENTRY%.age}.age" ]; then
+			ENTRY="${ENTRY#"${PREFIX}"/}"
+			do_reencrypt_file "${ENTRY%.age}"
+		fi
+	done
+}
+
+# Re-encrypts a file
+#   $1: entry name
+#   DECISION: whether to ask before re-encryption
+do_reencrypt_file() {
+	if [ "${DECISION}" = interactive ]; then
+		yesno "Re-encrypt $1?"
+		[ "${ANSWER}" = y ] || return 0
+		unset ANSWER
+	fi
+
+	WIP_FILE="$(mktemp "${PREFIX}/$1-XXXXXXXXX.age")"
+	do_decrypt "${PREFIX}/$1.age" \
+	    | do_encrypt "${WIP_FILE#"${PREFIX}"/}"
+	mv -f "${WIP_FILE}" "${PREFIX}/$1.age"
+	unset WIP_FILE
+	scm_add "$1.age"
+}
+
+# Display a decrypted secret from standard input
+#   $1: title
+#   SELECTED_LINE: which line to paste or diplay as qr-code
+#   SHOW: how to show the secret
+do_show() {
+	case "${SHOW}" in
+	    text)
+		cat
+		;;
+	    clip)
+		tail -n "+${SELECTED_LINE}" \
+		    | head -n 1 \
+		    | tr -d '\n' \
+		    | platform_clip "$1"
+		;;
+	    qrcode)
+		tail -n "+${SELECTED_LINE}" \
+		    | head -n 1 \
+		    | tr -d '\n' \
+		    | platform_qrcode "$1"
+		;;
+	    *)
+		die "Unexpected SHOW value \"${SHOW}\""
+		;;
+	esac
+}
+
+# Display the tree rooted at the given directory
+#   $1: root directory
+#   $2: title
+#  ...: (optional) grep arguments to filter
+do_tree() {
+	( cd "$1" && shift && do_tree_cwd "$@" )
+}
+
+# Display the subtree rooted at the current directory
+#   $1: title
+#  ...: (optional) grep arguments to filter
+do_tree_cwd() {
+	ACC=""
+	PREV=""
+	TITLE="$1"
+	shift
+
+	for ENTRY in *; do
+		[ -e "${ENTRY}" ] || continue
+		ITEM="$(do_tree_item "${ENTRY}" "$@")"
+		[ -z "${ITEM}" ] && continue
+
+		if [ -n "${PREV}" ]; then
+			ACC="$(printf '%s\n' "${PREV}" | do_tree_prefix "${ACC}" "${TREE_T}" "${TREE_I}")"
+		fi
+
+		PREV="${ITEM}"
+	done
+	unset ENTRY
+
+	if [ -n "${PREV}" ]; then
+		ACC="$(printf '%s\n' "${PREV}" | do_tree_prefix "${ACC}" "${TREE_L}" "${TREE__}")"
+	fi
+
+	if [ $# -eq 0 ] || [ -n "${ACC}" ]; then
+		printf '%s\n' "${TITLE}" "${ACC}"
+	fi
+
+	unset ACC
+	unset PREV
+	unset TITLE
+}
+
+# Display a node in a tree
+#   $1: item name
+#  ...: (optional) grep arguments to filter
+do_tree_item() {
+	ITEM_NAME="$1"
+	shift
+
+	if [ -d "${ITEM_NAME}" ]; then
+		do_tree "${ITEM_NAME}" \
+		    "${BLUE_TEXT}${ITEM_NAME}${NORMAL_TEXT}" \
+		    "$@"
+	elif [ "${ITEM_NAME%.age}.age" = "${ITEM_NAME}" ]; then
+		if [ $# -eq 0 ] \
+		    || printf '%s\n' "${ITEM_NAME%.age}" | grep -q "$@"
+		then
+			printf '%s\n' "${ITEM_NAME%.age}"
+		fi
+	elif [ "${ITEM_NAME%.gpg}.gpg" = "${ITEM_NAME}" ]; then
+		if [ $# -eq 0 ] \
+		    || printf '%s\n' "${ITEM_NAME%.age}" | grep -q "$@"
+		then
+			printf '%s\n' \
+			     "${RED_TEXT}${ITEM_NAME%.gpg}${NORMAL_TEXT}"
+		fi
+	fi
+
+	unset ITEM_NAME
+}
+
+# Add a tree prefix
+#   $1: prefix of the first line
+#   $2: prefix of the following lines
+do_tree_prefix() {
+	[ -n "$1" ] && printf '%s\n' "$1"
+	read -r LINE
+	printf '%s%s\n' "$2" "${LINE}"
+	while read -r LINE; do
+		printf '%s%s\n' "$3" "${LINE}"
+	done
+	unset LINE
+}
+
+
+############
+# COMMANDS #
+############
+
+cmd_copy() {
+	ACTION=Copy
+	SCM_ACTION=scm_cp
+	cmd_copy_move "$@"
+}
+
+cmd_copy_move() {
+	PARSE_ERROR=no
+	while [ $# -ge 1 ]; do
+		case "$1" in
+		    -f|--force)
+			OVERWRITE=yes
+			shift ;;
+		    --)
+			shift
+			break ;;
+		    -*)
+			PARSE_ERROR=yes
+			break ;;
+		    *)
+			break ;;
+		esac
+	done
+
+	if [ "${PARSE_ERROR}" = yes ] || [ $# -lt 2 ]; then
+		usage1 "[--force,-f] old-path new-path"
+	fi
+	unset PARSE_ERROR
+
+	if [ $# -gt 2 ]; then
+		DEST="$1"
+		shift
+		for ARG in "$@"; do
+			shift
+			set -- "$@" "${DEST}"
+			DEST="${ARG}"
+		done
+
+		for ARG in "$@"; do
+			do_copy_move "${ARG}" "${DEST%/}/"
+		done
+	else
+		do_copy_move "$@"
+	fi
+}
+
+cmd_delete() {
+	check_sneaky_paths "$@"
+
+	PARSE_ERROR=no
+	while [ $# -ge 1 ]; do
+		case "$1" in
+		    -f|--force)
+			DECISION=force
+			shift ;;
+		    --)
+			shift
+			break ;;
+		    -*)
+			PARSE_ERROR=yes
+			break ;;
+		    *)
+			break ;;
+		esac
+	done
+
+	if [ "${PARSE_ERROR}" = yes ] || [ $# -eq 0 ]; then
+		usage1 "[--force,-f] pass-name ..."
+	fi
+	unset PARSE_ERROR
+
+	for ARG in "$@"; do
+		do_delete "${ARG}"
+	done
+}
+
+cmd_edit() {
+	[ $# -eq 0 ] && usage1 "pass-name"
+
+	check_sneaky_paths "$@"
+	platform_tmpdir
+
+	for ARG in "$@"; do
+		do_edit "${ARG}"
+	done
+}
+
+cmd_find() {
+	if [ $# -eq 0 ]; then
+		usage1 "[-grepflags] regex"
+	fi
+
+	do_tree "${PREFIX}" "Search pattern: $*" "$@"
+}
+
+cmd_generate() {
+	PARSE_ERROR=no
+	CHARSET="${CHARACTER_SET}"
+	VERB="Add"
+
+	while [ $# -ge 1 ]; do
+		case "$1" in
+		    --)
+			shift
+			break ;;
+		    -c|--clip)
+			if ! [ "${SHOW}" = text ]; then
+				PARSE_ERROR=yes
+				break
+			fi
+			SHOW=clip
+			shift ;;
+		    -f|--force)
+			if [ "${OVERWRITE}" = yes ]; then
+				PARSE_ERROR=yes
+				break
+			fi
+			DECISION=force
+			shift ;;
+		    -i|--inplace)
+			if [ "${DECISION}" = force ]; then
+				PARSE_ERROR=yes
+				break
+			fi
+			OVERWRITE=yes
+			shift ;;
+		    -n|--no-symbols)
+			CHARSET="${CHARACTER_SET_NO_SYMBOLS}"
+			shift ;;
+		    -q|--qrcode)
+			if ! [ "${SHOW}" = text ]; then
+				PARSE_ERROR=yes
+				break
+			fi
+			SHOW=qrcode
+			shift ;;
+		    -[cfinq]?*)
+			REST="${1#-?}"
+			ARG="${1%"${REST}"}"
+			shift
+			set -- "${ARG}" "-${REST}" "$@"
+			unset ARG
+			unset REST
+			;;
+		    -*)
+			PARSE_ERROR=yes
+			break ;;
+		    *)
+			break ;;
+		esac
+	done
+
+	if [ "${PARSE_ERROR}" = yes ] || [ $# -eq 0 ] || [ $# -gt 2 ] \
+	    || [ "${DECISION}-${OVERWRITE}" = force-yes ]
+	then
+		usage1 "[--no-symbols,-n] [--clip,-c | --qrcode,-q]" \
+		       "[--in-place,-i | --force,-f] pass-name [pass-length]"
+	fi
+
+	unset PARSE_ERROR
+
+	check_sneaky_path "$1"
+	LENGTH="${2:-${GENERATED_LENGTH}}"
+	[ -n "${LENGTH##*[!0-9]*}" ] \
+	    || die "Error: passlength \"${LENGTH}\" must be a number."
+	[ "${LENGTH}" -gt 0 ] \
+	    || die "Error: pass-length must be greater than zero."
+
+	do_generate "$1" "${LENGTH}" "${CHARSET}"
+
+	unset CHARSET
+	unset LENGTH
+}
+
+cmd_git() {
+	if [ $# -lt 1 ]; then
+		usage1 'args ...'
+	elif [ -d "${PREFIX}/.git" ]; then
+		platform_tmpdir
+		TMPDIR="${SECURE_TMPDIR}" git -C "${PREFIX}" "$@"
+	elif [ "$1" = init ]; then
+		mkdir -p "${PREFIX}"
+		git -C "${PREFIX}" "$@"
+		scm_begin
+		scm_add '.'
+		scm_commit "Add current contents of password store."
+		cmd_gitconfig
+	elif [ "$1" = clone ]; then
+		git "$@" "${PREFIX}"
+		cmd_gitconfig
+	else
+		die "Error: the password store is not a git repository." \
+		    "Try \"${PROGRAM} git init\"."
+	fi
+}
+
+cmd_grep() {
+	[ $# -eq 0 ] && usage1 "[GREP_OPTIONS] search-regex"
+	( cd "${PREFIX}" && do_grep "" "$@" )
+}
+
+cmd_gitconfig() {
+	[ -d "${PREFIX}/.git" ] || die "The store is not a git repository."
+
+	if ! [ -f "${PREFIX}/.gitattributes" ] ||
+	    ! grep -Fqx '*.age diff=age' "${PREFIX}/.gitattributes"
+	then
+		scm_begin
+		printf '*.age diff=age\n' >>"${PREFIX}/.gitattributes"
+		scm_add ".gitattributes"
+		scm_commit "Configure git repository for age file diff."
+	fi
+
+	git -C "${PREFIX}" config --local diff.age.binary true
+	git -C "${PREFIX}" config --local diff.age.textconv \
+	    "${AGE} -d -i ${IDENTITIES_FILE}"
+}
+
+cmd_init() {
+	PARSE_ERROR=no
+	SUBDIR=''
+
+	while [ $# -ge 1 ]; do
+		case "$1" in
+		    -p|--path)
+			if [ $# -lt 2 ]; then
+				PARSE_ERROR=yes
+				break
+			fi
+
+			SUBDIR="$2"
+			shift 2 ;;
+
+		    -p?*)
+			SUBDIR="${1#-p}"
+			shift ;;
+
+		    --path=*)
+			SUBDIR="${1#--path=}"
+			shift ;;
+
+		    --)
+			shift
+			break ;;
+
+		    -*)
+			PARSE_ERROR=yes
+			break ;;
+
+		    *)
+			break ;;
+		esac
+	done
+
+	if [ "${PARSE_ERROR}" = yes ] || [ $# -eq 0 ]; then
+		usage1 "[--path=subfolder,-p subfolder] recipient ..."
+	fi
+
+	check_sneaky_path "${SUBDIR}"
+
+	if [ $# -eq 1 ] && [ -z "$1" ]; then
+		do_deinit "${SUBDIR}"
+	else
+		do_init "${SUBDIR}" "$@"
+	fi
+
+	unset PARSE_ERROR
+	unset SUBDIR
+}
+
+cmd_insert() {
+	check_sneaky_paths "$@"
+
+	PARSE_ERROR=no
+	while [ $# -ge 1 ]; do
+		case "$1" in
+		    -e|--echo)
+			ECHO=yes
+			shift ;;
+		    -f|--force)
+			OVERWRITE=yes
+			shift ;;
+		    -m|--multiline)
+			MULTILINE=yes
+			shift ;;
+		    --)
+			shift
+			break ;;
+		    -e?*)
+			ECHO=yes
+			ARG="-${1#-e}"
+			shift
+			set -- "${ARG}" "$@"
+			unset ARG
+			;;
+		    -f?*)
+			OVERWRITE=yes
+			ARG="-${1#-f}"
+			shift
+			set -- "${ARG}" "$@"
+			unset ARG
+			;;
+		    -m?*)
+			MULTILINE=yes
+			ARG="-${1#-m}"
+			shift
+			set -- "${ARG}" "$@"
+			unset ARG
+			;;
+		    -?*)
+			PARSE_ERROR=yes
+			break ;;
+		    *)
+			break ;;
+		esac
+	done
+
+	if [ "${PARSE_ERROR}" = yes ] \
+            || [ $# -lt 1 ] \
+            || [ "${ECHO}${MULTILINE}" = yesyes ]
+	then
+		usage1 "[--echo,-e | --multiline,-m] [--force,-f] pass-name"
+	fi
+	unset PARSE_ERROR
+
+	for ARG in "$@"; do
+		do_insert "${ARG}"
+	done
+	unset ARG
+}
+
+cmd_list_or_show() {
+	COMMAND=show
+	PARSE_ERROR=no
+
+	while [ $# -ge 1 ]; do
+		case "$1" in
+		    -c|--clip)
+			SHOW=clip
+			shift ;;
+		    -c?*)
+			SELECTED_LINE="${1#-c}"
+			SHOW=clip
+			shift ;;
+		    --clip=*)
+			SELECTED_LINE="${1#--clip=}"
+			SHOW=clip
+			shift ;;
+		    -q|--qrcode)
+			SHOW=qrcode
+			shift ;;
+		    -q?*)
+			SELECTED_LINE="${1#-q}"
+			SHOW=qrcode
+			shift ;;
+		    --qrcode=*)
+			SELECTED_LINE="${1#--qrcode=}"
+			SHOW=qrcode
+			shift ;;
+		    --)
+			shift
+			break ;;
+		    -*)
+			PARSE_ERROR=yes
+			break ;;
+		    *)
+			break ;;
+		esac
+	done
+
+	if [ "${PARSE_ERROR}" = yes ]; then
+		usage1 "[ --clip[=line-number], -c[line-number] ]" \
+		    "[ --qrcode[=line-number], -q[line-number] ] pass-name"
+	fi
+
+	check_sneaky_paths "$@"
+
+	if [ $# -eq 0 ]; then
+		do_list_or_show ""
+	else
+		for ARG in "$@"; do
+			do_list_or_show "${ARG}"
+		done
+	fi
+
+	unset ARG
+	unset PARSING
+}
+
+cmd_move() {
+	ACTION=Move
+	SCM_ACTION=scm_mv
+	cmd_copy_move "$@"
+}
+
+cmd_version() {
+	cat <<-EOF
+	==============================================
+	= pashage: age-backed POSIX password manager =
+	=                                            =
+	=                   v0.1.0                   =
+	=                                            =
+	=            Natasha Kerensikova             =
+	=                                            =
+	=                 Based on:                  =
+	=   password-store  by Jason A. Donenfeld    =
+	=          passage  by Filippo Valsorda      =
+	=             pash  by Dylan Araps           =
+	==============================================
+	EOF
+}
