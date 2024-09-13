@@ -101,11 +101,6 @@ strlen(){
 	unset STR
 }
 
-# Output a usage error message message
-usage1() {
-	die "Usage: ${PROGRAM} ${COMMAND}" "$@"
-}
-
 # Ask for confirmation
 #   $1: Prompt
 yesno() {
@@ -1006,7 +1001,13 @@ cmd_copy_move() {
 	done
 
 	if [ "${PARSE_ERROR}" = yes ] || [ $# -lt 2 ]; then
-		usage1 "[--force,-f] old-path new-path"
+		if [ "${COMMAND}" = "c${COMMAND#c}" ]; then
+			die_usage1 copy
+		elif [ "${COMMAND}" = "m${COMMAND#m}" ]; then
+			die_usage1 move
+		else
+			die_usage1 copy move
+		fi
 	fi
 	unset PARSE_ERROR
 
@@ -1048,7 +1049,7 @@ cmd_delete() {
 	done
 
 	if [ "${PARSE_ERROR}" = yes ] || [ $# -eq 0 ]; then
-		usage1 "[--force,-f] pass-name ..."
+		die_usage1 delete
 	fi
 	unset PARSE_ERROR
 
@@ -1058,7 +1059,7 @@ cmd_delete() {
 }
 
 cmd_edit() {
-	[ $# -eq 0 ] && usage1 "pass-name"
+	[ $# -eq 0 ] && die_usage1 edit
 
 	check_sneaky_paths "$@"
 	platform_tmpdir
@@ -1070,7 +1071,7 @@ cmd_edit() {
 
 cmd_find() {
 	if [ $# -eq 0 ]; then
-		usage1 "[-grepflags] regex"
+		die_usage1 find
 	fi
 
 	do_tree "${PREFIX}" "Search pattern: $*" "$@"
@@ -1136,8 +1137,7 @@ cmd_generate() {
 	if [ "${PARSE_ERROR}" = yes ] || [ $# -eq 0 ] || [ $# -gt 2 ] \
 	    || [ "${DECISION}-${OVERWRITE}" = force-yes ]
 	then
-		usage1 "[--no-symbols,-n] [--clip,-c | --qrcode,-q]" \
-		       "[--in-place,-i | --force,-f] pass-name [pass-length]"
+		die_usage1 generate
 	fi
 
 	unset PARSE_ERROR
@@ -1157,7 +1157,7 @@ cmd_generate() {
 
 cmd_git() {
 	if [ $# -lt 1 ]; then
-		usage1 'args ...'
+		die_usage1 git
 	elif [ -d "${PREFIX}/.git" ]; then
 		platform_tmpdir
 		TMPDIR="${SECURE_TMPDIR}" git -C "${PREFIX}" "$@"
@@ -1178,7 +1178,7 @@ cmd_git() {
 }
 
 cmd_grep() {
-	[ $# -eq 0 ] && usage1 "[GREP_OPTIONS] search-regex"
+	[ $# -eq 0 ] && die_usage1 grep
 	( cd "${PREFIX}" && do_grep "" "$@" )
 }
 
@@ -1242,7 +1242,7 @@ cmd_init() {
 	done
 
 	if [ "${PARSE_ERROR}" = yes ] || [ $# -eq 0 ]; then
-		usage1 "[--path=subfolder,-p subfolder] recipient ..."
+		die_usage1 init
 	fi
 
 	check_sneaky_path "${SUBDIR}"
@@ -1308,7 +1308,7 @@ cmd_insert() {
             || [ $# -lt 1 ] \
             || [ "${ECHO}${MULTILINE}" = yesyes ]
 	then
-		usage1 "[--echo,-e | --multiline,-m] [--force,-f] pass-name"
+		die_usage1 insert
 	fi
 	unset PARSE_ERROR
 
@@ -1319,7 +1319,6 @@ cmd_insert() {
 }
 
 cmd_list_or_show() {
-	COMMAND=show
 	PARSE_ERROR=no
 
 	while [ $# -ge 1 ]; do
@@ -1358,8 +1357,13 @@ cmd_list_or_show() {
 	done
 
 	if [ "${PARSE_ERROR}" = yes ]; then
-		usage1 "[ --clip[=line-number], -c[line-number] ]" \
-		    "[ --qrcode[=line-number], -q[line-number] ] pass-name"
+		if [ "${COMMAND}" = "l${COMMAND#l}" ]; then
+			die_usage1 list
+		elif [ "${COMMAND}" = "s${COMMAND#s}" ]; then
+			die_usage1 show
+		else
+			die_usage1 list show
+		fi
 	fi
 
 	check_sneaky_paths "$@"
@@ -1412,7 +1416,7 @@ ${INDENT_PROG} delete [--force,-f] pass-name
 ${INDNT}Remove existing passwords or directories, optionally forcefully.
 ${INDENT_PROG} edit pass-name
 ${INDNT}Insert a new password or edit an existing password using an editor.
-${INDENT_PROG} find [-grepflags] regex
+${INDENT_PROG} find [GREP_OPTIONS] regex
 ${INDNT}List passwords that match the given regex.
 ${INDENT_PROG} generate [--no-symbols,-n] [--clip,-c | --qrcode,-q]
 ${INDENT_ARGT}          [--in-place,-i | --force,-f] pass-name [pass-length]
@@ -1423,13 +1427,13 @@ ${INDNT}or display it as a QR-code.
 ${INDNT}Prompt before overwriting existing password unless forced.
 ${INDNT}Optionally replace only the first line of an existing file
 ${INDNT}with a new password.
-${INDENT_PROG} git git-command-args...
+${INDENT_PROG} git git-command-args ...
 ${INDNT}If the password store is a git repository, execute a git command
 ${INDNT}specified by git-command-args.
 ${INDENT_PROG} gitconfig
 ${INDNT}If the password store is a git repository, enforce local configuration.
-${INDENT_PROG} grep [GREPOPTIONS] search-string
-${INDNT}Search for password files matching search-string when decrypted.
+${INDENT_PROG} grep [GREP_OPTIONS] search-regex
+${INDNT}Search for password files matching search-regex when decrypted.
 ${INDENT_PROG} help
 ${INDNT}Show this text.
 ${INDENT_PROG} init [--path=subfolder,-p subfolder] age-recipient ...
@@ -1463,4 +1467,28 @@ cmd_version() {
 	=             pash  by Dylan Araps           =
 	==============================================
 	EOF
+}
+
+# Outputs usage text for a single command on stderr and abort
+#   $1: comamnd
+#   ... alternate commands
+die_usage1() {
+	MSG=''
+	USAGE="$(cmd_usage "START  ${PROGRAM}" "END")"
+	for ARG in "$@"; do
+		# The line below is actually covered, see
+		# https://github.com/SimonKagstrom/kcov/issues/164
+		PART="$(printf '%s\n' "${USAGE}" \
+		        | sed -e ': b' \
+		              -e "/^START.*${ARG}/{;h;N;/END/!b b" \
+		              -e ';x;q;};d')"
+
+		if [ -z "${MSG}" ]; then
+			MSG="Usage:${PART#START }"
+		else
+			MSG="$(printf '%s\n' "${MSG}" "     ${PART#START}")"
+		fi
+	done
+
+	die "${MSG}"
 }

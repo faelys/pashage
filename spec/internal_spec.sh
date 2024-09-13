@@ -219,26 +219,6 @@ Describe 'Internal Helper Functions'
     End
   End
 
-  Describe 'usage1'
-    It 'accepts arguments'
-      PROGRAM=prg
-      COMMAND=cmd
-      When run usage1 'flag1' 'flag2'
-      The error should equal 'Usage: prg cmd flag1 flag2'
-      The output should be blank
-      The status should equal 1
-    End
-
-    It 'works without argument'
-      PROGRAM=prg
-      COMMAND=cmd
-      When run usage1
-      The error should equal 'Usage: prg cmd'
-      The output should be blank
-      The status should equal 1
-    End
-  End
-
   Describe 'yesno'
     Describe 'Without stty'
       It 'accepts an uppercase N'

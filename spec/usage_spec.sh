@@ -221,6 +221,10 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a bad option'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
       When run cmd_copy -s arg
       The output should be blank
       The error should equal 'Usage: prg copy [--force,-f] old-path new-path'
@@ -228,9 +232,32 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a lack of argument'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
       When run cmd_copy src
       The output should be blank
       The error should equal 'Usage: prg copy [--force,-f] old-path new-path'
+      The status should equal 1
+    End
+  End
+
+  Describe 'cmd_copy_move'
+    COMMAND=wrong
+
+    It 'reports both commands when confused'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
+      result() { %text
+        #|Usage: prg copy [--force,-f] old-path new-path
+        #|       prg move [--force,-f] old-path new-path
+      }
+      When run cmd_copy src
+      The output should be blank
+      The error should equal "$(result)"
       The status should equal 1
     End
   End
@@ -289,16 +316,24 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a bad option'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
       When run cmd_delete -u arg
       The output should be blank
-      The error should equal 'Usage: prg delete [--force,-f] pass-name ...'
+      The error should equal 'Usage: prg delete [--force,-f] pass-name'
       The status should equal 1
     End
 
     It 'reports a lack of argument'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
       When run cmd_delete
       The output should be blank
-      The error should equal 'Usage: prg delete [--force,-f] pass-name ...'
+      The error should equal 'Usage: prg delete [--force,-f] pass-name'
       The status should equal 1
     End
   End
@@ -334,6 +369,10 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a lack of argument'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
       When run cmd_edit
       The output should be blank
       The error should equal 'Usage: prg edit pass-name'
@@ -352,9 +391,13 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a lack of argument'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
       When run cmd_find
       The output should be blank
-      The error should equal 'Usage: prg find [-grepflags] regex'
+      The error should equal 'Usage: prg find [GREP_OPTIONS] regex'
       The status should equal 1
     End
   End
@@ -362,6 +405,11 @@ Describe 'Command-Line Parsing'
   Describe 'cmd_generate'
     COMMAND=generate
     GENERATED_LENGTH=25
+
+    usage_text() { %text
+      #|Usage: prg generate [--no-symbols,-n] [--clip,-c | --qrcode,-q]
+      #|                    [--in-place,-i | --force,-f] pass-name [pass-length]
+    }
 
     It 'generates a new entry with default length'
       result() {
@@ -574,44 +622,68 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports incompatible generation long options'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
       When run cmd_generate --inplace --force secret
       The output should be blank
-      The error should equal 'Usage: prg generate [--no-symbols,-n] [--clip,-c | --qrcode,-q] [--in-place,-i | --force,-f] pass-name [pass-length]'
+      The error should equal "$(usage_text)"
       The status should equal 1
     End
 
     It 'reports incompatible generation short options'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
       When run cmd_generate -fi secret
       The output should be blank
-      The error should equal 'Usage: prg generate [--no-symbols,-n] [--clip,-c | --qrcode,-q] [--in-place,-i | --force,-f] pass-name [pass-length]'
+      The error should equal "$(usage_text)"
       The status should equal 1
     End
 
     It 'reports incompatible show long options'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
       When run cmd_generate --qrcode --clip secret
       The output should be blank
-      The error should equal 'Usage: prg generate [--no-symbols,-n] [--clip,-c | --qrcode,-q] [--in-place,-i | --force,-f] pass-name [pass-length]'
+      The error should equal "$(usage_text)"
       The status should equal 1
     End
 
     It 'reports incompatible show short options'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
       When run cmd_generate -cq secret
       The output should be blank
-      The error should equal 'Usage: prg generate [--no-symbols,-n] [--clip,-c | --qrcode,-q] [--in-place,-i | --force,-f] pass-name [pass-length]'
+      The error should equal "$(usage_text)"
       The status should equal 1
     End
 
     It 'reports a bad option'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
       When run cmd_generate --bad secret
       The output should be blank
-      The error should equal 'Usage: prg generate [--no-symbols,-n] [--clip,-c | --qrcode,-q] [--in-place,-i | --force,-f] pass-name [pass-length]'
+      The error should equal "$(usage_text)"
       The status should equal 1
     End
 
     It 'reports a lack of argument'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
       When run cmd_generate
       The output should be blank
-      The error should equal 'Usage: prg generate [--no-symbols,-n] [--clip,-c | --qrcode,-q] [--in-place,-i | --force,-f] pass-name [pass-length]'
+      The error should equal "$(usage_text)"
       The status should equal 1
     End
   End
@@ -670,9 +742,13 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a lack of argument'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
       When run cmd_git
       The output should be blank
-      The error should equal 'Usage: prg git args ...'
+      The error should equal 'Usage: prg git git-command-args ...'
       The status should equal 1
     End
 
@@ -777,6 +853,10 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a lack of argument'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
       When run cmd_grep
       The output should be blank
       The error should equal 'Usage: prg grep [GREP_OPTIONS] search-regex'
@@ -888,34 +968,50 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a bad option'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
       When run cmd_init -q arg
       The output should be blank
       The error should equal \
-        'Usage: prg init [--path=subfolder,-p subfolder] recipient ...'
+        'Usage: prg init [--path=subfolder,-p subfolder] age-recipient ...'
       The status should equal 1
     End
 
     It 'reports a missing recipient'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
       When run cmd_init -p sub
       The output should be blank
       The error should equal \
-        'Usage: prg init [--path=subfolder,-p subfolder] recipient ...'
+        'Usage: prg init [--path=subfolder,-p subfolder] age-recipient ...'
       The status should equal 1
     End
 
     It 'reports a missing path'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
       When run cmd_init -p
       The output should be blank
       The error should equal \
-        'Usage: prg init [--path=subfolder,-p subfolder] recipient ...'
+        'Usage: prg init [--path=subfolder,-p subfolder] age-recipient ...'
       The status should equal 1
     End
 
     It 'reports a lack of argument'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
       When run cmd_init
       The output should be blank
       The error should equal \
-        'Usage: prg init [--path=subfolder,-p subfolder] recipient ...'
+        'Usage: prg init [--path=subfolder,-p subfolder] age-recipient ...'
       The status should equal 1
     End
   End
@@ -1084,6 +1180,10 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a bad option'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
       When run cmd_insert -u secret
       The output should be blank
       The error should equal \
@@ -1092,6 +1192,10 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports incompatible long options'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
       When run cmd_insert --multiline --echo secret
       The output should be blank
       The error should equal \
@@ -1100,6 +1204,10 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports incompatible short options'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
       When run cmd_insert -em secret
       The output should be blank
       The error should equal \
@@ -1108,6 +1216,10 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a lack of argument'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
       When run cmd_insert
       The output should be blank
       The error should equal \
@@ -1117,6 +1229,7 @@ Describe 'Command-Line Parsing'
   End
 
   Describe 'cmd_list_or_show'
+    COMMAND=
     SELECTED_LINE=1
     SHOW=text
 
@@ -1130,7 +1243,6 @@ Describe 'Command-Line Parsing'
       When call cmd_list_or_show
       The output should be blank
       The error should equal "$(result)"
-      The variable COMMAND should equal 'show'
     End
 
     It 'shows multiple entries'
@@ -1149,7 +1261,6 @@ Describe 'Command-Line Parsing'
       When call cmd_list_or_show arg1 arg2 arg3
       The output should be blank
       The error should equal "$(result)"
-      The variable COMMAND should equal 'show'
     End
 
     It 'shows a flag-like entry'
@@ -1162,7 +1273,6 @@ Describe 'Command-Line Parsing'
       When call cmd_list_or_show -- -c
       The output should be blank
       The error should equal "$(result)"
-      The variable COMMAND should equal 'show'
     End
 
     It 'copies an entry into the clipboard (short option)'
@@ -1175,7 +1285,6 @@ Describe 'Command-Line Parsing'
       When call cmd_list_or_show -c arg
       The output should be blank
       The error should equal "$(result)"
-      The variable COMMAND should equal 'show'
     End
 
     It 'copies an entry into the clipboard (long option)'
@@ -1188,7 +1297,6 @@ Describe 'Command-Line Parsing'
       When call cmd_list_or_show --clip arg
       The output should be blank
       The error should equal "$(result)"
-      The variable COMMAND should equal 'show'
     End
 
     It 'copies a line of an entry into the clipboard (short option)'
@@ -1201,7 +1309,6 @@ Describe 'Command-Line Parsing'
       When call cmd_list_or_show -c2 arg
       The output should be blank
       The error should equal "$(result)"
-      The variable COMMAND should equal 'show'
     End
 
     It 'copies a line of an entry into the clipboard (short option)'
@@ -1214,7 +1321,6 @@ Describe 'Command-Line Parsing'
       When call cmd_list_or_show --clip=2 arg
       The output should be blank
       The error should equal "$(result)"
-      The variable COMMAND should equal 'show'
     End
 
     It 'shows an entry as a QR-code (short option)'
@@ -1227,7 +1333,6 @@ Describe 'Command-Line Parsing'
       When call cmd_list_or_show -q arg
       The output should be blank
       The error should equal "$(result)"
-      The variable COMMAND should equal 'show'
     End
 
     It 'shows an entry as a QR-code (long option)'
@@ -1240,7 +1345,6 @@ Describe 'Command-Line Parsing'
       When call cmd_list_or_show --qrcode arg
       The output should be blank
       The error should equal "$(result)"
-      The variable COMMAND should equal 'show'
     End
 
     It 'shows the line of an entry as a QR-code (short option)'
@@ -1253,7 +1357,6 @@ Describe 'Command-Line Parsing'
       When call cmd_list_or_show -q3 arg
       The output should be blank
       The error should equal "$(result)"
-      The variable COMMAND should equal 'show'
     End
 
     It 'shows the line of an entry as a QR-code (long option)'
@@ -1266,14 +1369,52 @@ Describe 'Command-Line Parsing'
       When call cmd_list_or_show --qrcode=3 arg
       The output should be blank
       The error should equal "$(result)"
-      The variable COMMAND should equal 'show'
     End
 
-    It 'reports a bad option'
+    It 'reports a bad option for both commands'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
+      result() { %text
+        #|Usage: prg [list] [subfolder]
+        #|       prg [show] [--clip[=line-number],-c[line-number] |
+        #|                   --qrcode[=line-number],-q[line-number]] pass-name
+      }
       When run cmd_list_or_show -f arg
       The output should be blank
-      The error should equal \
-        'Usage: prg show [ --clip[=line-number], -c[line-number] ] [ --qrcode[=line-number], -q[line-number] ] pass-name'
+      The error should equal "$(result)"
+      The status should equal 1
+    End
+
+    It 'reports a bad option for list command'
+      COMMAND=list
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
+      result() { %text
+        #|Usage: prg [list] [subfolder]
+      }
+      When run cmd_list_or_show -f arg
+      The output should be blank
+      The error should equal "$(result)"
+      The status should equal 1
+    End
+
+    It 'reports a bad option for show command'
+      COMMAND=show
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
+      result() { %text
+        #|Usage: prg [show] [--clip[=line-number],-c[line-number] |
+        #|                   --qrcode[=line-number],-q[line-number]] pass-name
+      }
+      When run cmd_list_or_show -f arg
+      The output should be blank
+      The error should equal "$(result)"
       The status should equal 1
     End
   End
@@ -1348,6 +1489,10 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a bad option'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
       When run cmd_move -s arg
       The output should be blank
       The error should equal 'Usage: prg move [--force,-f] old-path new-path'
@@ -1355,6 +1500,10 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a lack of argument'
+      CLIP_TIME='$CLIP_TIME'
+      GENERATED_LENGTH='$GENERATED_LENGTH'
+      cat() { @cat; }
+      sed() { @sed "$@"; }
       When run cmd_move src
       The output should be blank
       The error should equal 'Usage: prg move [--force,-f] old-path new-path'
