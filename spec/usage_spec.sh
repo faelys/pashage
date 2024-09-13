@@ -221,10 +221,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a bad option'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       When run cmd_copy -s arg
       The output should be blank
       The error should equal 'Usage: prg copy [--force,-f] old-path new-path'
@@ -232,10 +229,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a lack of argument'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       When run cmd_copy src
       The output should be blank
       The error should equal 'Usage: prg copy [--force,-f] old-path new-path'
@@ -247,10 +241,7 @@ Describe 'Command-Line Parsing'
     COMMAND=wrong
 
     It 'reports both commands when confused'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       result() { %text
         #|Usage: prg copy [--force,-f] old-path new-path
         #|       prg move [--force,-f] old-path new-path
@@ -316,10 +307,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a bad option'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       When run cmd_delete -u arg
       The output should be blank
       The error should equal 'Usage: prg delete [--force,-f] pass-name'
@@ -327,10 +315,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a lack of argument'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       When run cmd_delete
       The output should be blank
       The error should equal 'Usage: prg delete [--force,-f] pass-name'
@@ -369,10 +354,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a lack of argument'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       When run cmd_edit
       The output should be blank
       The error should equal 'Usage: prg edit pass-name'
@@ -391,10 +373,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a lack of argument'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       When run cmd_find
       The output should be blank
       The error should equal 'Usage: prg find [GREP_OPTIONS] regex'
@@ -622,10 +601,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports incompatible generation long options'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       When run cmd_generate --inplace --force secret
       The output should be blank
       The error should equal "$(usage_text)"
@@ -633,10 +609,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports incompatible generation short options'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       When run cmd_generate -fi secret
       The output should be blank
       The error should equal "$(usage_text)"
@@ -644,10 +617,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports incompatible show long options'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       When run cmd_generate --qrcode --clip secret
       The output should be blank
       The error should equal "$(usage_text)"
@@ -655,10 +625,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports incompatible show short options'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       When run cmd_generate -cq secret
       The output should be blank
       The error should equal "$(usage_text)"
@@ -666,10 +633,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a bad option'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       When run cmd_generate --bad secret
       The output should be blank
       The error should equal "$(usage_text)"
@@ -677,10 +641,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a lack of argument'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       When run cmd_generate
       The output should be blank
       The error should equal "$(usage_text)"
@@ -742,10 +703,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a lack of argument'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       When run cmd_git
       The output should be blank
       The error should equal 'Usage: prg git git-command-args ...'
@@ -853,10 +811,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a lack of argument'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       When run cmd_grep
       The output should be blank
       The error should equal 'Usage: prg grep [GREP_OPTIONS] search-regex'
@@ -873,7 +828,7 @@ Describe 'Command-Line Parsing'
       result() {
         %text | @sed 's/\$$//'
         #|$ cmd_version
-        #|$ cmd_usage     prg         $
+        #|$ cmd_usage     $
       }
       When call cmd_help
       The output should be blank
@@ -968,10 +923,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a bad option'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       When run cmd_init -q arg
       The output should be blank
       The error should equal \
@@ -980,10 +932,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a missing recipient'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       When run cmd_init -p sub
       The output should be blank
       The error should equal \
@@ -992,10 +941,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a missing path'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       When run cmd_init -p
       The output should be blank
       The error should equal \
@@ -1004,10 +950,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a lack of argument'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       When run cmd_init
       The output should be blank
       The error should equal \
@@ -1180,10 +1123,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a bad option'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       When run cmd_insert -u secret
       The output should be blank
       The error should equal \
@@ -1192,10 +1132,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports incompatible long options'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       When run cmd_insert --multiline --echo secret
       The output should be blank
       The error should equal \
@@ -1204,10 +1141,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports incompatible short options'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       When run cmd_insert -em secret
       The output should be blank
       The error should equal \
@@ -1216,10 +1150,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a lack of argument'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       When run cmd_insert
       The output should be blank
       The error should equal \
@@ -1372,10 +1303,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a bad option for both commands'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       result() { %text
         #|Usage: prg [list] [subfolder]
         #|       prg [show] [--clip[=line-number],-c[line-number] |
@@ -1389,10 +1317,7 @@ Describe 'Command-Line Parsing'
 
     It 'reports a bad option for list command'
       COMMAND=list
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       result() { %text
         #|Usage: prg [list] [subfolder]
       }
@@ -1404,10 +1329,7 @@ Describe 'Command-Line Parsing'
 
     It 'reports a bad option for show command'
       COMMAND=show
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       result() { %text
         #|Usage: prg [show] [--clip[=line-number],-c[line-number] |
         #|                   --qrcode[=line-number],-q[line-number]] pass-name
@@ -1489,10 +1411,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a bad option'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       When run cmd_move -s arg
       The output should be blank
       The error should equal 'Usage: prg move [--force,-f] old-path new-path'
@@ -1500,10 +1419,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'reports a lack of argument'
-      CLIP_TIME='$CLIP_TIME'
-      GENERATED_LENGTH='$GENERATED_LENGTH'
       cat() { @cat; }
-      sed() { @sed "$@"; }
       When run cmd_move src
       The output should be blank
       The error should equal 'Usage: prg move [--force,-f] old-path new-path'
@@ -1540,6 +1456,13 @@ Describe 'Command-Line Parsing'
       The output should include 'prg move'
       The output should include 'prg [show]'
       The output should include 'prg version'
+    End
+
+    It 'rejects unknown commands'
+      When run cmd_usage '> ' foo
+      The output should be blank
+      The error should equal 'cmd_usage: unknown command "foo"'
+      The status should equal 1
     End
   End
 

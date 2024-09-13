@@ -1002,11 +1002,14 @@ cmd_copy_move() {
 
 	if [ "${PARSE_ERROR}" = yes ] || [ $# -lt 2 ]; then
 		if [ "${COMMAND}" = "c${COMMAND#c}" ]; then
-			die_usage1 copy
+			cmd_usage 'Usage: ' copy >&2
+			exit 1
 		elif [ "${COMMAND}" = "m${COMMAND#m}" ]; then
-			die_usage1 move
+			cmd_usage 'Usage: ' move >&2
+			exit 1
 		else
-			die_usage1 copy move
+			cmd_usage 'Usage: ' copy move >&2
+			exit 1
 		fi
 	fi
 	unset PARSE_ERROR
@@ -1049,7 +1052,8 @@ cmd_delete() {
 	done
 
 	if [ "${PARSE_ERROR}" = yes ] || [ $# -eq 0 ]; then
-		die_usage1 delete
+		cmd_usage 'Usage: ' delete >&2
+		exit 1
 	fi
 	unset PARSE_ERROR
 
@@ -1059,7 +1063,10 @@ cmd_delete() {
 }
 
 cmd_edit() {
-	[ $# -eq 0 ] && die_usage1 edit
+	if [ $# -eq 0 ]; then
+		cmd_usage 'Usage: ' edit >&2
+		exit 1
+	fi
 
 	check_sneaky_paths "$@"
 	platform_tmpdir
@@ -1071,7 +1078,8 @@ cmd_edit() {
 
 cmd_find() {
 	if [ $# -eq 0 ]; then
-		die_usage1 find
+		cmd_usage 'Usage: ' find >&2
+		exit 1
 	fi
 
 	do_tree "${PREFIX}" "Search pattern: $*" "$@"
@@ -1137,7 +1145,8 @@ cmd_generate() {
 	if [ "${PARSE_ERROR}" = yes ] || [ $# -eq 0 ] || [ $# -gt 2 ] \
 	    || [ "${DECISION}-${OVERWRITE}" = force-yes ]
 	then
-		die_usage1 generate
+		cmd_usage 'Usage: ' generate >&2
+		exit 1
 	fi
 
 	unset PARSE_ERROR
@@ -1157,7 +1166,8 @@ cmd_generate() {
 
 cmd_git() {
 	if [ $# -lt 1 ]; then
-		die_usage1 git
+		cmd_usage 'Usage: ' git >&2
+		exit 1
 	elif [ -d "${PREFIX}/.git" ]; then
 		platform_tmpdir
 		TMPDIR="${SECURE_TMPDIR}" git -C "${PREFIX}" "$@"
@@ -1178,7 +1188,11 @@ cmd_git() {
 }
 
 cmd_grep() {
-	[ $# -eq 0 ] && die_usage1 grep
+	if [ $# -eq 0 ]; then
+		cmd_usage 'Usage: ' grep >&2
+		exit 1
+	fi
+
 	( cd "${PREFIX}" && do_grep "" "$@" )
 }
 
@@ -1201,8 +1215,8 @@ cmd_gitconfig() {
 
 cmd_help() {
 	cmd_version
-	echo
-	cmd_usage "    ${PROGRAM}" "        "
+	printf '\n'
+	cmd_usage '    '
 }
 
 cmd_init() {
@@ -1242,7 +1256,8 @@ cmd_init() {
 	done
 
 	if [ "${PARSE_ERROR}" = yes ] || [ $# -eq 0 ]; then
-		die_usage1 init
+		cmd_usage 'Usage: ' init >&2
+		exit 1
 	fi
 
 	check_sneaky_path "${SUBDIR}"
@@ -1308,7 +1323,8 @@ cmd_insert() {
             || [ $# -lt 1 ] \
             || [ "${ECHO}${MULTILINE}" = yesyes ]
 	then
-		die_usage1 insert
+		cmd_usage 'Usage: ' insert >&2
+		exit 1
 	fi
 	unset PARSE_ERROR
 
@@ -1358,11 +1374,14 @@ cmd_list_or_show() {
 
 	if [ "${PARSE_ERROR}" = yes ]; then
 		if [ "${COMMAND}" = "l${COMMAND#l}" ]; then
-			die_usage1 list
+			cmd_usage 'Usage: ' list >&2
+			exit 1
 		elif [ "${COMMAND}" = "s${COMMAND#s}" ]; then
-			die_usage1 show
+			cmd_usage 'Usage: ' show >&2
+			exit 1
 		else
-			die_usage1 list show
+			cmd_usage 'Usage: ' list show >&2
+			exit 1
 		fi
 	fi
 
@@ -1387,69 +1406,186 @@ cmd_move() {
 }
 
 # Outputs the whole usage text
-#   $1: indented program name
-#   $2: indentation of exlanations
+#   $1: indentation
+#   ... commands to document
 cmd_usage(){
-	INDENT_PROG="${1-    ${PROGRAM}}"
-	INDNT="${2-        }"
-	NON_WHITE="${INDENT_PROG}"
-	INDENT_ARGT=''
-	while [ -n "${NON_WHITE}" ]; do
-		INDENT_ARGT=" ${INDENT_ARGT}"
-		NON_WHITE="${NON_WHITE#?}"
-	done
-	unset NON_WHITE
+	if [ $# -eq 0 ]; then
+		F='    '
+		I='    '
+	else
+		F="$1"
+		NON_BLANK="$1"
+		I=''
+		while [ -n "${NON_BLANK}" ]; do
+			I=" ${I}"
+			NON_BLANK="${NON_BLANK#?}"
+		done
+		shift
+	fi
 
-	cat <<EOF
-Usage:
-${INDENT_PROG} [list] [subfolder]
-${INDNT}List passwords.
-${INDENT_PROG} [show] [--clip[=line-number],-c[line-number] |
-${INDENT_ARGT}         --qrcode[=line-number],-q[line-number]] pass-name
-${INDNT}Show existing password and optionally put it on the clipboard
-${INDNT}or display it as a QR-code.
-${INDNT}If put on the clipboard, it will be cleared in ${CLIP_TIME} seconds.
-${INDENT_PROG} copy [--force,-f] old-path new-path
-${INDNT}Copies old-path to new-path, optionally forcefully,
-${INDNT}selectively reencrypting.
-${INDENT_PROG} delete [--force,-f] pass-name
-${INDNT}Remove existing passwords or directories, optionally forcefully.
-${INDENT_PROG} edit pass-name
-${INDNT}Insert a new password or edit an existing password using an editor.
-${INDENT_PROG} find [GREP_OPTIONS] regex
-${INDNT}List passwords that match the given regex.
-${INDENT_PROG} generate [--no-symbols,-n] [--clip,-c | --qrcode,-q]
-${INDENT_ARGT}          [--in-place,-i | --force,-f] pass-name [pass-length]
-${INDNT}Generate a new password of pass-length (or ${GENERATED_LENGTH} if unspecified)
-${INDNT}with optionally no symbols.
-${INDNT}Optionally put it on the clipboard and clear board after ${CLIP_TIME} seconds
-${INDNT}or display it as a QR-code.
-${INDNT}Prompt before overwriting existing password unless forced.
-${INDNT}Optionally replace only the first line of an existing file
-${INDNT}with a new password.
-${INDENT_PROG} git git-command-args ...
-${INDNT}If the password store is a git repository, execute a git command
-${INDNT}specified by git-command-args.
-${INDENT_PROG} gitconfig
-${INDNT}If the password store is a git repository, enforce local configuration.
-${INDENT_PROG} grep [GREP_OPTIONS] search-regex
-${INDNT}Search for password files matching search-regex when decrypted.
-${INDENT_PROG} help
-${INDNT}Show this text.
-${INDENT_PROG} init [--path=subfolder,-p subfolder] age-recipient ...
-${INDNT}Initialize new password storage and use the given age recipients
-${INDNT}for encryption.
-${INDNT}Selectively reencrypt existing passwords using new recipients.
-${INDENT_PROG} insert [--echo,-e | --multiline,-m] [--force,-f] pass-name
-${INDNT}Insert new password. Optionally, echo the password back to the console
-${INDNT}during entry. Or, optionally, the entry may be multiline.
-${INDNT}Prompt before overwriting existing password unless forced.
-${INDENT_PROG} move [--force,-f] old-path new-path
-${INDNT}Renames or moves old-path to new-path, optionally forcefully,
-${INDNT}selectively reencrypting.
-${INDENT_PROG} version
-${INDNT}Show version information.
+	if [ $# -eq 0 ]; then
+		echo 'Usage:'
+		set -- list show copy delete edit find generate \
+		    git gitconfig grep help init insert move version
+		VERBOSE=yes
+	else
+		VERBOSE=no
+	fi
+
+	NON_BLANK="${PROGRAM}"
+	BLANKPG=''
+	while [ -n "${NON_BLANK}" ]; do
+		BLANKPG=" ${BLANKPG}"
+		NON_BLANK="${NON_BLANK#?}"
+	done
+	unset NON_BLANK
+
+	for ARG in "$@"; do
+		case "${ARG}" in
+		    list)
+			cat <<EOF
+${F}${PROGRAM} [list] [subfolder]
 EOF
+			[ "${VERBOSE}" = yes ] && cat <<EOF
+${I}    List passwords.
+EOF
+			;;
+		    show)
+			cat <<EOF
+${F}${PROGRAM} [show] [--clip[=line-number],-c[line-number] |
+${I}${BLANKPG}         --qrcode[=line-number],-q[line-number]] pass-name
+EOF
+			[ "${VERBOSE}" = yes ] && cat <<EOF
+${I}    Show existing password and optionally put it on the clipboard
+${I}    or display it as a QR-code.
+${I}    If put on the clipboard, it will be cleared in ${CLIP_TIME:-45} seconds.
+EOF
+			;;
+		    copy)
+			cat <<EOF
+${F}${PROGRAM} copy [--force,-f] old-path new-path
+EOF
+			[ "${VERBOSE}" = yes ] && cat <<EOF
+${I}    Copies old-path to new-path, optionally forcefully,
+${I}    selectively reencrypting.
+EOF
+			;;
+		    delete)
+			cat <<EOF
+${F}${PROGRAM} delete [--force,-f] pass-name
+EOF
+			[ "${VERBOSE}" = yes ] && cat <<EOF
+${I}    Remove existing passwords or directories, optionally forcefully.
+EOF
+			;;
+		    edit)
+			cat <<EOF
+${F}${PROGRAM} edit pass-name
+EOF
+			[ "${VERBOSE}" = yes ] && cat <<EOF
+${I}    Insert a new password or edit an existing password using an editor.
+EOF
+			;;
+		    find)
+			cat <<EOF
+${F}${PROGRAM} find [GREP_OPTIONS] regex
+EOF
+			[ "${VERBOSE}" = yes ] && cat <<EOF
+${I}    List passwords that match the given regex.
+EOF
+			;;
+		    generate)
+			cat <<EOF
+${F}${PROGRAM} generate [--no-symbols,-n] [--clip,-c | --qrcode,-q]
+${I}${BLANKPG}          [--in-place,-i | --force,-f] pass-name [pass-length]
+EOF
+			[ "${VERBOSE}" = yes ] && cat <<EOF
+${I}    Generate a new password of pass-length (or ${GENERATED_LENGTH:-25} if unspecified)
+${I}    with optionally no symbols.
+${I}    Optionally put it on the clipboard and clear board after ${CLIP_TIME:-45} seconds
+${I}    or display it as a QR-code.
+${I}    Prompt before overwriting existing password unless forced.
+${I}    Optionally replace only the first line of an existing file
+${I}    with a new password.
+EOF
+			;;
+		    git)
+			cat <<EOF
+${F}${PROGRAM} git git-command-args ...
+EOF
+			[ "${VERBOSE}" = yes ] && cat <<EOF
+${I}    If the password store is a git repository, execute a git command
+${I}    specified by git-command-args.
+EOF
+			;;
+		    gitconfig)
+			cat <<EOF
+${F}${PROGRAM} gitconfig
+EOF
+			[ "${VERBOSE}" = yes ] && cat <<EOF
+${I}    If the password store is a git repository, enforce local configuration.
+EOF
+			;;
+		    grep)
+			cat <<EOF
+${F}${PROGRAM} grep [GREP_OPTIONS] search-regex
+EOF
+			[ "${VERBOSE}" = yes ] && cat <<EOF
+${I}    Search for password files matching search-regex when decrypted.
+EOF
+			;;
+		    help)
+			cat <<EOF
+${F}${PROGRAM} help
+EOF
+			[ "${VERBOSE}" = yes ] && cat <<EOF
+${I}    Show this text.
+EOF
+			;;
+		    init)
+			cat <<EOF
+${F}${PROGRAM} init [--path=subfolder,-p subfolder] age-recipient ...
+EOF
+			[ "${VERBOSE}" = yes ] && cat <<EOF
+${I}    Initialize new password storage and use the given age recipients
+${I}    for encryption.
+${I}    Selectively reencrypt existing passwords using new recipients.
+EOF
+			;;
+		    insert)
+			cat <<EOF
+${F}${PROGRAM} insert [--echo,-e | --multiline,-m] [--force,-f] pass-name
+EOF
+			[ "${VERBOSE}" = yes ] && cat <<EOF
+${I}    Insert new password. Optionally, echo the password back to the console
+${I}    during entry. Or, optionally, the entry may be multiline.
+${I}    Prompt before overwriting existing password unless forced.
+EOF
+			;;
+		    move)
+			cat <<EOF
+${F}${PROGRAM} move [--force,-f] old-path new-path
+EOF
+			[ "${VERBOSE}" = yes ] && cat <<EOF
+${I}    Renames or moves old-path to new-path, optionally forcefully,
+${I}    selectively reencrypting.
+EOF
+			;;
+		    version)
+			cat <<EOF
+${F}${PROGRAM} version
+EOF
+			[ "${VERBOSE}" = yes ] && cat <<EOF
+${I}    Show version information.
+EOF
+			;;
+		    *)
+			die "cmd_usage: unknown command \"${ARG}\""
+			;;
+		esac
+
+		F="${I}"
+	done
 }
 
 cmd_version() {
@@ -1467,28 +1603,4 @@ cmd_version() {
 	=             pash  by Dylan Araps           =
 	==============================================
 	EOF
-}
-
-# Outputs usage text for a single command on stderr and abort
-#   $1: comamnd
-#   ... alternate commands
-die_usage1() {
-	MSG=''
-	USAGE="$(cmd_usage "START  ${PROGRAM}" "END")"
-	for ARG in "$@"; do
-		# The line below is actually covered, see
-		# https://github.com/SimonKagstrom/kcov/issues/164
-		PART="$(printf '%s\n' "${USAGE}" \
-		        | sed -e ': b' \
-		              -e "/^START.*${ARG}/{;h;N;/END/!b b" \
-		              -e ';x;q;};d')"
-
-		if [ -z "${MSG}" ]; then
-			MSG="Usage:${PART#START }"
-		else
-			MSG="$(printf '%s\n' "${MSG}" "     ${PART#START}")"
-		fi
-	done
-
-	die "${MSG}"
 }
