@@ -1199,6 +1199,12 @@ cmd_gitconfig() {
 	    "${AGE} -d -i ${IDENTITIES_FILE}"
 }
 
+cmd_help() {
+	cmd_version
+	echo
+	cmd_usage "    ${PROGRAM}" "        "
+}
+
 cmd_init() {
 	PARSE_ERROR=no
 	SUBDIR=''
@@ -1374,6 +1380,72 @@ cmd_move() {
 	ACTION=Move
 	SCM_ACTION=scm_mv
 	cmd_copy_move "$@"
+}
+
+# Outputs the whole usage text
+#   $1: indented program name
+#   $2: indentation of exlanations
+cmd_usage(){
+	INDENT_PROG="${1-    ${PROGRAM}}"
+	INDNT="${2-        }"
+	NON_WHITE="${INDENT_PROG}"
+	INDENT_ARGT=''
+	while [ -n "${NON_WHITE}" ]; do
+		INDENT_ARGT=" ${INDENT_ARGT}"
+		NON_WHITE="${NON_WHITE#?}"
+	done
+	unset NON_WHITE
+
+	cat <<EOF
+Usage:
+${INDENT_PROG} [list] [subfolder]
+${INDNT}List passwords.
+${INDENT_PROG} [show] [--clip[=line-number],-c[line-number] |
+${INDENT_ARGT}         --qrcode[=line-number],-q[line-number]] pass-name
+${INDNT}Show existing password and optionally put it on the clipboard
+${INDNT}or display it as a QR-code.
+${INDNT}If put on the clipboard, it will be cleared in ${CLIP_TIME} seconds.
+${INDENT_PROG} copy [--force,-f] old-path new-path
+${INDNT}Copies old-path to new-path, optionally forcefully,
+${INDNT}selectively reencrypting.
+${INDENT_PROG} delete [--force,-f] pass-name
+${INDNT}Remove existing passwords or directories, optionally forcefully.
+${INDENT_PROG} edit pass-name
+${INDNT}Insert a new password or edit an existing password using an editor.
+${INDENT_PROG} find [-grepflags] regex
+${INDNT}List passwords that match the given regex.
+${INDENT_PROG} generate [--no-symbols,-n] [--clip,-c | --qrcode,-q]
+${INDENT_ARGT}          [--in-place,-i | --force,-f] pass-name [pass-length]
+${INDNT}Generate a new password of pass-length (or ${GENERATED_LENGTH} if unspecified)
+${INDNT}with optionally no symbols.
+${INDNT}Optionally put it on the clipboard and clear board after ${CLIP_TIME} seconds
+${INDNT}or display it as a QR-code.
+${INDNT}Prompt before overwriting existing password unless forced.
+${INDNT}Optionally replace only the first line of an existing file
+${INDNT}with a new password.
+${INDENT_PROG} git git-command-args...
+${INDNT}If the password store is a git repository, execute a git command
+${INDNT}specified by git-command-args.
+${INDENT_PROG} gitconfig
+${INDNT}If the password store is a git repository, enforce local configuration.
+${INDENT_PROG} grep [GREPOPTIONS] search-string
+${INDNT}Search for password files matching search-string when decrypted.
+${INDENT_PROG} help
+${INDNT}Show this text.
+${INDENT_PROG} init [--path=subfolder,-p subfolder] age-recipient ...
+${INDNT}Initialize new password storage and use the given age recipients
+${INDNT}for encryption.
+${INDNT}Selectively reencrypt existing passwords using new recipients.
+${INDENT_PROG} insert [--echo,-e | --multiline,-m] [--force,-f] pass-name
+${INDNT}Insert new password. Optionally, echo the password back to the console
+${INDNT}during entry. Or, optionally, the entry may be multiline.
+${INDNT}Prompt before overwriting existing password unless forced.
+${INDENT_PROG} move [--force,-f] old-path new-path
+${INDNT}Renames or moves old-path to new-path, optionally forcefully,
+${INDNT}selectively reencrypting.
+${INDENT_PROG} version
+${INDNT}Show version information.
+EOF
 }
 
 cmd_version() {

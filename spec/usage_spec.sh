@@ -784,6 +784,23 @@ Describe 'Command-Line Parsing'
     End
   End
 
+  Describe 'cmd_help'
+    COMMAND=help
+
+    It 'displays version and usage'
+      cmd_usage() { mocklog cmd_usage "$@"; }
+      cmd_version() { mocklog cmd_version "$@"; }
+      result() {
+        %text | @sed 's/\$$//'
+        #|$ cmd_version
+        #|$ cmd_usage     prg         $
+      }
+      When call cmd_help
+      The output should be blank
+      The error should equal "$(result)"
+    End
+  End
+
   Describe 'cmd_init'
     COMMAND=init
 
@@ -1342,6 +1359,38 @@ Describe 'Command-Line Parsing'
       The output should be blank
       The error should equal 'Usage: prg move [--force,-f] old-path new-path'
       The status should equal 1
+    End
+  End
+
+  Describe 'cmd_usage'
+    COMMAND=usage
+    CLIP_TIME='$CLIP_TIME'
+    GENERATED_LENGTH='$GENERATED_LENGTH'
+    cat() { @cat; }
+
+    It 'displays a human-reable usage string'
+      When call cmd_usage
+      The first line of output should equal 'Usage:'
+      The error should be blank
+    End
+
+    It 'includes help about all commands'
+      When call cmd_usage
+      The output should include 'prg copy'
+      The output should include 'prg delete'
+      The output should include 'prg edit'
+      The output should include 'prg find'
+      The output should include 'prg generate'
+      The output should include 'prg git'
+      The output should include 'prg gitconfig'
+      The output should include 'prg grep'
+      The output should include 'prg help'
+      The output should include 'prg init'
+      The output should include 'prg insert'
+      The output should include 'prg [list]'
+      The output should include 'prg move'
+      The output should include 'prg [show]'
+      The output should include 'prg version'
     End
   End
 

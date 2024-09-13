@@ -106,6 +106,9 @@ case "${COMMAND}" in
     git)	shift; cmd_git "$@" ;;
     gitconfig)	shift; cmd_gitconfig ;;
     grep)	shift; cmd_grep "$@" ;;
+    help)	shift; cmd_help ;;
+    -h)		shift; cmd_help ;;
+    --help)	shift; cmd_help ;;
     init)	shift; cmd_init "$@" ;;
     insert)	shift; cmd_insert "$@" ;;
     list)	shift; cmd_list_or_show "$@" ;;
