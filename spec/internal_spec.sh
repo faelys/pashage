@@ -16,8 +16,8 @@
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
 # This test file covers all internal helper functions,
+# These functions are fundemantal so there is no need for mocking,
 # except for the interactive path in `yesno`.
-# These functions are fundemantal so there is no need for mocking.
 
 Describe 'Internal Helper Functions'
   Include src/pashage.sh
@@ -254,8 +254,27 @@ Describe 'Internal Helper Functions'
       End
     End
 
-    Describe 'Using a terminal'
-      Skip 'Not testable here'
+    Describe 'Mocking a terminal'
+      setup() {
+        %putsn x >|"${SHELLSPEC_WORKDIR}/first-dd"
+      }
+      stty() { :; }
+      dd() {
+        if [ -f "${SHELLSPEC_WORKDIR}/first-dd" ]; then
+          %puts x
+          @rm "${SHELLSPEC_WORKDIR}/first-dd"
+        else
+          %puts y
+        fi
+      }
+
+      BeforeEach setup
+
+      It 'accepts a lowercase Y after bad input'
+        When call yesno 'prompt'
+        The output should equal 'prompt [y/n]'
+        The variable ANSWER should equal 'y'
+      End
     End
   End
 End
