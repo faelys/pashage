@@ -162,7 +162,7 @@ scm_begin() {
 scm_commit() {
 	[ -d "${PREFIX}/.git" ] || return 0
 	if [ -n "$(git -C "${PREFIX}" status --porcelain || true)" ]; then
-		git -C "${PREFIX}" commit -m "$1"
+		git -C "${PREFIX}" commit -m "$1" >/dev/null
 	fi
 }
 
@@ -170,7 +170,7 @@ scm_commit() {
 #   $1: source
 #   $2: destination
 scm_cp() {
-	cp -r "${PREFIX}/$1" "${PREFIX}/$2"
+	cp -r -- "${PREFIX}/$1" "${PREFIX}/$2"
 	scm_add "$2"
 }
 
@@ -192,7 +192,7 @@ scm_mv() {
 	fi
 }
 
-# Delete a file or directory from filesystem and put it in pending chnages
+# Delete a file or directory from filesystem and put it in pending changes
 scm_rm() {
 	rm -rf -- "${PREFIX:?}/$1"
 	scm_del "$1"

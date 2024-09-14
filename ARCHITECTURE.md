@@ -36,7 +36,8 @@ The following test sets can be found in `spec/` directory:
 - `internal_spec.sh` tests internal helper functions in isolation;
 - `action_spec.sh` tests action functions in isolation, mocking everything;
 - `usage_spec.sh` tests command functions in isolation, mocking everything;
-- TODO tests SCM functions in isolation;
+- `scm_spec.sh` tests SCM functions in isolation, using the real git
+  and filesystem;
 - TODO tests integration, calling command functions with minimal mocks;
 - TODO tests `pass`-like behavior of the whole script;
 - TODO tests `passage`-like behavior of the whole script.
