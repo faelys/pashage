@@ -69,6 +69,14 @@ glob_exists() {
 	fi
 }
 
+# Generate random characters
+#   $1: number of characters
+#   $2: allowed character set
+random_chars() {
+	LC_ALL=C tr -dc -- "$2" </dev/urandom | dd ibs=1 obs=1 count="$1" \
+	    2>/dev/null || true
+}
+
 # Find the deepest recipient file above the given path
 set_LOCAL_RECIPIENT_FILE() {
 	LOCAL_RECIPIENT_FILE="/$1"
@@ -135,7 +143,6 @@ yesno() {
 		ANSWER=y
 	fi
 }
-
 
 
 ##################
@@ -617,8 +624,7 @@ do_encrypt() {
 #   DECISION: whether to ask before overwrite
 #   OVERWRITE: whether to re-use existing secret data
 do_generate() {
-	NEW_PASS="$(LC_ALL=C tr -dc -- "$3" </dev/urandom \
-	    | LC_ALL=C dd ibs=1 obs=1 count="$2" 2>/dev/null || true)"
+	NEW_PASS="$(random_chars "$2" "$3")"
 	NEW_PASS_LEN="$(strlen "${NEW_PASS}")"
 
 	if [ "${NEW_PASS_LEN}" -ne "$2" ]; then
