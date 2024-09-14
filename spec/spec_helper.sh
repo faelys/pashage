@@ -5,6 +5,17 @@
 # so it is better to set them here.
 # set -eu
 
+mocklog() {
+  if [ $# -eq 1 ]; then
+    printf '$ %s\n' "$1" >&2
+  else
+    printf '$ %s' "$1" >&2
+    shift
+    printf ' %s' "$@" >&2
+    printf '\n' >&2
+  fi
+}
+
 # This callback function will be invoked only once before loading specfiles.
 spec_helper_precheck() {
   # Available functions: info, warn, error, abort, setenv, unsetenv

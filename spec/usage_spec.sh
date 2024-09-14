@@ -35,17 +35,6 @@ Describe 'Command-Line Parsing'
   SELECTED_LINE=1
   SHOW=text
 
-  mocklog() {
-    if [ $# -eq 1 ]; then
-      %printf '$ %s\n' "$1" >&2
-    else
-      %printf '$ %s' "$1" >&2
-      shift
-      %printf ' %s' "$@" >&2
-      %printf '\n' >&2
-    fi
-  }
-
   # mocks
   platform_tmpdir() {
     SECURE_TMPDIR=/tmp/secure

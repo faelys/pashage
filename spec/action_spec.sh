@@ -22,17 +22,6 @@ Describe 'Action Functions'
   Include src/pashage.sh
   Set 'errexit:on' 'nounset:on' 'pipefail:on'
 
-  mocklog() {
-    if [ $# -eq 1 ]; then
-      %printf '$ %s\n' "$1" >&2
-    else
-      %printf '$ %s' "$1" >&2
-      shift
-      %printf ' %s' "$@" >&2
-      %printf '\n' >&2
-    fi
-  }
-
   Describe 'do_copy_move'
     DECISION=default
     OVERWRITE=yes
