@@ -60,7 +60,10 @@ how different it is; but now it installs `.age-recipients` and re-encrypts.
 
 ### New Features and Extensions
 
-TODO
+- The new `random` command leverages password generation without touching
+the password store.
+
+- TODO
 
 ## Manual
 

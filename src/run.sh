@@ -114,6 +114,7 @@ case "${COMMAND}" in
     list)	shift; cmd_list_or_show "$@" ;;
     ls)		shift; cmd_list_or_show "$@" ;;
     move|mv)	shift; cmd_move "$@" ;;
+    random)	shift; cmd_random "$@" ;;
     remove)	shift; cmd_delete "$@" ;;
     rm)		shift; cmd_delete "$@" ;;
     show)	shift; cmd_list_or_show "$@" ;;

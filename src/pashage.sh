@@ -1411,6 +1411,15 @@ cmd_move() {
 	cmd_copy_move "$@"
 }
 
+cmd_random() {
+	if [ $# -gt 2 ]; then
+		cmd_usage 'Usage: ' random >&2
+		exit 1
+	fi
+
+	random_chars "${1:-${GENERATED_LENGTH}}" "${2:-${CHARACTER_SET}}"
+}
+
 # Outputs the whole usage text
 #   $1: indentation
 #   ... commands to document
@@ -1432,7 +1441,7 @@ cmd_usage(){
 	if [ $# -eq 0 ]; then
 		echo 'Usage:'
 		set -- list show copy delete edit find generate \
-		    git gitconfig grep help init insert move version
+		    git gitconfig grep help init insert move random version
 		VERBOSE=yes
 	else
 		VERBOSE=no
@@ -1575,6 +1584,16 @@ EOF
 			[ "${VERBOSE}" = yes ] && cat <<EOF
 ${I}    Renames or moves old-path to new-path, optionally forcefully,
 ${I}    selectively reencrypting.
+EOF
+			;;
+		    random)
+			cat <<EOF
+${F}${PROGRAM} random [pass-length [character-set]]
+EOF
+			[ "${VERBOSE}" = yes ] && cat <<EOF
+${I}    Generate a new password of pass-length (or ${GENERATED_LENGTH:-25} if unspecified)
+${I}    using the given character set (or ${CHARACTER_SET} if unspecified)
+${I}    without recording it in the password store.
 EOF
 			;;
 		    version)

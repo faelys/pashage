@@ -1416,6 +1416,37 @@ Describe 'Command-Line Parsing'
     End
   End
 
+  Describe 'cmd_random'
+    COMMAND=generate
+    GENERATED_LENGTH=25
+
+    random_chars() { mocklog random_chars "$@"; }
+
+    It 'generates random characters with default parameters'
+      When run cmd_random
+      The error should equal \
+        "$ random_chars ${GENERATED_LENGTH} ${CHARACTER_SET}"
+    End
+
+    It 'generates random characters with default character set'
+      When run cmd_random 8
+      The error should equal "$ random_chars 8 ${CHARACTER_SET}"
+    End
+
+    It 'generates random characters with the given arguments'
+      When run cmd_random 8 a-z
+      The error should equal "$ random_chars 8 a-z"
+    End
+
+    It 'reports too many arguments'
+      cat() { @cat; }
+      When run cmd_random 1 2 3
+      The output should be blank
+      The error should equal 'Usage: prg random [pass-length [character-set]]'
+      The status should equal 1
+    End
+  End
+
   Describe 'cmd_usage'
     COMMAND=usage
     CLIP_TIME='$CLIP_TIME'
@@ -1443,6 +1474,7 @@ Describe 'Command-Line Parsing'
       The output should include 'prg insert'
       The output should include 'prg [list]'
       The output should include 'prg move'
+      The output should include 'prg random'
       The output should include 'prg [show]'
       The output should include 'prg version'
     End
