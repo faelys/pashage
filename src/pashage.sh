@@ -359,6 +359,7 @@ do_copy_move_dir() {
 		done
 
 		unset ARG
+		rmdir -p -- "${PREFIX}/$1" 2>/dev/null || true
 	fi
 }
 
@@ -505,7 +506,7 @@ do_delete() {
 	scm_begin
 	scm_rm "${TARGET}"
 	scm_commit "Remove ${NAME} from store."
-	rmdir -p  -- "$(dirname "${PREFIX}/${TARGET}")" 2>/dev/null || true
+	rmdir -p -- "$(dirname "${PREFIX}/${TARGET}")" 2>/dev/null || true
 }
 
 # Edit a secret interactively
