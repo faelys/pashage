@@ -39,11 +39,11 @@ The following test sets can be found in `spec/` directory:
 - `scm_spec.sh` tests SCM functions in isolation, using the real git
   and filesystem;
 - TODO tests integration, calling command functions with minimal mocks;
-- TODO tests `pass`-like behavior of the whole script;
+- `pass_spec.sh` tests `pass`-like behavior of the whole script;
 - TODO tests `passage`-like behavior of the whole script.
 
 Platform functions are not tested, because the platform adherence make it
 too difficult to test it automatically.
 
-`age`, `git`, and `gpg` are always mocked, to make the tests reproducible
-and the failures easier to investigate.
+`age` and `git` are always mocked, to make the tests reproducible and easier
+to design, and to make the failures easier to investigate.

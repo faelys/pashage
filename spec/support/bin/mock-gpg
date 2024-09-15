@@ -1,0 +1,60 @@
+#!/bin/sh
+
+set -Cue
+
+die() {
+	printf '%s\n' "$*" >&2
+	exit 1
+}
+
+check_eq() {
+	[ "$1" = "$2" ] && return 0
+	shift 2
+	die "$@"
+}
+
+case "$1" in
+  -e)
+	shift
+	MOCK_AGE_OUTPUT="$(@mktemp "$(dirname "$2")/mock-gpg-encrypt.XXXXXXX")"
+	while [ $# -gt 0 ]; do
+		case "$1" in
+		    -r)
+			printf 'gpgRecipient:%s\n' "$2" >>"${MOCK_AGE_OUTPUT}"
+			shift 2 ;;
+		    -o)
+			@sed 's/^/gpg:/' >>"${MOCK_AGE_OUTPUT}"
+			@mv -f "${MOCK_AGE_OUTPUT}" "$2"
+			shift 2
+			break ;;
+		    *)
+			die "Unexpected  arguments togpg -e [...] $*\n"
+			;;
+		esac
+	done
+	[ $# -eq 4 ] || die "Unexpected arguments to gpg -e [...] $*\n"
+	check_eq "$1" '--quiet'              "Unexpected gpg -e \$1: \"$1\""
+	check_eq "$2" '--yes'                "Unexpected gpg -e \$2: \"$2\""
+	check_eq "$3" '--compress-algo=none' "Unexpected gpg -e \$3: \"$3\""
+	check_eq "$4" '--no-encrypt-to'      "Unexpected gpg -e \$4: \"$4\""
+	;;
+    -d)
+	check_eq "$2" '--quiet'              "Unexpected gpg -d \$2: \"$2\""
+	check_eq "$3" '--yes'                "Unexpected gpg -d \$3: \"$3\""
+	check_eq "$4" '--compress-algo=none' "Unexpected gpg -d \$4: \"$4\""
+	check_eq "$5" '--no-encrypt-to'      "Unexpected gpg -d \$5: \"$5\""
+	@grep -v '^gpg' "$6" >&2 && die "Bad encrypted file \"$6\""
+	@sed -n 's/^gpg://p' "$6"
+	;;
+    --list-config)
+	[ $# -eq 2 ] || die "Unexpected arguments to gpg $*\n"
+	check_eq "$2" '--with-colons' "Unexpected gpg --list-config \$2: \"$2\""
+	;;
+    --list-keys)
+	check_eq "$2" '--with-colons' "Unexpected gpg --list-keys \$2: \"$2\""
+	printf 'sub::::%s:::::::e:\n' "$@"
+	;;
+    *)
+	die "Unexpected gpg \$1: \"$1\""
+	;;
+esac

@@ -42,6 +42,9 @@ by the GPL, so to be on the safe side I'm using GPL v2+ too.
 
 ### Behavior Differences
 
+- Not using a terminal does not imply `--force`, instead `pash` asks for
+a confirming `y` on a standard input line.
+
 - The `edit` command does not warn a about using `/tmp` rather than
 `/dev/shm`, because the warning does not seem actionable and quickly
 becomes ignored noise.
