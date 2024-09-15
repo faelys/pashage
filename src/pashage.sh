@@ -247,7 +247,6 @@ do_copy_move() {
 				die "Error: ${DEST%/} is not a directory"
 			fi
 		fi
-		mkdir -p -- "${PREFIX}/${DEST}"
 
 	elif [ "$2" = "${2%/}/" ]; then
 		mkdir -p -- "${PREFIX}/$2"
@@ -337,6 +336,7 @@ do_copy_move() {
 do_copy_move_dir() {
 	[ "$1" = "${1%/}/" ] || [ -z "$1" ] || die 'Internal error'
 	[ "$2" = "${2%/}/" ] || [ -z "$2" ] || die 'Internal error'
+	[ -d "${PREFIX}/$1" ] || die 'Internal error'
 
 	if [ -e "${PREFIX}/$1.age-recipients" ] \
 	    && { [ "${DECISION}" = keep ] || [ "${DECISION}" = default ]; }
@@ -344,6 +344,8 @@ do_copy_move_dir() {
 		# Recipiends are transported too, no need to reencrypt
 		"${SCM_ACTION}" "$1" "$2"
 	else
+		[ -d "${PREFIX}/$2" ] || mkdir -p -- "${PREFIX}/${2%/}"
+
 		for ARG in "${PREFIX}/$1".* "${PREFIX}/$1"*; do
 			SRC="${ARG#"${PREFIX}/"}"
 			DEST="$2$(basename "${ARG}")"
@@ -352,7 +354,6 @@ do_copy_move_dir() {
 				do_copy_move_file "${SRC}" "${DEST}"
 			elif [ -d "${ARG}" ] && [ "${ARG}" = "${ARG%/.*}" ]
 			then
-				mkdir -p -- "${PREFIX}/${DEST}"
 				do_copy_move_dir "${SRC}/" "${DEST}/"
 			fi
 		done

@@ -201,7 +201,6 @@ Describe 'Action Functions'
     It 'moves a whole directory with identity'
       result() {
         %text:expand
-        #|$ mkdir -p -- ${PREFIX}/subdir/sub/
         #|$ scm_begin
         #|$ scm_mv sub/ subdir/sub/
         #|$ scm_commit Move sub/ to subdir/sub/
@@ -214,8 +213,8 @@ Describe 'Action Functions'
     It 'recursively re-enecrypts a directory'
       result() {
         %text:expand
-        #|$ mkdir -p -- ${PREFIX}/subdir/new-bare/
         #|$ scm_begin
+        #|$ mkdir -p -- ${PREFIX}/subdir/new-bare
         #|$ do_decrypt ${PREFIX}/sub/bare/deep.age
         #|$ do_encrypt subdir/new-bare/deep.age
         #|$ scm_rm sub/bare/deep.age
@@ -244,8 +243,8 @@ Describe 'Action Functions'
       }
       result() {
         %text:expand
-        #|$ mkdir -p -- ${PREFIX}/subdir/new-bare/
         #|$ scm_begin
+        #|$ mkdir -p -- ${PREFIX}/subdir/new-bare
         #|$ yesno Reencrypt sub/bare/deep into subdir/new-bare/deep?
         #|$ scm_cp sub/bare/deep.age subdir/new-bare/deep.age
         #|$ mkdir -p -- ${PREFIX}/subdir/new-bare/sub
