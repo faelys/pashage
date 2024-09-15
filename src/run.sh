@@ -84,8 +84,8 @@ SHOW=text
 ###########
 
 : "${PASHAGE_SRC_DIR:=$(dirname "$0")}"
-PLATFORM="$(uname | cut -d _ -f 1 | tr '[:upper:]' '[:lower:]')"
-. "${PASHAGE_SRC_DIR}/platform-${PLATFORM}.sh"
+PLATFORM="$(uname | tr '[:upper:]' '[:lower:]')"
+. "${PASHAGE_SRC_DIR}/platform-${PLATFORM%%_*}.sh"
 . "${PASHAGE_SRC_DIR}/pashage.sh"
 
 ############
