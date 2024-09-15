@@ -699,7 +699,7 @@ do_grep() {
 		if [ -d "${ARG}" ]; then
 			( cd "${ARG}" && do_grep "${SUBDIR}${ARG}/" "$@" )
 		elif [ "${ARG}" = "${ARG%.age}.age" ]; then
-			FOUND="$(do_decrypt "${ARG}" | grep "$@")"
+			FOUND="$(do_decrypt "${ARG}" | (grep "$@" || true))"
 			if [ -n "${FOUND}" ]; then
 				printf '%s%s\n%s\n' \
 				      "${BLUE_TEXT}${SUBDIR}" \
