@@ -356,9 +356,8 @@ Describe 'Command-Line Parsing'
 
     It 'uses the argument list directly'
       When call cmd_find -i pattern
-      The output should be blank
-      The error should equal \
-        '$ do_tree /prefix Search pattern: -i pattern -i pattern'
+      The output should equal 'Search pattern: -i pattern'
+      The error should equal '$ do_tree /prefix  -i pattern'
     End
 
     It 'reports a lack of argument'

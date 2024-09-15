@@ -1618,5 +1618,10 @@ Describe 'Action Functions'
       When call do_tree "${PREFIX}" 'Title' z
       The output should equal ''
     End
+
+    It 'does not display an empty title'
+      When call do_tree "${PREFIX}" '' t
+      The output should equal 'L_root'
+    End
   End
 End

@@ -927,8 +927,10 @@ do_tree_cwd() {
 	fi
 
 	if [ $# -eq 0 ] || [ -n "${ACC}" ]; then
-		printf '%s\n' "${TITLE}" "${ACC}"
+		[ -n "${TITLE}" ] && printf '%s\n' "${TITLE}"
 	fi
+
+	[ -n "${ACC}" ] && printf '%s\n' "${ACC}"
 
 	unset ACC
 	unset PREV
@@ -1088,7 +1090,8 @@ cmd_find() {
 		exit 1
 	fi
 
-	do_tree "${PREFIX}" "Search pattern: $*" "$@"
+	printf 'Search pattern: %s\n' "$*"
+	do_tree "${PREFIX}" '' "$@"
 }
 
 cmd_generate() {
