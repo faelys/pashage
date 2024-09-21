@@ -647,7 +647,7 @@ Describe 'Action Functions'
         #|> old line 2
         #|> new line 3
         #|$ scm_add sub/new.age
-        #|$ scm_commit Add password for sub/new using edit
+        #|$ scm_commit Add password for sub/new using edit.
         #|$ rm ${SECURE_TMPDIR}/XXXXXX-sub-new.txt
       }
       EDIT_CMD=edit
@@ -682,7 +682,7 @@ Describe 'Action Functions'
         #|> old line 2
         #|> new line 3
         #|$ scm_add existing.age
-        #|$ scm_commit Edit password for existing using edit
+        #|$ scm_commit Edit password for existing using edit.
         #|$ rm ${SECURE_TMPDIR}/XXXXXX-existing.txt
       }
       EDIT_CMD=edit

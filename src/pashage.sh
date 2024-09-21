@@ -565,7 +565,7 @@ do_edit() {
 		OVERWRITE=once
 		do_encrypt "${NAME}.age" <"${TMPFILE}"
 		scm_add "${NAME}.age"
-		scm_commit "${ACTION} password for ${NAME} using ${EDIT_CMD}"
+		scm_commit "${ACTION} password for ${NAME} using ${EDIT_CMD}."
 		rm "${TMPFILE}"
 	fi
 
