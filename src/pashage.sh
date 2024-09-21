@@ -687,9 +687,18 @@ do_generate() {
 	fi
 
 	scm_add "${PREFIX}/$1.age"
-	scm_commit "${VERB} generated password for $1"
+	scm_commit "${VERB} generated password for $1."
 
 	unset VERB
+
+	if [ "${SHOW}" = text ]; then
+		printf '%sThe generated password for %s%s%s is:%s\n' \
+		    "${BOLD_TEXT}" \
+		    "${UNDERLINE_TEXT}" \
+		    "$1" \
+		    "${NO_UNDERLINE_TEXT}" \
+		    "${NORMAL_TEXT}"
+	fi
 
 	do_show "$1" <<-EOF
 		${NEW_PASS}

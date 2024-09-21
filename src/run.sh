@@ -54,11 +54,15 @@ BOLD_TEXT=""
 NORMAL_TEXT=""
 RED_TEXT=""
 BLUE_TEXT=""
+UNDERLINE_TEXT=""
+NO_UNDERLINE_TEXT=""
 if [ -n "${CLICOLOR-}" ]; then
 	BOLD_TEXT="$(printf '\033[1m')"
 	NORMAL_TEXT="$(printf '\033[0m')"
 	RED_TEXT="$(printf '\033[31m')"
 	BLUE_TEXT="$(printf '\033[34m')"
+	UNDERLINE_TEXT="$(printf '\033[4m')"
+	NO_UNDERLINE_TEXT="$(printf '\033[24m')"
 fi
 
 ### Git environment clean-up

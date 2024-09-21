@@ -889,6 +889,7 @@ Describe 'Action Functions'
 
   Describe 'do_generate'
     PREFIX="${SHELLSPEC_WORKDIR}/prefix"
+    SHOW=none
 
     dd() { %- 0123456789 ; }
     dirname() { @dirname "$@"; }
@@ -950,12 +951,35 @@ Describe 'Action Functions'
         #|$ do_encrypt sub/new.age
         #|> 0123456789
         #|$ scm_add ${PREFIX}/sub/new.age
-        #|$ scm_commit Add generated password for sub/new
+        #|$ scm_commit Add generated password for sub/new.
         #|$ do_show sub/new
         #|> 0123456789
       }
       When call do_generate sub/new 10 '[alnum:]'
       The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'displays a title before text output'
+      SHOW=text
+      BOLD_TEXT='(B)'
+      NORMAL_TEXT='(N)'
+      UNDERLINE_TEXT='(U)'
+      NO_UNDERLINE_TEXT='(!U)'
+      result(){
+        %text:expand
+        #|$ scm_begin
+        #|$ mkdir -p -- ${PREFIX}/sub
+        #|$ do_encrypt sub/new.age
+        #|> 0123456789
+        #|$ scm_add ${PREFIX}/sub/new.age
+        #|$ scm_commit Add generated password for sub/new.
+        #|$ do_show sub/new
+        #|> 0123456789
+      }
+      When call do_generate sub/new 10 '[alnum:]'
+      The output should equal \
+        '(B)The generated password for (U)sub/new(!U) is:(N)'
       The error should equal "$(result)"
     End
 
@@ -969,7 +993,7 @@ Describe 'Action Functions'
         #|$ do_encrypt existing.age
         #|> 0123456789
         #|$ scm_add ${PREFIX}/existing.age
-        #|$ scm_commit Add generated password for existing
+        #|$ scm_commit Add generated password for existing.
         #|$ do_show existing
         #|> 0123456789
       }
@@ -993,7 +1017,7 @@ Describe 'Action Functions'
         #|$ do_encrypt existing.age
         #|> 0123456789
         #|$ scm_add ${PREFIX}/existing.age
-        #|$ scm_commit Add generated password for existing
+        #|$ scm_commit Add generated password for existing.
         #|$ do_show existing
         #|> 0123456789
       }
@@ -1044,7 +1068,7 @@ Describe 'Action Functions'
         #|> line 3
         #|$ mv ${PREFIX}/existing-XXXXXXXXX.age ${PREFIX}/existing.age
         #|$ scm_add ${PREFIX}/existing.age
-        #|$ scm_commit Replace generated password for existing
+        #|$ scm_commit Replace generated password for existing.
         #|$ do_show existing
         #|> 0123456789
       }
