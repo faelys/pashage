@@ -732,7 +732,6 @@ Describe 'Command-Line Parsing'
         %text:expand
         #|$ mkdir -p -- ${PREFIX}
         #|$ git -C ${PREFIX} init
-        #|$ scm_begin
         #|$ scm_add .
         #|$ scm_commit Add current contents of password store.
         #|$ cmd_gitconfig

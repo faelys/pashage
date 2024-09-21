@@ -1222,7 +1222,6 @@ cmd_git() {
 	elif [ "$1" = init ]; then
 		mkdir -p -- "${PREFIX}"
 		git -C "${PREFIX}" "$@"
-		scm_begin
 		scm_add '.'
 		scm_commit "Add current contents of password store."
 		cmd_gitconfig
