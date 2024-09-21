@@ -790,6 +790,21 @@ Describe 'Action Functions'
       The output should equal 'New password for subdir/new not saved.'
       The error should equal "$(result)"
     End
+
+    It 'reports EDITOR exit code'
+      exit42() { mocklog editor "$@"; return 42; }
+      EDITOR=exit42
+      result() {
+        %text:expand
+        #|$ mktemp -u ${SECURE_TMPDIR}/XXXXXX
+        #|$ scm_begin
+        #|$ editor ${SECURE_TMPDIR}/XXXXXX-subdir-new.txt
+        #|Editor "exit42" exited with code 42
+      }
+      When run do_edit subdir/new
+      The status should equal 42
+      The error should equal "$(result)"
+    End
   End
 
   Describe 'do_encrypt'

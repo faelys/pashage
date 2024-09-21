@@ -551,7 +551,14 @@ do_edit() {
 		fi
 	fi
 
-	${EDIT_CMD} "${TMPFILE}"
+	if ${EDIT_CMD} "${TMPFILE}"; then
+		:
+	else
+		CODE="$?"
+		printf 'Editor "%s" exited with code %s\n' \
+		    "${EDIT_CMD}" "${CODE}" >&2
+		exit "${CODE}"
+	fi
 
 	if ! [ -f "${TMPFILE}" ]; then
 		printf '%s\n' "New password for ${NAME} not saved."
