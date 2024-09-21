@@ -177,7 +177,7 @@ scm_commit() {
 #   $1: source
 #   $2: destination
 scm_cp() {
-	cp -r -- "${PREFIX}/$1" "${PREFIX}/$2"
+	cp -rf -- "${PREFIX}/$1" "${PREFIX}/$2"
 	scm_add "$2"
 }
 
@@ -193,9 +193,9 @@ scm_del() {
 #   $2: destination
 scm_mv() {
 	if [ -d "${PREFIX}/.git" ]; then
-		git -C "${PREFIX}" mv -- "$1" "$2"
+		git -C "${PREFIX}" mv -f -- "$1" "$2"
 	else
-		mv -- "${PREFIX}/$1" "${PREFIX}/$2"
+		mv -f -- "${PREFIX}/$1" "${PREFIX}/$2"
 	fi
 }
 
@@ -473,6 +473,7 @@ do_deinit() {
 # Delete a file or directory from the password store
 #   $1: file or directory name
 #   DECISION: whether to ask before deleting
+#   RECURSIVE: whether to delete directories
 do_delete() {
 	# Distinguish between file or directory
 	if [ "$1" = "${1%/}/" ]; then
@@ -484,10 +485,16 @@ do_delete() {
 		if ! [ -d "${PREFIX}/${NAME%/}" ]; then
 			die "Error: $1 is not a directory."
 		fi
+		if ! [ "${RECURSIVE}" = yes ]; then
+			die "Error: $1 is a directory"
+		fi
 	elif [ -f "${PREFIX}/$1.age" ]; then
 		NAME="$1"
 		TARGET="$1.age"
 	elif [ -d "${PREFIX}/$1" ]; then
+		if ! [ "${RECURSIVE}" = yes ]; then
+			die "Error: $1/ is a directory"
+		fi
 		NAME="$1/"
 		TARGET="$1/"
 	else
@@ -1045,11 +1052,23 @@ cmd_delete() {
 	check_sneaky_paths "$@"
 
 	PARSE_ERROR=no
+	RECURSIVE=no
 	while [ $# -ge 1 ]; do
 		case "$1" in
 		    -f|--force)
 			DECISION=force
 			shift ;;
+		    -r|--recursive)
+			RECURSIVE=yes
+			shift ;;
+		    -[fr]?*)
+			REST="${1#??}"
+			FIRST="${1%"${REST}"}"
+			shift
+			set -- "${FIRST}" "-${REST}" "$@"
+			unset FIRST
+			unset REST
+			;;
 		    --)
 			shift
 			break ;;
@@ -1492,7 +1511,7 @@ EOF
 			;;
 		    delete)
 			cat <<EOF
-${F}${PROGRAM} delete [--force,-f] pass-name
+${F}${PROGRAM} delete [--recursive,-r] [--force,-f] pass-name
 EOF
 			[ "${VERBOSE}" = yes ] && cat <<EOF
 ${I}    Remove existing passwords or directories, optionally forcefully.

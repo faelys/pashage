@@ -453,6 +453,7 @@ Describe 'Action Functions'
 
   Describe 'do_delete'
     DECISION=force
+    RECURSIVE=yes
     PREFIX="${SHELLSPEC_WORKDIR}/prefix"
 
     dirname() { @dirname "$@"; }
@@ -541,6 +542,22 @@ Describe 'Action Functions'
       When call do_delete sub/
       The output should equal 'Removing sub/'
       The error should equal "$(result)"
+    End
+
+    It 'does not delete an explicit directory without RECURSIVE'
+      RECURSIVE=no
+      When run do_delete sub/
+      The output should be blank
+      The error should equal 'Error: sub/ is a directory'
+      The status should equal 1
+    End
+
+    It 'does not delete an implicit directory without RECURSIVE'
+      RECURSIVE=no
+      When run do_delete empty
+      The output should be blank
+      The error should equal 'Error: empty/ is a directory'
+      The status should equal 1
     End
 
     It 'does not delete a non-encrypted file'

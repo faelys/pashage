@@ -68,6 +68,7 @@ Describe 'Command-Line Parsing'
     mocklog do_delete "$@"
     %text:expand >&2
     #|DECISION=${DECISION}
+    #|RECURSIVE=${RECURSIVE}
   }
   do_edit() {
     mocklog do_edit "$@"
@@ -244,12 +245,14 @@ Describe 'Command-Line Parsing'
 
   Describe 'cmd_delete'
     COMMAND=delete
+    RECURSIVE=no
 
     It 'removes a file forcefully with a long option'
       result() {
         %text
         #|$ do_delete arg1
         #|DECISION=force
+        #|RECURSIVE=no
       }
       When call cmd_delete --force arg1
       The output should be blank
@@ -261,8 +264,69 @@ Describe 'Command-Line Parsing'
         %text
         #|$ do_delete arg1
         #|DECISION=force
+        #|RECURSIVE=no
       }
       When call cmd_delete -f arg1
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'removes a directory recursively with a long option'
+      result() {
+        %text
+        #|$ do_delete arg1
+        #|DECISION=default
+        #|RECURSIVE=yes
+      }
+      When call cmd_delete --recursive arg1
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'removes a directory recursively with a short option'
+      result() {
+        %text
+        #|$ do_delete arg1
+        #|DECISION=default
+        #|RECURSIVE=yes
+      }
+      When call cmd_delete -r arg1
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'removes a directory recursively and forcefully with long options'
+      result() {
+        %text
+        #|$ do_delete arg1
+        #|DECISION=force
+        #|RECURSIVE=yes
+      }
+      When call cmd_delete --recursive --force arg1
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'removes a directory recursively and forcefully with short options'
+      result() {
+        %text
+        #|$ do_delete arg1
+        #|DECISION=force
+        #|RECURSIVE=yes
+      }
+      When call cmd_delete -rf arg1
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'removes a directory forcefully and recursively with short options'
+      result() {
+        %text
+        #|$ do_delete arg1
+        #|DECISION=force
+        #|RECURSIVE=yes
+      }
+      When call cmd_delete -fr arg1
       The output should be blank
       The error should equal "$(result)"
     End
@@ -272,10 +336,13 @@ Describe 'Command-Line Parsing'
         %text
         #|$ do_delete arg1
         #|DECISION=default
+        #|RECURSIVE=no
         #|$ do_delete arg2
         #|DECISION=default
+        #|RECURSIVE=no
         #|$ do_delete arg3
         #|DECISION=default
+        #|RECURSIVE=no
       }
       When call cmd_delete arg1 arg2 arg3
       The output should be blank
@@ -287,8 +354,10 @@ Describe 'Command-Line Parsing'
         %text
         #|$ do_delete -f
         #|DECISION=default
+        #|RECURSIVE=no
         #|$ do_delete arg2
         #|DECISION=default
+        #|RECURSIVE=no
       }
       When call cmd_delete -- -f arg2
       The output should be blank
@@ -299,7 +368,8 @@ Describe 'Command-Line Parsing'
       cat() { @cat; }
       When run cmd_delete -u arg
       The output should be blank
-      The error should equal 'Usage: prg delete [--force,-f] pass-name'
+      The error should equal \
+        'Usage: prg delete [--recursive,-r] [--force,-f] pass-name'
       The status should equal 1
     End
 
@@ -307,7 +377,8 @@ Describe 'Command-Line Parsing'
       cat() { @cat; }
       When run cmd_delete
       The output should be blank
-      The error should equal 'Usage: prg delete [--force,-f] pass-name'
+      The error should equal \
+        'Usage: prg delete [--recursive,-r] [--force,-f] pass-name'
       The status should equal 1
     End
   End
