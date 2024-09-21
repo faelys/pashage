@@ -747,11 +747,12 @@ do_init() {
 
 	mkdir -p -- "${SUBDIR}"
 
+	scm_begin
+
 	if ! [ -f "${TARGET}" ] || [ "${OVERWRITE}" = yes ]; then
 		: >|"${TARGET}"
 	fi
 
-	scm_begin
 	printf '%s\n' "$@" >>"${TARGET}"
 	scm_add "${TARGET#"${PREFIX}/"}"
 	if ! [ "${DECISION}" = keep ]; then
@@ -884,6 +885,7 @@ do_reencrypt_file() {
 		unset ANSWER
 	fi
 
+	OVERWRITE=once
 	WIP_FILE="$(mktemp "${PREFIX}/$1-XXXXXXXXX.age")"
 	do_decrypt "${PREFIX}/$1.age" \
 	    | do_encrypt "${WIP_FILE#"${PREFIX}"/}"
