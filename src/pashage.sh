@@ -237,7 +237,9 @@ do_copy_move() {
 		LOCAL_ACTION=do_copy_move_dir
 		if [ -d "${PREFIX}/$2" ]; then
 			DEST="${2%/}${2:+/}$(basename "${SRC%/}")/"
-			if [ -e "${PREFIX}/${DEST}" ]; then
+			if [ -e "${PREFIX}/${DEST}" ] \
+			    && [ "${ACTION}" = Move ]
+			then
 				die "Error: $2 already contains" \
 				    "$(basename "${SRC%/}")"
 			fi
