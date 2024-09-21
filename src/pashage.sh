@@ -1269,6 +1269,7 @@ cmd_help() {
 }
 
 cmd_init() {
+	OVERWRITE=yes
 	PARSE_ERROR=no
 	SUBDIR=''
 

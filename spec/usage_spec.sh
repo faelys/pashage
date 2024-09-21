@@ -902,7 +902,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ do_init  recipient-1 recipient-2
         #|DECISION=default
-        #|OVERWRITE=no
+        #|OVERWRITE=yes
       }
       When call cmd_init recipient-1 recipient-2
       The output should be blank
@@ -914,7 +914,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ do_init sub recipient
         #|DECISION=default
-        #|OVERWRITE=no
+        #|OVERWRITE=yes
       }
       When call cmd_init --path=sub recipient
       The output should be blank
@@ -926,7 +926,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ do_init sub recipient
         #|DECISION=default
-        #|OVERWRITE=no
+        #|OVERWRITE=yes
       }
       When call cmd_init --path sub recipient
       The output should be blank
@@ -938,7 +938,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ do_init sub recipient
         #|DECISION=default
-        #|OVERWRITE=no
+        #|OVERWRITE=yes
       }
       When call cmd_init -psub recipient
       The output should be blank
@@ -950,7 +950,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ do_init sub recipient
         #|DECISION=default
-        #|OVERWRITE=no
+        #|OVERWRITE=yes
       }
       When call cmd_init -p sub recipient
       The output should be blank
@@ -973,7 +973,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ do_init  -recipient
         #|DECISION=default
-        #|OVERWRITE=no
+        #|OVERWRITE=yes
       }
       When call cmd_init -- -recipient
       The output should be blank
