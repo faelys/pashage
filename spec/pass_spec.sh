@@ -15,21 +15,28 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
-# This test file should pass with either pashage
-# or pass (the original password-store).
+# This test file should pass with pashage, pass (the original password-store),
+# or passage (the pass fork by Filippo Valsorda).
 
-# The original password-store script can be added to the parameters list
+# The test suite also checks the internal of the store, thanks to mocked
+# cryptography. This should ensure that pashage is indeed a drop-in replacement
+# for passage, and that both of them can update interchangeably the same
+# password store repository.
+
+# The other password-store scripts can be added to the parameters list
 # to run the cases against it.
 # bash seems to escape the sandbox by resetting PATH on the slightest
 # provocation, while the tests rely heavily on the mocked cryptography
 # to check the store behavior.
 # So it only works when using shellspec with bash and calling the `pass`
-# script directly (e.g. on FreeBSD `/usr/local/libexec/password-store/pass`
+# or `password-store.sh` script directly
+# (e.g. on FreeBSD `/usr/local/libexec/password-store/pass`
 # instead of `/usr/local/bin/pass`).
 
-Parameters # script/path  scriptname  encryption
-# /usr/bin/pass             pass         gpg
-  ./src/run.sh              pashage      age
+Parameters # script/path           scriptname  encryption
+# /usr/bin/pass                      pass         gpg
+# /git/passage/src/password-store.sh passage      age
+  ./src/run.sh                       pashage      age
 End
 
 Describe 'Pass-like command'
@@ -41,8 +48,8 @@ Describe 'Pass-like command'
   PREFIX="${SHELLSPEC_WORKDIR}/store"
 
   export PASSWORD_STORE_DIR="${PREFIX}"
-  export PASHAGE_STORE_DIR="${PREFIX}"
-  export PASHAGE_IDENTITIES_FILE="${SHELLSPEC_WORKDIR}/age-identities"
+  export PASSAGE_DIR="${PREFIX}"
+  export PASSAGE_IDENTITIES_FILE="${SHELLSPEC_WORKDIR}/age-identities"
 
   git_log() {
     @git -C "${PREFIX}" log --format='%s' --stat >|"${GITLOG}"
@@ -87,7 +94,7 @@ Describe 'Pass-like command'
     @git init -q -b main "${PREFIX}"
     @git -C "${PREFIX}" config --local user.name 'Test User'
     @git -C "${PREFIX}" config --local user.email 'test@example.com'
-    %putsn 'myself' >"${PASHAGE_IDENTITIES_FILE}"
+    %putsn 'myself' >"${PASSAGE_IDENTITIES_FILE}"
     %putsn 'myself' >"${PREFIX}/.gpg-id"
     %text | setup_secret 'subdir/file'
     #|Recipient:myself
@@ -130,7 +137,7 @@ Describe 'Pass-like command'
 
   cleanup() {
     @rm -rf "${PREFIX}"
-    @rm -f "${PASHAGE_IDENTITIES_FILE}"
+    @rm -f "${PASSAGE_IDENTITIES_FILE}"
   }
 
   BeforeEach setup
@@ -225,7 +232,7 @@ Describe 'Pass-like command'
 
   Mock qrencode
     . "${SHELLSPEC_SUPPORT_BIN}"
-    invoke od -v -t x1 | sed 's/  */ /g;s/ *$//' >&2
+    invoke od -v -t x1 | sed 's/  */ /g;s/ *$//'
   End
 
   Mock mktemp
@@ -289,6 +296,7 @@ Describe 'Pass-like command'
   Describe 'init'
     It 're-encrypts the whole store using a new recipient id'
       Skip if 'pass(age) needs bash' check_skip $2
+      Skip if 'passage has no init' [ "$2" = passage ]
       When run script $1 init 'new-id'
       The output should include 'Password store'
       expected_log() {
@@ -322,6 +330,7 @@ Describe 'Pass-like command'
 
     It 're-encrypts a subdirectory using a new recipient id'
       Skip if 'pass(age) needs bash' check_skip $2
+      Skip if 'passage has no init' [ "$2" = passage ]
       When run script $1 init -p subdir 'new-id'
       The output should start with 'Password store'
       The output should include 'subdir'
@@ -352,6 +361,7 @@ Describe 'Pass-like command'
 
     It 're-encrypts a subdirectory after replacing recipient ids'
       Skip if 'pass(age) needs bash' check_skip $2
+      Skip if 'passage has no init' [ "$2" = passage ]
       When run script $1 init -p fluff 'new-id' 'new-master'
       The output should start with 'Password store'
       The output should include 'fluff'
@@ -386,6 +396,7 @@ Describe 'Pass-like command'
 
     It 're-encrypts a subdirectory after removing dedicated recipient ids'
       Skip if 'pass(age) needs bash' check_skip $2
+      Skip if 'passage has no init' [ "$2" = passage ]
       When run script $1 init -p fluff ''
       The status should be successful
       expected_log() {
@@ -443,7 +454,11 @@ Describe 'Pass-like command'
     It 'lists the whole store without argument'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1
-      The line  1 of output should equal 'Password Store'
+      if [ $2 = passage ]; then
+        The line 1 of output should equal 'Passage'
+      else
+        The line 1 of output should equal 'Password Store'
+      fi
       The line  2 of output should include 'extra'
       The line  3 of output should include 'subdir'
       The line  4 of output should include 'file'
@@ -522,7 +537,11 @@ Describe 'Pass-like command'
         #|0000000 31 2d 70 61 73 73 77 6f 72 64
         #|0000012
       }
-      The error should equal "$(expected_err "$2")"
+      if [ $2 = pashage ]; then
+        The error should equal "$(expected_err 'pashage')"
+      else
+        The error should equal "$(expected_err 'pass')"
+      fi
     End
 
     It 'displays the given line as a QR-code'
@@ -534,7 +553,11 @@ Describe 'Pass-like command'
         #|0000000 55 73 65 72 6e 61 6d 65 3a 20 33 4a 61 6e 65
         #|0000017
       }
-      The error should equal "$(expected_err "$2")"
+      if [ $2 = pashage ]; then
+        The error should equal "$(expected_err 'pashage')"
+      else
+        The error should equal "$(expected_err 'pass')"
+      fi
     End
 
     It 'pastes into the clipboard'
@@ -572,10 +595,10 @@ Describe 'Pass-like command'
       When run script $1 grep -i Com
       The lines of output should equal 4
       The line 1 of output should include 'fluff'
-      The line 1 of output should include 'three'
+      The output should include 'three'
       The line 2 of output should include 'https://example.'
       The line 3 of output should include 'fluff'
-      The line 3 of output should include 'two'
+      The output should include 'two'
       The line 4 of output should include 'https://example.'
     End
 
@@ -921,7 +944,7 @@ Describe 'Pass-like command'
       When run script $1 generate -qn new
       The output should not include 'The generated password for'
       The output should not include "$(@sed -n "2s/$3://p" "${PREFIX}/new.$3")"
-      The error should start with "$ feh -x --title $2: new -g +200+200 -"
+      The error should start with '$ feh -x --title pas'
       expected_log() { %text:expand
         #|Add generated password for new.
         #|
@@ -1405,7 +1428,9 @@ Describe 'Pass-like command'
     It 'displays a help text with supported commands'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 help
-      The output should include ' init '
+      if ! [ $2 = passage ]; then
+        The output should include ' init '
+      fi
       The output should include ' find '
       The output should include ' [show] '
       The output should include ' grep '
