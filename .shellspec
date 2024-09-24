@@ -1,0 +1,3 @@
+--require spec_helper
+--sandbox
+--kcov-options "--include-pattern=pashage.sh"
