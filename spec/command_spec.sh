@@ -124,16 +124,20 @@ Describe 'Integrated Command Functions'
   cleanup() {
     @rm -rf "${PREFIX}"
     @rm -f "${IDENTITIES_FILE}"
+    @rm -rf "${SHELLSPEC_WORKDIR}/secure"
   }
 
   BeforeEach setup
   AfterEach cleanup
 
+  cat()    { @cat     "$@"; }
+  diff()   { @diff    "$@"; }
   git()    { @git     "$@"; }
   mktemp() { @mktemp  "$@"; }
+  rm()     { @rm      "$@"; }
 
   platform_tmpdir() {
-    SECURE_TMPDIR="${PREFIX}/secure"
+    SECURE_TMPDIR="${SHELLSPEC_WORKDIR}/secure"
     @mkdir -p "${SECURE_TMPDIR}"
   }
 
@@ -142,8 +146,100 @@ Describe 'Integrated Command Functions'
 # Describe 'cmd_delete'
 
   Describe 'cmd_edit'
-    It 'allows lack of file creation without error'
+    It 'uses EDITOR in a dumb terminal'
+      unset EDIT_CMD
+      EDITOR=false
+      TERM=dumb
+      VISUAL=true
+      When run cmd_edit stale
+      The status should equal 1
+      The output should be blank
+      The error should equal 'Editor "false" exited with code 1'
+      expected_file() { %text:expand
+        #|ageRecipient:master
+        #|ageRecipient:myself
+        #|age:0-password
+      }
+      The contents of file "${PREFIX}/stale.age" should \
+        equal "$(expected_file)"
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    It 'uses EDITOR when VISUAL is not set'
+      unset EDIT_CMD
+      EDITOR=false
+      TERM=not-dumb
+      unset VISUAL
+      When run cmd_edit stale
+      The status should equal 1
+      The output should be blank
+      The error should equal 'Editor "false" exited with code 1'
+      expected_file() { %text:expand
+        #|ageRecipient:master
+        #|ageRecipient:myself
+        #|age:0-password
+      }
+      The contents of file "${PREFIX}/stale.age" should \
+        equal "$(expected_file)"
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    It 'uses VISUAL in a non-dumb terminal'
+      unset EDIT_CMD
       EDITOR=true
+      TERM=not-dumb
+      VISUAL=false
+      When run cmd_edit stale
+      The status should equal 1
+      The output should be blank
+      The error should equal 'Editor "false" exited with code 1'
+      expected_file() { %text:expand
+        #|ageRecipient:master
+        #|ageRecipient:myself
+        #|age:0-password
+      }
+      The contents of file "${PREFIX}/stale.age" should \
+        equal "$(expected_file)"
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    It 'falls back on vi without EDITOR nor visual'
+      unset EDIT_CMD
+      unset EDITOR
+      unset VISUAL
+      When run cmd_edit subdir/new
+      The status should equal 127
+      The output should be blank
+      The line 1 of error should include 'not found'
+      The line 2 of error should equal 'Editor "vi" exited with code 127'
+      The file "${PREFIX}/subdir/new.age" should not be exist
+      The file "${PREFIX}/subdir/new.gpg" should not be exist
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    It 'reports unchanged file'
+      EDIT_CMD=true
+      When call cmd_edit stale
+      The status should be success
+      The output should equal 'Password for stale unchanged.'
+      The error should be blank
+      expected_file() { %text:expand
+        #|ageRecipient:master
+        #|ageRecipient:myself
+        #|age:0-password
+      }
+      The contents of file "${PREFIX}/stale.age" should \
+        equal "$(expected_file)"
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    It 'allows lack of file creation without error'
+      EDIT_CMD=true
       When run cmd_edit subdir/new
       The status should be success
       The output should equal 'New password for subdir/new not saved.'
@@ -156,7 +252,7 @@ Describe 'Integrated Command Functions'
 
     It 'reports editor failure'
       ret42() { return 42; }
-      EDITOR=ret42
+      EDIT_CMD=ret42
       When run cmd_edit subdir/new
       The status should equal 42
       The output should be blank
