@@ -20,7 +20,7 @@ PLATFORM != uname | cut -d _ -f 1 | tr '[:upper:]' '[:lower:]'
 pashage: bin/pashage-$(PLATFORM).sh
 	cp -i "$>" "$@"
 
-.PHONY: all check clean cov tests validate
+.PHONY: all check clean cov1 cov2 tests validate
 
 all: bin/pashage-freebsd.sh
 
@@ -30,13 +30,23 @@ check: bin/pashage-freebsd.sh
 clean:
 	rm -rf pashage bin/
 
-cov:
-	shellspec --kcov -s bash
+cov1:
+	shellspec --kcov -s bash \
+	    spec/internal_spec.sh \
+	    spec/scm_spec.sh \
+	    spec/action_spec.sh \
+	    spec/usage_spec.sh
+	grep -q '"covered":"100.0"' coverage/index.js
+
+cov2:
+	shellspec --kcov -s bash \
+	    spec/pass_spec.sh \
+	    spec/command_spec.sh
 
 tests:
 	shellspec
 
-validate: check tests cov
+validate: check tests cov1 cov2
 
 bin/pashage-freebsd.sh: src/platform-freebsd.sh src/pashage.sh src/run.sh
 	mkdir -p bin
