@@ -1142,9 +1142,6 @@ cmd_generate() {
 
 	while [ $# -ge 1 ]; do
 		case "$1" in
-		    --)
-			shift
-			break ;;
 		    -c|--clip)
 			if ! [ "${SHOW}" = text ]; then
 				PARSE_ERROR=yes
@@ -1184,6 +1181,9 @@ cmd_generate() {
 			unset ARG
 			unset REST
 			;;
+		    --)
+			shift
+			break ;;
 		    -*)
 			PARSE_ERROR=yes
 			break ;;
@@ -1337,30 +1337,17 @@ cmd_insert() {
 		    -m|--multiline)
 			MULTILINE=yes
 			shift ;;
+		    -[efm]?*)
+			REST="${1#-?}"
+			ARG="${1%"${REST}"}"
+			shift
+			set -- "${ARG}" "-${REST}" "$@"
+			unset ARG
+			unset REST
+			;;
 		    --)
 			shift
 			break ;;
-		    -e?*)
-			ECHO=yes
-			ARG="-${1#-e}"
-			shift
-			set -- "${ARG}" "$@"
-			unset ARG
-			;;
-		    -f?*)
-			OVERWRITE=yes
-			ARG="-${1#-f}"
-			shift
-			set -- "${ARG}" "$@"
-			unset ARG
-			;;
-		    -m?*)
-			MULTILINE=yes
-			ARG="-${1#-m}"
-			shift
-			set -- "${ARG}" "$@"
-			unset ARG
-			;;
 		    -?*)
 			PARSE_ERROR=yes
 			break ;;
