@@ -67,6 +67,12 @@ Describe 'Integrated Command Functions'
     #| 8 files changed, 23 insertions(+)
   }
 
+  expected_log() { setup_log; } # Default log to override as needed
+
+  check_git_log() {
+    git_log && expected_log | diff -u "${GITLOG}" - >&2
+  }
+
   setup_id() {
     @mkdir -p "${PREFIX}/$1"
     @cat >"${PREFIX}/$1/.age-recipients"
@@ -162,8 +168,7 @@ Describe 'Integrated Command Functions'
       }
       The contents of file "${PREFIX}/stale.age" should \
         equal "$(expected_file)"
-      The result of function git_log should be successful
-      The contents of file "${GITLOG}" should equal "$(setup_log)"
+      The result of function check_git_log should be successful
     End
 
     It 'uses EDITOR when VISUAL is not set'
@@ -182,8 +187,7 @@ Describe 'Integrated Command Functions'
       }
       The contents of file "${PREFIX}/stale.age" should \
         equal "$(expected_file)"
-      The result of function git_log should be successful
-      The contents of file "${GITLOG}" should equal "$(setup_log)"
+      The result of function check_git_log should be successful
     End
 
     It 'uses VISUAL in a non-dumb terminal'
@@ -202,8 +206,7 @@ Describe 'Integrated Command Functions'
       }
       The contents of file "${PREFIX}/stale.age" should \
         equal "$(expected_file)"
-      The result of function git_log should be successful
-      The contents of file "${GITLOG}" should equal "$(setup_log)"
+      The result of function check_git_log should be successful
     End
 
     It 'falls back on vi without EDITOR nor visual'
@@ -217,8 +220,7 @@ Describe 'Integrated Command Functions'
       The line 2 of error should equal 'Editor "vi" exited with code 127'
       The file "${PREFIX}/subdir/new.age" should not be exist
       The file "${PREFIX}/subdir/new.gpg" should not be exist
-      The result of function git_log should be successful
-      The contents of file "${GITLOG}" should equal "$(setup_log)"
+      The result of function check_git_log should be successful
     End
 
     It 'reports unchanged file'
@@ -234,8 +236,7 @@ Describe 'Integrated Command Functions'
       }
       The contents of file "${PREFIX}/stale.age" should \
         equal "$(expected_file)"
-      The result of function git_log should be successful
-      The contents of file "${GITLOG}" should equal "$(setup_log)"
+      The result of function check_git_log should be successful
     End
 
     It 'allows lack of file creation without error'
@@ -246,8 +247,7 @@ Describe 'Integrated Command Functions'
       The error should be blank
       The file "${PREFIX}/subdir/new.age" should not be exist
       The file "${PREFIX}/subdir/new.gpg" should not be exist
-      The result of function git_log should be successful
-      The contents of file "${GITLOG}" should equal "$(setup_log)"
+      The result of function check_git_log should be successful
     End
 
     It 'reports editor failure'
@@ -259,8 +259,7 @@ Describe 'Integrated Command Functions'
       The error should equal 'Editor "ret42" exited with code 42'
       The file "${PREFIX}/subdir/new.age" should not be exist
       The file "${PREFIX}/subdir/new.gpg" should not be exist
-      The result of function git_log should be successful
-      The contents of file "${GITLOG}" should equal "$(setup_log)"
+      The result of function check_git_log should be successful
     End
   End
 
