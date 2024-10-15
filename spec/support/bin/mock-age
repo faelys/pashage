@@ -10,15 +10,15 @@ die() {
 case "$1" in
     -e)
 	shift
-	MOCK_AGE_OUTPUT="$(@mktemp "$(dirname "$2")/mock-age-encrypt.XXXXXXX")"
+	MOCK_AGE_OUT="$(@mktemp -- "$(dirname "$2")/mock-age-encrypt.XXXXXXX")"
 	DEST='-'
 	while [ $# -gt 0 ]; do
 		case "$1" in
 		    -R|-i)
-			@sed 's/^/ageRecipient:/' "$2" >>"${MOCK_AGE_OUTPUT}"
+			@sed -- 's/^/ageRecipient:/' "$2" >>"${MOCK_AGE_OUT}"
 			shift 2 ;;
 		    -r)
-			printf 'ageRecipient:%s\n' "$2" >>"${MOCK_AGE_OUTPUT}"
+			printf 'ageRecipient:%s\n' "$2" >>"${MOCK_AGE_OUT}"
 			shift 2 ;;
 		    -o)
 			DEST="$2"
@@ -33,16 +33,16 @@ case "$1" in
 	if [ $# -gt 1 ]; then
 		die "Unexpected arguments to age -e [...] $*\n"
 	elif [ $# -eq 1 ]; then
-		@sed 's/^/age:/' "$1" >>"${MOCK_AGE_OUTPUT}"
+		@sed -- 's/^/age:/' "$1" >>"${MOCK_AGE_OUT}"
 	else
-		@sed 's/^/age:/' >>"${MOCK_AGE_OUTPUT}"
+		@sed 's/^/age:/' >>"${MOCK_AGE_OUT}"
 	fi
 
 	if [ "${DEST}" = '-' ]; then
-		@cat "${MOCK_AGE_OUTPUT}"
-		@rm -f "${MOCK_AGE_OUTPUT}"
+		@cat -- "${MOCK_AGE_OUT}"
+		@rm -f -- "${MOCK_AGE_OUT}"
 	else
-		@mv -f "${MOCK_AGE_OUTPUT}" "${DEST}"
+		@mv -f -- "${MOCK_AGE_OUT}" "${DEST}"
 	fi
 	;;
     -d)
@@ -54,19 +54,19 @@ case "$1" in
 	fi
 	[ "$1" = '-i' ] || die "Unexpected age -d arg: \"$1\""
 	MOCK_AGE_ID_SRC="$2"
-	MOCK_AGE_ID="$(@cat "$2")"
+	MOCK_AGE_ID="$(@cat -- "$2")"
 	shift 2
 	[ "$1" = '--' ] && shift
 	[ $# -eq 1 ] || die "Too many age -d arguments ($#): $*"
-	@grep -v '^age' "$1" >&2 && die "Bad encrypted file \"$1\""
-	if ! @grep -qFx "ageRecipient:${MOCK_AGE_ID}" "$1"; then
+	@grep -v -- '^age' "$1" >&2 && die "Bad encrypted file \"$1\""
+	if ! @grep -qFx -- "ageRecipient:${MOCK_AGE_ID}" "$1"; then
 		die "Bad identity \"${MOCK_AGE_ID_SRC}\": ${MOCK_AGE_ID}"
 		exit 1
 	fi
 	if [ "${DEST}" = '-' ]; then
-		@sed -n 's/^age://p' "$1"
+		@sed -n -- 's/^age://p' "$1"
 	else
-		@sed -n 's/^age://p' "$1" >|"${DEST}"
+		@sed -n -- 's/^age://p' "$1" >|"${DEST}"
 	fi
 	;;
     *)
