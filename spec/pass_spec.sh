@@ -58,6 +58,8 @@ Describe 'Pass-like command'
   setup_log() { %text
     #|Initial setup
     #|
+    #| -g.age                 | 2 ++
+    #| -g.gpg                 | 2 ++
     #| .gpg-id                | 1 +
     #| extra/subdir/file.age  | 2 ++
     #| extra/subdir/file.gpg  | 2 ++
@@ -75,7 +77,7 @@ Describe 'Pass-like command'
     #| stale.gpg              | 3 +++
     #| subdir/file.age        | 2 ++
     #| subdir/file.gpg        | 2 ++
-    #| 17 files changed, 47 insertions(+)
+    #| 19 files changed, 51 insertions(+)
   }
 
   setup_id() {
@@ -127,6 +129,9 @@ Describe 'Pass-like command'
     #|Recipient:master
     #|Recipient:myself
     #|:0-password
+    %text | setup_secret '-g'
+    #|Recipient:myself
+    #|:--
     @git -C "${PREFIX}" add .
     @git -C "${PREFIX}" commit -m 'Initial setup' >/dev/null
 
@@ -304,19 +309,21 @@ Describe 'Pass-like command'
           %text
           #|Set age recipients at store root
           #|
+          #| -g.age                | 2 +-
           #| .age-recipients       | 1 +
           #| extra/subdir/file.age | 2 +-
           #| stale.age             | 3 +--
           #| subdir/file.age       | 2 +-
-          #| 4 files changed, 4 insertions(+), 4 deletions(-)
+          #| 5 files changed, 5 insertions(+), 5 deletions(-)
         else
           %text:expand
           #|Reencrypt password store using new GPG id new-id.
           #|
+          #| -g.$1                | 2 +-
           #| extra/subdir/file.$1 | 2 +-
           #| stale.$1             | 3 +--
           #| subdir/file.$1       | 2 +-
-          #| 3 files changed, 3 insertions(+), 4 deletions(-)
+          #| 4 files changed, 4 insertions(+), 5 deletions(-)
           #|Set GPG id to new-id.
           #|
           #| .gpg-id | 2 +-
@@ -459,23 +466,25 @@ Describe 'Pass-like command'
       else
         The line 1 of output should equal 'Password Store'
       fi
-      The line  2 of output should include 'extra'
-      The line  3 of output should include 'subdir'
-      The line  4 of output should include 'file'
-      The line  5 of output should include 'file'
-      The line  6 of output should include 'fluff'
-      The line  7 of output should include 'one'
-      The line  8 of output should include 'one'
-      The line  9 of output should include 'three'
-      The line 10 of output should include 'three'
-      The line 11 of output should include 'two'
-      The line 12 of output should include 'two'
-      The line 13 of output should include 'shared'
-      The line 14 of output should include 'stale'
-      The line 15 of output should include 'stale'
-      The line 16 of output should include 'subdir'
-      The line 17 of output should include 'file'
-      The line 18 of output should include 'file'
+      The line  2 of output should include '-g'
+      The line  3 of output should include '-g'
+      The line  4 of output should include 'extra'
+      The line  5 of output should include 'subdir'
+      The line  6 of output should include 'file'
+      The line  7 of output should include 'file'
+      The line  8 of output should include 'fluff'
+      The line  9 of output should include 'one'
+      The line 10 of output should include 'one'
+      The line 11 of output should include 'three'
+      The line 12 of output should include 'three'
+      The line 13 of output should include 'two'
+      The line 14 of output should include 'two'
+      The line 15 of output should include 'shared'
+      The line 16 of output should include 'stale'
+      The line 17 of output should include 'stale'
+      The line 18 of output should include 'subdir'
+      The line 19 of output should include 'file'
+      The line 20 of output should include 'file'
     End
 
     It 'does not list a file masquerading as a directory'
@@ -520,6 +529,20 @@ Describe 'Pass-like command'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 subdir/file
       The output should equal 'p4ssw0rd'
+    End
+
+    It 'fails to decrypt a flag'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 -g
+      The status should equal 1
+      The output should be blank
+      The error should include 'Usage:'
+    End
+
+    It 'decrypts a password file named like a flag'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 -- -g
+      The output should equal '--'
     End
 
     It 'decrypts a password file even when called as `list`'
@@ -654,6 +677,37 @@ Describe 'Pass-like command'
       The contents of file "${GITLOG}" should equal "$(expected_log $3)"
     End
 
+    It 'fails to insert an unescaped flag'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 insert -h
+      The status should equal 1
+      The output should be blank
+      The error should include 'Usage:'
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    It 'inserts a new single-line entry named like a flag'
+      Skip if 'pass(age) needs bash' check_skip $2
+      Data
+        #|pass-word
+        #|pass-word
+      End
+      When run script $1 insert -- -h
+      The output should include '-h'
+      The contents of file "${PREFIX}/-h.$3" \
+        should include "$3:pass-word"
+      expected_log() { %text:expand
+        #|Add given password for -h to store.
+        #|
+        #| -h.$1 | 2 ++
+        #| 1 file changed, 2 insertions(+)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3)"
+    End
+
     It 'inserts a new single-line entry with echo'
       Skip if 'pass(age) needs bash' check_skip $2
       Data "pass-word"
@@ -743,6 +797,34 @@ Describe 'Pass-like command'
         #|
         #| subdir/new.$1 | 3 +++
         #| 1 file changed, 3 insertions(+)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3)"
+    End
+
+    It 'creates a file named like a flag'
+      EDITOR='ed -c'
+      Skip if 'pass(age) needs bash' check_skip $2
+      Data
+        #|a
+        #|New password
+        #|.
+        #|wq
+      End
+      When run script $1 edit -h
+      The file "${PREFIX}/-h.$3" should be exist
+      expected_file() { %text:expand
+        #|$1Recipient:myself
+        #|$1:New password
+      }
+      The contents of file "${PREFIX}/-h.$3" should \
+        equal "$(expected_file "$3")"
+      expected_log() { %text:expand
+        #|Add password for -h using ed -c.
+        #|
+        #| -h.$1 | 2 ++
+        #| 1 file changed, 2 insertions(+)
         setup_log
       }
       The result of function git_log should be successful
@@ -848,6 +930,37 @@ Describe 'Pass-like command'
         #|Add generated password for newdir/newfile.
         #|
         #| newdir/newfile.$1 | 2 ++
+        #| 1 file changed, 2 insertions(+)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3)"
+    End
+
+    It 'fails to generates a new file named like a flag without escape'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 generate -h
+      The status should equal 1
+      The output should be blank
+      The error should include 'Usage:'
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    It 'generates a new file named like a flag'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 generate -- -h
+      The output should include 'The generated password for'
+      The file "${PREFIX}/-h.$3" should be exist
+      The lines of contents of file "${PREFIX}/-h.$3" should equal 2
+      The line 1 of contents of file "${PREFIX}/-h.$3" should \
+        equal "$3Recipient:myself"
+      The output should \
+        include "$(@sed -n "2s/$3://p" "${PREFIX}/-h.$3")"
+      expected_log() { %text:expand
+        #|Add generated password for -h.
+        #|
+        #| -h.$1 | 2 ++
         #| 1 file changed, 2 insertions(+)
         setup_log
       }
@@ -975,6 +1088,33 @@ Describe 'Pass-like command'
       The contents of file "${GITLOG}" should equal "$(expected_log $3)"
     End
 
+    It 'fails to remove a file named like a flag without escape'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 rm -f -g
+      The status should equal 1
+      The output should be blank
+      The error should include 'Usage:'
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    It 'removes a file named like a flag'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 rm -f -- -g
+      The output should include '-g'
+      The error should be blank
+      The file "${PREFIX}/-g.$3" should not be exist
+      expected_log() { %text:expand
+        #|Remove -g from store.
+        #|
+        #| -g.$1 | 2 --
+        #| 1 file changed, 2 deletions(-)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3)"
+    End
+
     It 'does not remove a directory without `-r` even when forced'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 rm -f fluff
@@ -1030,6 +1170,43 @@ Describe 'Pass-like command'
         %text:expand
         #|
         #| subdir/{file.$1 => renamed.$1} | 0
+        #| 1 file changed, 0 insertions(+), 0 deletions(-)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3 $2)"
+    End
+
+    It 'fails rename a file named like a flag without escape'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 mv -g safe-name
+      The status should equal 1
+      The output should be blank
+      The error should include 'Usage:'
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    It 'renames a file named like a flag'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 mv -- -g -h
+      The error should be blank
+      The file "${PREFIX}/-g.$3" should not be exist
+      file_contents() { %text:expand
+        #|${1}Recipient:myself
+        #|${1}:--
+      }
+      The contents of file "${PREFIX}/-h.$3" \
+        should equal "$(file_contents "$3")"
+      expected_log() {
+        if [ "$2" = pashage ]; then
+          %putsn 'Move -g.age to -h.age'
+        else
+          %putsn 'Rename -g to -h.'
+        fi
+        %text:expand
+        #|
+        #| -g.$1 => -h.$1 | 0
         #| 1 file changed, 0 insertions(+), 0 deletions(-)
         setup_log
       }
@@ -1220,6 +1397,42 @@ Describe 'Pass-like command'
         %text:expand
         #|
         #| subdir/copy.$1 | 2 ++
+        #| 1 file changed, 2 insertions(+)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3 $2)"
+    End
+
+    It 'fails copy a file named like a flag without escape'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 cp -g safe-name
+      The status should equal 1
+      The output should be blank
+      The error should not be blank
+      The error should include 'Usage:'
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    It 'copies a file named like a flag'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 cp -- -g -h
+      The error should be blank
+      file_contents() { %text:expand
+        #|${1}Recipient:myself
+        #|${1}:--
+      }
+      The contents of file "${PREFIX}/-h.$3" \
+        should equal "$(file_contents "$3")"
+      expected_log() {
+        if [ "$2" = pashage ]; then
+          %putsn 'Copy -g.age to -h.age'
+        else
+          %putsn 'Copy -g to -h.'
+        fi
+        %text:expand
+        #|
+        #| -h.$1 | 2 ++
         #| 1 file changed, 2 insertions(+)
         setup_log
       }
