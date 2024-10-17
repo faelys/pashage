@@ -57,6 +57,7 @@ bin/pashage-freebsd.sh: src/platform-freebsd.sh src/pashage.sh src/run.sh
 	echo >>"$@"
 	echo '############' >>"$@"
 	sed '1,/^############$$/d' src/run.sh >>"$@"
+	chmod a+x "$@"
 
 bin/pashage-linux.sh: src/platform-linux.sh src/pashage.sh src/run.sh
 	mkdir -p bin
@@ -67,3 +68,4 @@ bin/pashage-linux.sh: src/platform-linux.sh src/pashage.sh src/run.sh
 	echo >>"$@"
 	echo '############' >>"$@"
 	sed '1,/^############$$/d' src/run.sh >>"$@"
+	chmod a+x "$@"
