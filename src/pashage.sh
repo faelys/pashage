@@ -458,7 +458,7 @@ do_deinit() {
 
 	if ! [ -f "${PREFIX}/${TARGET}" ]; then
 		die "No existing recipient to remove at ${LOC}"
- 	fi
+	fi
 
 	scm_begin
 	scm_rm "${TARGET}"
