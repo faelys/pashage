@@ -61,6 +61,8 @@ Describe 'Pass-like command'
     #| -g.age                 | 2 ++
     #| -g.gpg                 | 2 ++
     #| .gpg-id                | 1 +
+    #| extra.age              | 2 ++
+    #| extra.gpg              | 2 ++
     #| extra/subdir/file.age  | 2 ++
     #| extra/subdir/file.gpg  | 2 ++
     #| fluff/.age-recipients  | 2 ++
@@ -77,7 +79,7 @@ Describe 'Pass-like command'
     #| stale.gpg              | 3 +++
     #| subdir/file.age        | 2 ++
     #| subdir/file.gpg        | 2 ++
-    #| 19 files changed, 51 insertions(+)
+    #| 21 files changed, 55 insertions(+)
   }
 
   setup_id() {
@@ -101,6 +103,9 @@ Describe 'Pass-like command'
     %text | setup_secret 'subdir/file'
     #|Recipient:myself
     #|:p4ssw0rd
+    %text | setup_secret 'extra'
+    #|Recipient:myself
+    #|:ambiguous
     %text | setup_secret 'extra/subdir/file'
     #|Recipient:myself
     #|:Pa55worD
@@ -311,19 +316,21 @@ Describe 'Pass-like command'
           #|
           #| -g.age                | 2 +-
           #| .age-recipients       | 1 +
+          #| extra.age             | 2 +-
           #| extra/subdir/file.age | 2 +-
           #| stale.age             | 3 +--
           #| subdir/file.age       | 2 +-
-          #| 5 files changed, 5 insertions(+), 5 deletions(-)
+          #| 6 files changed, 6 insertions(+), 6 deletions(-)
         else
           %text:expand
           #|Reencrypt password store using new GPG id new-id.
           #|
           #| -g.$1                | 2 +-
+          #| extra.$1             | 2 +-
           #| extra/subdir/file.$1 | 2 +-
           #| stale.$1             | 3 +--
           #| subdir/file.$1       | 2 +-
-          #| 4 files changed, 4 insertions(+), 5 deletions(-)
+          #| 5 files changed, 5 insertions(+), 6 deletions(-)
           #|Set GPG id to new-id.
           #|
           #| .gpg-id | 2 +-
@@ -472,19 +479,21 @@ Describe 'Pass-like command'
       The line  5 of output should include 'subdir'
       The line  6 of output should include 'file'
       The line  7 of output should include 'file'
-      The line  8 of output should include 'fluff'
-      The line  9 of output should include 'one'
-      The line 10 of output should include 'one'
-      The line 11 of output should include 'three'
-      The line 12 of output should include 'three'
-      The line 13 of output should include 'two'
-      The line 14 of output should include 'two'
-      The line 15 of output should include 'shared'
-      The line 16 of output should include 'stale'
-      The line 17 of output should include 'stale'
-      The line 18 of output should include 'subdir'
-      The line 19 of output should include 'file'
-      The line 20 of output should include 'file'
+      The line  8 of output should include 'extra'
+      The line  9 of output should include 'extra'
+      The line 10 of output should include 'fluff'
+      The line 11 of output should include 'one'
+      The line 12 of output should include 'one'
+      The line 13 of output should include 'three'
+      The line 14 of output should include 'three'
+      The line 15 of output should include 'two'
+      The line 16 of output should include 'two'
+      The line 17 of output should include 'shared'
+      The line 18 of output should include 'stale'
+      The line 19 of output should include 'stale'
+      The line 20 of output should include 'subdir'
+      The line 21 of output should include 'file'
+      The line 22 of output should include 'file'
     End
 
     It 'does not list a file masquerading as a directory'
@@ -492,6 +501,15 @@ Describe 'Pass-like command'
       When run script $1 subdir/file/
       The status should equal 1
       The error should equal 'Error: subdir/file/ is not in the password store.'
+    End
+
+    It 'lists a directory having an ambiguous name with `/` suffix'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 extra/
+      The line 1 of output should include 'extra'
+      The line 2 of output should include 'subdir'
+      The line 3 of output should include 'file'
+      The line 4 of output should include 'file'
     End
   End
 
@@ -549,6 +567,12 @@ Describe 'Pass-like command'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 ls subdir/file
       The output should equal 'p4ssw0rd'
+    End
+
+    It 'decrypts a file having an ambiguous name without suffix'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 extra
+      The output should equal 'ambiguous'
     End
 
     It 'displays the password as a QR-code'
@@ -831,6 +855,34 @@ Describe 'Pass-like command'
       The contents of file "${GITLOG}" should equal "$(expected_log $3)"
     End
 
+    It 'creates a file named like a directory'
+      EDITOR='ed -c'
+      Skip if 'pass(age) needs bash' check_skip $2
+      Data
+        #|a
+        #|New ambiguous password
+        #|.
+        #|wq
+      End
+      When run script $1 edit fluff
+      The file "${PREFIX}/fluff.$3" should be exist
+      expected_file() { %text:expand
+        #|$1Recipient:myself
+        #|$1:New ambiguous password
+      }
+      The contents of file "${PREFIX}/fluff.$3" should \
+        equal "$(expected_file "$3")"
+      expected_log() { %text:expand
+        #|Add password for fluff using ed -c.
+        #|
+        #| fluff.$1 | 2 ++
+        #| 1 file changed, 2 insertions(+)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3)"
+    End
+
     It 'updates a file using EDITOR'
       Skip if 'pass(age) needs bash' check_skip $2
       Data
@@ -853,6 +905,33 @@ Describe 'Pass-like command'
         #|Edit password for fluff/two using ed.
         #|
         #| fluff/two.$1 | 1 +
+        #| 1 file changed, 1 insertion(+)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3)"
+    End
+
+    It 'updates a file having an ambiguous name without suffix'
+      Skip if 'pass(age) needs bash' check_skip $2
+      Data
+        #|1i
+        #|New line
+        #|.
+        #|wq
+      End
+      When run script $1 edit extra
+      expected_file() { %text:expand
+        #|$1Recipient:myself
+        #|$1:New line
+        #|$1:ambiguous
+      }
+      The contents of file "${PREFIX}/extra.$3" should \
+        equal "$(expected_file "$3")"
+      expected_log() { %text:expand
+        #|Edit password for extra using ed.
+        #|
+        #| extra.$1 | 1 +
         #| 1 file changed, 1 insertion(+)
         setup_log
       }
@@ -961,6 +1040,27 @@ Describe 'Pass-like command'
         #|Add generated password for -h.
         #|
         #| -h.$1 | 2 ++
+        #| 1 file changed, 2 insertions(+)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3)"
+    End
+
+    It 'generates a new file named like a directory'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 generate fluff
+      The output should include 'The generated password for'
+      The file "${PREFIX}/fluff.$3" should be exist
+      The lines of contents of file "${PREFIX}/fluff.$3" should equal 2
+      The line 1 of contents of file "${PREFIX}/fluff.$3" should \
+        equal "$3Recipient:myself"
+      The output should \
+        include "$(@sed -n "2s/$3://p" "${PREFIX}/fluff.$3")"
+      expected_log() { %text:expand
+        #|Add generated password for fluff.
+        #|
+        #| fluff.$1 | 2 ++
         #| 1 file changed, 2 insertions(+)
         setup_log
       }
@@ -1115,6 +1215,24 @@ Describe 'Pass-like command'
       The contents of file "${GITLOG}" should equal "$(expected_log $3)"
     End
 
+    It 'removes a file having an ambiguous name without suffix'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 rm -f extra
+      The output should include 'extra'
+      The error should be blank
+      The file "${PREFIX}/extra.$3" should not be exist
+      The directory "${PREFIX}/extra" should be exist
+      expected_log() { %text:expand
+        #|Remove extra from store.
+        #|
+        #| extra.$1 | 2 --
+        #| 1 file changed, 2 deletions(-)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3)"
+    End
+
     It 'does not remove a directory without `-r` even when forced'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 rm -f fluff
@@ -1142,6 +1260,26 @@ Describe 'Pass-like command'
         #| fluff/two.age         | 4 ----
         #| fluff/two.gpg         | 4 ----
         #| 8 files changed, 28 deletions(-)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3)"
+    End
+
+    It 'removes a directory having an ambiguous name with `/` suffix'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 rm -rf extra/
+      The output should include 'extra'
+      The error should be blank
+      The file "${PREFIX}/extra.age" should be exist
+      The file "${PREFIX}/extra.gpg" should be exist
+      The directory "${PREFIX}/extra" should not be exist
+      expected_log() { %text:expand
+        #|Remove extra/ from store.
+        #|
+        #| extra/subdir/file.age | 2 --
+        #| extra/subdir/file.gpg | 2 --
+        #| 2 files changed, 4 deletions(-)
         setup_log
       }
       The result of function git_log should be successful
@@ -1359,6 +1497,81 @@ Describe 'Pass-like command'
         #| fluff/one.$1 | 3 ++-
         #| fluff/two.$1 | 4 ----
         #| 2 files changed, 2 insertions(+), 5 deletions(-)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3 $2)"
+    End
+
+    It 'renames a file having an ambiguous name without suffix'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 mv extra new
+      The file "${PREFIX}/extra.$3" should not be exist
+      file_contents() { %text:expand
+        #|${1}Recipient:myself
+        #|${1}:ambiguous
+      }
+      The contents of file "${PREFIX}/new.$3" \
+        should equal "$(file_contents "$3")"
+      expected_log() {
+        if [ "$2" = pashage ]; then
+          %putsn 'Move extra.age to new.age'
+        else
+          %putsn 'Rename extra to new.'
+        fi
+        %text:expand
+        #|
+        #| extra.$1 => new.$1 | 0
+        #| 1 file changed, 0 insertions(+), 0 deletions(-)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3 $2)"
+    End
+
+    It 'renames a directory having an ambiguous name with `/` suffix'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 mv extra/ new
+      The directory "${PREFIX}/extra" should not be exist
+      The file "${PREFIX}/new/subdir/file.age" should be exist
+      The file "${PREFIX}/new/subdir/file.gpg" should be exist
+      expected_log() {
+        if [ "$2" = pashage ]; then
+          %putsn 'Move extra/ to new/'
+        else
+          %putsn 'Rename extra/ to new.'
+        fi
+        %text:expand
+        #|
+        #| {extra => new}/subdir/file.age | 0
+        #| {extra => new}/subdir/file.gpg | 0
+        #| 2 files changed, 0 insertions(+), 0 deletions(-)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3 $2)"
+    End
+
+    It 'moves a file to a directory having an ambiguous name without suffix'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 mv subdir/file extra
+      The file "${PREFIX}/subdir/file.$3" should not be exist
+      file_contents() { %text:expand
+        #|${1}Recipient:myself
+        #|${1}:p4ssw0rd
+      }
+      The contents of file "${PREFIX}/extra/file.$3" \
+        should equal "$(file_contents "$3")"
+      expected_log() {
+        if [ "$2" = pashage ]; then
+          %putsn "Move subdir/file.$1 to extra/file.$1"
+        else
+          %putsn 'Rename subdir/file to extra.'
+        fi
+        %text:expand
+        #|
+        #| {subdir => extra}/file.$1 | 0
+        #| 1 file changed, 0 insertions(+), 0 deletions(-)
         setup_log
       }
       The result of function git_log should be successful
@@ -1599,6 +1812,82 @@ Describe 'Pass-like command'
         #| extra/subdir/file.age | 2 +-
         #| extra/subdir/file.gpg | 2 +-
         #| 2 files changed, 2 insertions(+), 2 deletions(-)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3 $2)"
+    End
+
+    It 'copies a file having an ambiguous name without suffix'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 cp extra new
+      file_contents() { %text:expand
+        #|${1}Recipient:myself
+        #|${1}:ambiguous
+      }
+      The contents of file "${PREFIX}/new.$3" \
+        should equal "$(file_contents "$3")"
+      expected_log() {
+        if [ "$2" = pashage ]; then
+          %putsn 'Copy extra.age to new.age'
+        else
+          %putsn 'Copy extra to new.'
+        fi
+        %text:expand
+        #|
+        #| new.$1 | 2 ++
+        #| 1 file changed, 2 insertions(+)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3 $2)"
+    End
+
+    It 'copies a directory having an ambiguous name with `/` suffix'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 cp extra/ new
+      file_contents() { %text:expand
+        #|${1}Recipient:myself
+        #|${1}:Pa55worD
+      }
+      The contents of file "${PREFIX}/new/subdir/file.$3" \
+        should equal "$(file_contents $3)"
+      expected_log() {
+        if [ "$2" = pashage ]; then
+          %putsn 'Copy extra/ to new/'
+        else
+          %putsn 'Copy extra/ to new.'
+        fi
+        %text:expand
+        #|
+        #| new/subdir/file.age | 2 ++
+        #| new/subdir/file.gpg | 2 ++
+        #| 2 files changed, 4 insertions(+)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3 $2)"
+    End
+
+    It 'copies a file to a directory having an ambiguous name without suffix'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 cp subdir/file extra
+      file_contents() { %text:expand
+        #|${1}Recipient:myself
+        #|${1}:p4ssw0rd
+      }
+      The contents of file "${PREFIX}/extra/file.$3" \
+        should equal "$(file_contents "$3")"
+      expected_log() {
+        if [ "$2" = pashage ]; then
+          %putsn "Copy subdir/file.$1 to extra/file.$1"
+        else
+          %putsn 'Copy subdir/file to extra.'
+        fi
+        %text:expand
+        #|
+        #| extra/file.$1 | 2 ++
+        #| 1 file changed, 2 insertions(+)
         setup_log
       }
       The result of function git_log should be successful
