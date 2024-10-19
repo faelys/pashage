@@ -814,7 +814,10 @@ Describe 'Action Functions'
     unset PASSAGE_RECIPIENTS
     AGE=age
     PREFIX=/prefix
+    dirname() { @dirname "$@"; }
+
     age() { mocklog age "$@"; }
+    mkdir() { mocklog mkdir "$@"; }
 
     setup() {
       %= data >"${SHELLSPEC_WORKDIR}/existing-file"
@@ -827,9 +830,13 @@ Describe 'Action Functions'
       set_LOCAL_RECIPIENT_FILE() {
         LOCAL_RECIPIENT_FILE=''
       }
+      result() {
+        %text
+        #|$ mkdir -p /prefix/encrypted
+        #|$ age -e -i /path/to/identity -o /prefix/encrypted/file.age
+      }
       When run do_encrypt 'encrypted/file.age'
-      The error should equal \
-        '$ age -e -i /path/to/identity -o /prefix/encrypted/file.age'
+      The error should equal "$(result)"
     End
 
     It 'overwrites existing file only once'
@@ -840,9 +847,13 @@ Describe 'Action Functions'
       }
       preserve() { %preserve OVERWRITE; }
       AfterRun 'preserve'
+      result() {
+        %text:expand
+        #|$ mkdir -p ${PREFIX}
+        #|$ age -e -R /path/to/recipients -o ${PREFIX}/existing-file
+      }
       When run do_encrypt 'existing-file'
-      The error should equal \
-        "$ age -e -R /path/to/recipients -o ${PREFIX}/existing-file"
+      The error should equal "$(result)"
       The variable OVERWRITE should equal no
     End
 
@@ -854,9 +865,13 @@ Describe 'Action Functions'
       }
       preserve() { %preserve OVERWRITE; }
       AfterRun 'preserve'
+      result() {
+        %text:expand
+        #|$ mkdir -p ${PREFIX}
+        #|$ age -e -R /path/to/recipients -o ${PREFIX}/existing-file
+      }
       When run do_encrypt 'existing-file'
-      The error should equal \
-        "$ age -e -R /path/to/recipients -o ${PREFIX}/existing-file"
+      The error should equal "$(result)"
       The variable OVERWRITE should equal yes
     End
 
@@ -880,10 +895,14 @@ Describe 'Action Functions'
         LOCAL_RECIPIENT_FILE='/path/to/recipients/3'
       }
       OVERWRITE=yes
+      result() {
+        %text
+        #|$ mkdir -p /prefix/encrypted
+        #|$ age -e -R /path/to/recipients/1 -R /path/to/recipients/2 -r inline-recipient-1 -r inline-recipient-2 -r inline-recipient-3 -r inline-recipient-4 -R /path/to/recipients/3 -o /prefix/encrypted/file.age
+      }
 
       When call do_encrypt 'encrypted/file.age'
-      The error should equal \
-        '$ age -e -R /path/to/recipients/1 -R /path/to/recipients/2 -r inline-recipient-1 -r inline-recipient-2 -r inline-recipient-3 -r inline-recipient-4 -R /path/to/recipients/3 -o /prefix/encrypted/file.age'
+      The error should equal "$(result)"
     End
   End
 

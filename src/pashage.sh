@@ -631,6 +631,7 @@ do_encrypt() {
 			die "Refusing to overwite ${TARGET}"
 		fi
 	fi
+	mkdir -p "$(dirname "${PREFIX}/${TARGET}")"
 	"${AGE}" -e "$@" -o "${PREFIX}/${TARGET}"
 	unset TARGET
 }
