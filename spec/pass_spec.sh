@@ -441,6 +441,45 @@ Describe 'Pass-like command'
       The result of function git_log should be successful
       The contents of file "${GITLOG}" should equal "$(expected_log $3 $2)"
     End
+
+    It 'creates a new subdirectory with recipient ids'
+      Skip if 'pass(age) needs bash' check_skip $2
+      Skip if 'passage has no init' [ "$2" = passage ]
+      When run script $1 init -p newdir new-id new-master
+      The status should be successful
+      The output should include 'newdir'
+      The directory "${PREFIX}/newdir" should be exist
+      expected_log() {
+        if [ "$2" = pashage ]; then
+          %text
+          #|Set age recipients at newdir
+          #|
+          #| newdir/.age-recipients | 2 ++
+          #| 1 file changed, 2 insertions(+)
+        else
+          %text:expand
+          #|Set GPG id to new-id, new-master (newdir).
+          #|
+          #| newdir/.gpg-id | 2 ++
+          #| 1 file changed, 2 insertions(+)
+        fi
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3 $2)"
+    End
+
+    It 'does not create a new subdirectory without recipient id'
+      Skip if 'pass(age) needs bash' check_skip $2
+      Skip if 'passage has no init' [ "$2" = passage ]
+      When run script $1 init -p newdir ''
+      The status should be successful
+      The output should be blank
+      The error should include "newdir"
+      The directory "${PREFIX}/newdir" should not be exist
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
   End
 
   Describe 'ls'
@@ -510,6 +549,23 @@ Describe 'Pass-like command'
       The line 2 of output should include 'subdir'
       The line 3 of output should include 'file'
       The line 4 of output should include 'file'
+    End
+
+    It 'fails to list a non-existent directory'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 non-existent/
+      The status should equal 1
+      The output should be blank
+      The error should equal \
+        'Error: non-existent/ is not in the password store.'
+    End
+
+    It 'fails to list a file masquerading as a directory'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 stale/
+      The status should equal 1
+      The output should be blank
+      The error should equal 'Error: stale/ is not in the password store.'
     End
   End
 
@@ -655,6 +711,15 @@ Describe 'Pass-like command'
       The status should be success
       The output should be blank
     End
+
+    It 'fails to show a non-existent file'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 non-existent
+      The status should equal 1
+      The output should be blank
+      The error should equal \
+        'Error: non-existent is not in the password store.'
+    End
   End
 
   Describe 'insert'
@@ -791,6 +856,26 @@ Describe 'Pass-like command'
       The result of function git_log should be successful
       The contents of file "${GITLOG}" should equal "$(expected_log $3)"
     End
+
+    It 'inserts an entry into a new directory'
+      Skip if 'pass(age) needs bash' check_skip $2
+      Data "drowssap"
+      When run script $1 insert -e new-dir/newpass
+      The output should include 'new-dir/newpass'
+      The contents of file "${PREFIX}/new-dir/newpass.$3" \
+        should include 'myself'
+      The contents of file "${PREFIX}/new-dir/newpass.$3" \
+        should include "$3:drowssap"
+      expected_log() { %text:expand
+        #|Add given password for new-dir/newpass to store.
+        #|
+        #| new-dir/newpass.$1 | 2 ++
+        #| 1 file changed, 2 insertions(+)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3)"
+    End
   End
 
   Describe 'edit'
@@ -821,6 +906,35 @@ Describe 'Pass-like command'
         #|
         #| subdir/new.$1 | 3 +++
         #| 1 file changed, 3 insertions(+)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3)"
+    End
+
+    It 'creates a file in a new directory'
+      EDITOR='ed -c'
+      Skip if 'pass(age) needs bash' check_skip $2
+      Data
+        #|a
+        #|p4ssword!
+        #|.
+        #|wq
+      End
+      When run script $1 edit new-subdir/new
+      The directory "${PREFIX}/new-subdir" should be exist
+      The file "${PREFIX}/new-subdir/new.$3" should be exist
+      expected_file() { %text:expand
+        #|$1Recipient:myself
+        #|$1:p4ssword!
+      }
+      The contents of file "${PREFIX}/new-subdir/new.$3" should \
+        equal "$(expected_file "$3")"
+      expected_log() { %text:expand
+        #|Add password for new-subdir/new using ed -c.
+        #|
+        #| new-subdir/new.$1 | 2 ++
+        #| 1 file changed, 2 insertions(+)
         setup_log
       }
       The result of function git_log should be successful
@@ -1068,6 +1182,28 @@ Describe 'Pass-like command'
       The contents of file "${GITLOG}" should equal "$(expected_log $3)"
     End
 
+    It 'generates a new file in a new directory'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 generate brand-new-dir/file
+      The output should include 'The generated password for'
+      The file "${PREFIX}/brand-new-dir/file.$3" should be exist
+      The lines of contents of file "${PREFIX}/brand-new-dir/file.$3" should \
+        equal 2
+      The line 1 of contents of file "${PREFIX}/brand-new-dir/file.$3" should \
+        equal "$3Recipient:myself"
+      The output should \
+        include "$(@sed -n "2s/$3://p" "${PREFIX}/brand-new-dir/file.$3")"
+      expected_log() { %text:expand
+        #|Add generated password for brand-new-dir/file.
+        #|
+        #| brand-new-dir/file.$1 | 2 ++
+        #| 1 file changed, 2 insertions(+)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3)"
+    End
+
     It 'generates a new file without symbols'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 generate -n newfile 4
@@ -1233,6 +1369,15 @@ Describe 'Pass-like command'
       The contents of file "${GITLOG}" should equal "$(expected_log $3)"
     End
 
+    It 'fails to remove a non-existent file'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 rm -f non-existent-file
+      The status should equal 1
+      The error should include 'non-existent-file'
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
     It 'does not remove a directory without `-r` even when forced'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 rm -f fluff
@@ -1285,6 +1430,15 @@ Describe 'Pass-like command'
       The result of function git_log should be successful
       The contents of file "${GITLOG}" should equal "$(expected_log $3)"
     End
+
+    It 'fails to remove a non-existent directory'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 rm -rf stale/
+      The status should equal 1
+      The error should include 'stale/'
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
   End
 
   Describe 'mv'
@@ -1315,7 +1469,7 @@ Describe 'Pass-like command'
       The contents of file "${GITLOG}" should equal "$(expected_log $3 $2)"
     End
 
-    It 'fails rename a file named like a flag without escape'
+    It 'fails to rename a file named like a flag without escape'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 mv -g safe-name
       The status should equal 1
@@ -1415,6 +1569,43 @@ Describe 'Pass-like command'
       }
       The result of function git_log should be successful
       The contents of file "${GITLOG}" should equal "$(expected_log $3 $2)"
+    End
+
+    It 'moves a file into a new directory'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 mv subdir/file new-subdir/
+      The error should be blank
+      The file "${PREFIX}/subdir/file.$3" should not be exist
+      file_contents() { %text:expand
+        #|${1}Recipient:myself
+        #|${1}:p4ssw0rd
+      }
+      The contents of file "${PREFIX}/new-subdir/file.$3" \
+        should equal "$(file_contents "$3")"
+      expected_log() {
+        if [ "$2" = pashage ]; then
+          %putsn 'Move subdir/file.age to new-subdir/file.age'
+        else
+          %putsn 'Rename subdir/file to new-subdir/.'
+        fi
+        %text:expand
+        #|
+        #| {subdir => new-subdir}/file.$1 | 0
+        #| 1 file changed, 0 insertions(+), 0 deletions(-)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3 $2)"
+    End
+
+    It 'fails to rename a non-existent file'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 mv non-existent-file new-name
+      The status should equal 1
+      The error should \
+        equal 'Error: non-existent-file is not in the password store.'
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
     End
 
     It 'renames a directory with recipients'
@@ -1588,6 +1779,19 @@ Describe 'Pass-like command'
       The result of function git_log should be successful
       The contents of file "${GITLOG}" should equal "$(setup_log)"
     End
+
+    It 'fails to rename a non-existent directory'
+      Skip if 'pass(age) considers "stale/" as the file "stale"' \
+        [ ! $2 = pashage ]
+      When run script $1 mv stale/ new-name
+      The status should equal 1
+      The error should equal 'Error: stale/ is not in the password store.'
+      The directory "${PREFIX}/new-name" should not be exist
+      The file "${PREFIX}/new-name.age" should not be exist
+      The file "${PREFIX}/new-name.gpg" should not be exist
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
   End
 
   Describe 'cp'
@@ -1617,7 +1821,7 @@ Describe 'Pass-like command'
       The contents of file "${GITLOG}" should equal "$(expected_log $3 $2)"
     End
 
-    It 'fails copy a file named like a flag without escape'
+    It 'fails to copy a file named like a flag without escape'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 cp -g safe-name
       The status should equal 1
@@ -1714,6 +1918,42 @@ Describe 'Pass-like command'
       }
       The result of function git_log should be successful
       The contents of file "${GITLOG}" should equal "$(expected_log $3 $2)"
+    End
+
+    It 'copies a file into a new directory'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 cp subdir/file new-subdir/
+      The error should be blank
+      file_contents() { %text:expand
+        #|${1}Recipient:myself
+        #|${1}:p4ssw0rd
+      }
+      The contents of file "${PREFIX}/new-subdir/file.$3" \
+        should equal "$(file_contents "$3")"
+      expected_log() {
+        if [ "$2" = pashage ]; then
+          %putsn 'Copy subdir/file.age to new-subdir/file.age'
+        else
+          %putsn 'Copy subdir/file to new-subdir/.'
+        fi
+        %text:expand
+        #|
+        #| new-subdir/file.$1 | 2 ++
+        #| 1 file changed, 2 insertions(+)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3 $2)"
+    End
+
+    It 'fails to copy a non-existent file'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 cp non-existent-file new-name
+      The status should equal 1
+      The error should \
+        equal 'Error: non-existent-file is not in the password store.'
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
     End
 
     It 'copies a directory with recipients'
@@ -1892,6 +2132,19 @@ Describe 'Pass-like command'
       }
       The result of function git_log should be successful
       The contents of file "${GITLOG}" should equal "$(expected_log $3 $2)"
+    End
+
+    It 'fails to copy a non-existent directory'
+      Skip if 'pass(age) considers "stale/" as the file "stale"' \
+        [ ! $2 = pashage ]
+      When run script $1 cp stale/ new-name
+      The status should equal 1
+      The error should equal 'Error: stale/ is not in the password store.'
+      The directory "${PREFIX}/new-name" should not be exist
+      The file "${PREFIX}/new-name.age" should not be exist
+      The file "${PREFIX}/new-name.gpg" should not be exist
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
     End
   End
 
