@@ -40,6 +40,7 @@ Describe 'Command-Line Parsing'
     SECURE_TMPDIR=/tmp/secure
   }
 
+  check_sneaky_path() { mocklog check_sneaky_path "$@"; }
   git() { mocklog git "$@"; }
   scm_add() { mocklog scm_add "$@"; }
   scm_begin() { mocklog scm_begin "$@"; }
@@ -147,6 +148,10 @@ Describe 'Command-Line Parsing'
     It 'copies multiple files'
       result() {
         %text
+        #|$ check_sneaky_path src1
+        #|$ check_sneaky_path src2
+        #|$ check_sneaky_path src3
+        #|$ check_sneaky_path dest
         #|$ do_copy_move src1 dest/
         #|ACTION=Copy
         #|DECISION=default
@@ -171,6 +176,8 @@ Describe 'Command-Line Parsing'
     It 'copies forcefully with a long option'
       result() {
         %text
+        #|$ check_sneaky_path src
+        #|$ check_sneaky_path dest
         #|$ do_copy_move src dest
         #|ACTION=Copy
         #|DECISION=default
@@ -185,6 +192,8 @@ Describe 'Command-Line Parsing'
     It 'copies forcefully with a short option'
       result() {
         %text
+        #|$ check_sneaky_path src
+        #|$ check_sneaky_path dest
         #|$ do_copy_move src dest
         #|ACTION=Copy
         #|DECISION=default
@@ -199,6 +208,8 @@ Describe 'Command-Line Parsing'
     It 'copies a file named like a flag'
       result() {
         %text
+        #|$ check_sneaky_path -s
+        #|$ check_sneaky_path dest
         #|$ do_copy_move -s dest
         #|ACTION=Copy
         #|DECISION=default
@@ -250,6 +261,7 @@ Describe 'Command-Line Parsing'
     It 'removes a file forcefully with a long option'
       result() {
         %text
+        #|$ check_sneaky_path arg1
         #|$ do_delete arg1
         #|DECISION=force
         #|RECURSIVE=no
@@ -262,6 +274,7 @@ Describe 'Command-Line Parsing'
     It 'removes a file forcefully with a short option'
       result() {
         %text
+        #|$ check_sneaky_path arg1
         #|$ do_delete arg1
         #|DECISION=force
         #|RECURSIVE=no
@@ -274,6 +287,7 @@ Describe 'Command-Line Parsing'
     It 'removes a directory recursively with a long option'
       result() {
         %text
+        #|$ check_sneaky_path arg1
         #|$ do_delete arg1
         #|DECISION=default
         #|RECURSIVE=yes
@@ -286,6 +300,7 @@ Describe 'Command-Line Parsing'
     It 'removes a directory recursively with a short option'
       result() {
         %text
+        #|$ check_sneaky_path arg1
         #|$ do_delete arg1
         #|DECISION=default
         #|RECURSIVE=yes
@@ -298,6 +313,7 @@ Describe 'Command-Line Parsing'
     It 'removes a directory recursively and forcefully with long options'
       result() {
         %text
+        #|$ check_sneaky_path arg1
         #|$ do_delete arg1
         #|DECISION=force
         #|RECURSIVE=yes
@@ -310,6 +326,7 @@ Describe 'Command-Line Parsing'
     It 'removes a directory recursively and forcefully with short options'
       result() {
         %text
+        #|$ check_sneaky_path arg1
         #|$ do_delete arg1
         #|DECISION=force
         #|RECURSIVE=yes
@@ -322,6 +339,7 @@ Describe 'Command-Line Parsing'
     It 'removes a directory forcefully and recursively with short options'
       result() {
         %text
+        #|$ check_sneaky_path arg1
         #|$ do_delete arg1
         #|DECISION=force
         #|RECURSIVE=yes
@@ -334,6 +352,9 @@ Describe 'Command-Line Parsing'
     It 'removes multiple files'
       result() {
         %text
+        #|$ check_sneaky_path arg1
+        #|$ check_sneaky_path arg2
+        #|$ check_sneaky_path arg3
         #|$ do_delete arg1
         #|DECISION=default
         #|RECURSIVE=no
@@ -352,6 +373,8 @@ Describe 'Command-Line Parsing'
     It 'removes a file named like a flag'
       result() {
         %text
+        #|$ check_sneaky_path -f
+        #|$ check_sneaky_path arg2
         #|$ do_delete -f
         #|DECISION=default
         #|RECURSIVE=no
@@ -392,6 +415,9 @@ Describe 'Command-Line Parsing'
     It 'edits multiple files succesively'
       result() {
         %text
+        #|$ check_sneaky_path arg1
+        #|$ check_sneaky_path arg2
+        #|$ check_sneaky_path arg3
         #|$ do_edit arg1
         #|EDITOR=ed
         #|SECURE_TMPDIR=/tmp/secure
@@ -452,6 +478,7 @@ Describe 'Command-Line Parsing'
     It 'generates a new entry with default length'
       result() {
         %text
+        #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
         #|DECISION=default
         #|OVERWRITE=no
@@ -466,6 +493,7 @@ Describe 'Command-Line Parsing'
     It 'generates a new entry with explicit length'
       result() {
         %text
+        #|$ check_sneaky_path secret
         #|$ do_generate secret 12 [:punct:][:alnum:]
         #|DECISION=default
         #|OVERWRITE=no
@@ -480,6 +508,7 @@ Describe 'Command-Line Parsing'
     It 'generates a new flag-like entry'
       result() {
         %text
+        #|$ check_sneaky_path -f
         #|$ do_generate -f 25 [:punct:][:alnum:]
         #|DECISION=default
         #|OVERWRITE=no
@@ -494,6 +523,7 @@ Describe 'Command-Line Parsing'
     It 'generates a new entry and copies it into the clipboard (long)'
       result() {
         %text
+        #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
         #|DECISION=default
         #|OVERWRITE=no
@@ -508,6 +538,7 @@ Describe 'Command-Line Parsing'
     It 'generates a new entry and copies it into the clipboard (short)'
       result() {
         %text
+        #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
         #|DECISION=default
         #|OVERWRITE=no
@@ -522,6 +553,7 @@ Describe 'Command-Line Parsing'
     It 'generates a new entry and shows it as a QR-code (long)'
       result() {
         %text
+        #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
         #|DECISION=default
         #|OVERWRITE=no
@@ -536,6 +568,7 @@ Describe 'Command-Line Parsing'
     It 'generates a new entry and shows it as a QR-code (short)'
       result() {
         %text
+        #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
         #|DECISION=default
         #|OVERWRITE=no
@@ -550,6 +583,7 @@ Describe 'Command-Line Parsing'
     It 'generates a new alphanumeric entry and copies it into the clipboard (long)'
       result() {
         %text
+        #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:alnum:]
         #|DECISION=default
         #|OVERWRITE=no
@@ -564,6 +598,7 @@ Describe 'Command-Line Parsing'
     It 'generates a new alphanumeric entry and copies it into the clipboard (short)'
       result() {
         %text
+        #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:alnum:]
         #|DECISION=default
         #|OVERWRITE=no
@@ -578,6 +613,7 @@ Describe 'Command-Line Parsing'
     It 'generates a new alphanumeric entry and shows it as a QR-code (long)'
       result() {
         %text
+        #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:alnum:]
         #|DECISION=default
         #|OVERWRITE=no
@@ -592,6 +628,7 @@ Describe 'Command-Line Parsing'
     It 'generates a new alphanumeric entry and shows it as a QR-code (short)'
       result() {
         %text
+        #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:alnum:]
         #|DECISION=default
         #|OVERWRITE=no
@@ -606,6 +643,7 @@ Describe 'Command-Line Parsing'
     It 'generates a new entry in place (long)'
       result() {
         %text
+        #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
         #|DECISION=default
         #|OVERWRITE=yes
@@ -620,6 +658,7 @@ Describe 'Command-Line Parsing'
     It 'generates a new entry in place (short)'
       result() {
         %text
+        #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
         #|DECISION=default
         #|OVERWRITE=yes
@@ -634,6 +673,7 @@ Describe 'Command-Line Parsing'
     It 'overwrites an existing entry (long)'
       result() {
         %text
+        #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
         #|DECISION=force
         #|OVERWRITE=no
@@ -648,6 +688,7 @@ Describe 'Command-Line Parsing'
     It 'overwrites an existing entry (short)'
       result() {
         %text
+        #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
         #|DECISION=force
         #|OVERWRITE=no
@@ -899,7 +940,8 @@ Describe 'Command-Line Parsing'
 
     It 'initializes the whole store'
       result() {
-        %text
+        %text | @sed 's/\$$//'
+        #|$ check_sneaky_path $
         #|$ do_init  recipient-1 recipient-2
         #|DECISION=default
         #|OVERWRITE=yes
@@ -912,6 +954,7 @@ Describe 'Command-Line Parsing'
     It 'initializes a subdirectory with a collapsed long option'
       result() {
         %text
+        #|$ check_sneaky_path sub
         #|$ do_init sub recipient
         #|DECISION=default
         #|OVERWRITE=yes
@@ -924,6 +967,7 @@ Describe 'Command-Line Parsing'
     It 'initializes a subdirectory with an expanded long option'
       result() {
         %text
+        #|$ check_sneaky_path sub
         #|$ do_init sub recipient
         #|DECISION=default
         #|OVERWRITE=yes
@@ -936,6 +980,7 @@ Describe 'Command-Line Parsing'
     It 'initializes a subdirectory with a collapsed short option'
       result() {
         %text
+        #|$ check_sneaky_path sub
         #|$ do_init sub recipient
         #|DECISION=default
         #|OVERWRITE=yes
@@ -948,6 +993,7 @@ Describe 'Command-Line Parsing'
     It 'initializes a subdirectory with an expanded short option'
       result() {
         %text
+        #|$ check_sneaky_path sub
         #|$ do_init sub recipient
         #|DECISION=default
         #|OVERWRITE=yes
@@ -960,6 +1006,7 @@ Describe 'Command-Line Parsing'
     It 'de-initializes a subdirectory'
       result() {
         %text
+        #|$ check_sneaky_path sub
         #|$ do_deinit sub
         #|DECISION=default
       }
@@ -970,7 +1017,8 @@ Describe 'Command-Line Parsing'
 
     It 'supports recipients starting with dash'
       result() {
-        %text
+        %text | @sed 's/\$$//'
+        #|$ check_sneaky_path $
         #|$ do_init  -recipient
         #|DECISION=default
         #|OVERWRITE=yes
@@ -1023,6 +1071,8 @@ Describe 'Command-Line Parsing'
     It 'inserts a few new entries'
       result() {
         %text
+        #|$ check_sneaky_path secret1
+        #|$ check_sneaky_path secret2
         #|$ do_insert secret1
         #|ECHO=no
         #|MULTILINE=no
@@ -1040,6 +1090,7 @@ Describe 'Command-Line Parsing'
     It 'inserts a new flag-like entry'
       result() {
         %text
+        #|$ check_sneaky_path -c
         #|$ do_insert -c
         #|ECHO=no
         #|MULTILINE=no
@@ -1053,6 +1104,7 @@ Describe 'Command-Line Parsing'
     It 'inserts a new entry with echo (short option)'
       result() {
         %text
+        #|$ check_sneaky_path secret
         #|$ do_insert secret
         #|ECHO=yes
         #|MULTILINE=no
@@ -1066,6 +1118,7 @@ Describe 'Command-Line Parsing'
     It 'inserts a new entry with echo (long option)'
       result() {
         %text
+        #|$ check_sneaky_path secret
         #|$ do_insert secret
         #|ECHO=yes
         #|MULTILINE=no
@@ -1079,6 +1132,7 @@ Describe 'Command-Line Parsing'
     It 'forcefully inserts a new entry with echo (short option)'
       result() {
         %text
+        #|$ check_sneaky_path secret
         #|$ do_insert secret
         #|ECHO=yes
         #|MULTILINE=no
@@ -1092,6 +1146,7 @@ Describe 'Command-Line Parsing'
     It 'forcefully inserts a new entry with echo (short options)'
       result() {
         %text
+        #|$ check_sneaky_path secret
         #|$ do_insert secret
         #|ECHO=yes
         #|MULTILINE=no
@@ -1105,6 +1160,7 @@ Describe 'Command-Line Parsing'
     It 'forcefully inserts a new entry with echo (long option)'
       result() {
         %text
+        #|$ check_sneaky_path secret
         #|$ do_insert secret
         #|ECHO=yes
         #|MULTILINE=no
@@ -1118,6 +1174,7 @@ Describe 'Command-Line Parsing'
     It 'inserts a new multiline entry (short option)'
       result() {
         %text
+        #|$ check_sneaky_path secret
         #|$ do_insert secret
         #|ECHO=no
         #|MULTILINE=yes
@@ -1131,6 +1188,7 @@ Describe 'Command-Line Parsing'
     It 'inserts a new multiline entry (long option)'
       result() {
         %text
+        #|$ check_sneaky_path secret
         #|$ do_insert secret
         #|ECHO=no
         #|MULTILINE=yes
@@ -1144,6 +1202,7 @@ Describe 'Command-Line Parsing'
     It 'forcefully inserts a new multiline entry (short option)'
       result() {
         %text
+        #|$ check_sneaky_path secret
         #|$ do_insert secret
         #|ECHO=no
         #|MULTILINE=yes
@@ -1157,6 +1216,7 @@ Describe 'Command-Line Parsing'
     It 'forcefully inserts a new multiline entry (short options)'
       result() {
         %text
+        #|$ check_sneaky_path secret
         #|$ do_insert secret
         #|ECHO=no
         #|MULTILINE=yes
@@ -1170,6 +1230,7 @@ Describe 'Command-Line Parsing'
     It 'forcefully inserts a new multiline entry (long option)'
       result() {
         %text
+        #|$ check_sneaky_path secret
         #|$ do_insert secret
         #|ECHO=no
         #|MULTILINE=yes
@@ -1237,6 +1298,9 @@ Describe 'Command-Line Parsing'
     It 'shows multiple entries'
       result() {
         %text
+        #|$ check_sneaky_path arg1
+        #|$ check_sneaky_path arg2
+        #|$ check_sneaky_path arg3
         #|$ do_list_or_show arg1
         #|SELECTED_LINE=1
         #|SHOW=text
@@ -1255,6 +1319,7 @@ Describe 'Command-Line Parsing'
     It 'shows a flag-like entry'
       result() {
         %text
+        #|$ check_sneaky_path -c
         #|$ do_list_or_show -c
         #|SELECTED_LINE=1
         #|SHOW=text
@@ -1267,6 +1332,7 @@ Describe 'Command-Line Parsing'
     It 'copies an entry into the clipboard (short option)'
       result() {
         %text
+        #|$ check_sneaky_path arg
         #|$ do_list_or_show arg
         #|SELECTED_LINE=1
         #|SHOW=clip
@@ -1279,6 +1345,7 @@ Describe 'Command-Line Parsing'
     It 'copies an entry into the clipboard (long option)'
       result() {
         %text
+        #|$ check_sneaky_path arg
         #|$ do_list_or_show arg
         #|SELECTED_LINE=1
         #|SHOW=clip
@@ -1291,6 +1358,7 @@ Describe 'Command-Line Parsing'
     It 'copies a line of an entry into the clipboard (short option)'
       result() {
         %text
+        #|$ check_sneaky_path arg
         #|$ do_list_or_show arg
         #|SELECTED_LINE=2
         #|SHOW=clip
@@ -1303,6 +1371,7 @@ Describe 'Command-Line Parsing'
     It 'copies a line of an entry into the clipboard (short option)'
       result() {
         %text
+        #|$ check_sneaky_path arg
         #|$ do_list_or_show arg
         #|SELECTED_LINE=2
         #|SHOW=clip
@@ -1315,6 +1384,7 @@ Describe 'Command-Line Parsing'
     It 'shows an entry as a QR-code (short option)'
       result() {
         %text
+        #|$ check_sneaky_path arg
         #|$ do_list_or_show arg
         #|SELECTED_LINE=1
         #|SHOW=qrcode
@@ -1327,6 +1397,7 @@ Describe 'Command-Line Parsing'
     It 'shows an entry as a QR-code (long option)'
       result() {
         %text
+        #|$ check_sneaky_path arg
         #|$ do_list_or_show arg
         #|SELECTED_LINE=1
         #|SHOW=qrcode
@@ -1339,6 +1410,7 @@ Describe 'Command-Line Parsing'
     It 'shows the line of an entry as a QR-code (short option)'
       result() {
         %text
+        #|$ check_sneaky_path arg
         #|$ do_list_or_show arg
         #|SELECTED_LINE=3
         #|SHOW=qrcode
@@ -1351,6 +1423,7 @@ Describe 'Command-Line Parsing'
     It 'shows the line of an entry as a QR-code (long option)'
       result() {
         %text
+        #|$ check_sneaky_path arg
         #|$ do_list_or_show arg
         #|SELECTED_LINE=3
         #|SHOW=qrcode
@@ -1405,6 +1478,10 @@ Describe 'Command-Line Parsing'
     It 'moves multiple files'
       result() {
         %text
+        #|$ check_sneaky_path src1
+        #|$ check_sneaky_path src2
+        #|$ check_sneaky_path src3
+        #|$ check_sneaky_path dest
         #|$ do_copy_move src1 dest/
         #|ACTION=Move
         #|DECISION=default
@@ -1429,6 +1506,8 @@ Describe 'Command-Line Parsing'
     It 'moves forcefully with a long option'
       result() {
         %text
+        #|$ check_sneaky_path src
+        #|$ check_sneaky_path dest
         #|$ do_copy_move src dest
         #|ACTION=Move
         #|DECISION=default
@@ -1443,6 +1522,8 @@ Describe 'Command-Line Parsing'
     It 'moves forcefully with a short option'
       result() {
         %text
+        #|$ check_sneaky_path src
+        #|$ check_sneaky_path dest
         #|$ do_copy_move src dest
         #|ACTION=Move
         #|DECISION=default
@@ -1457,6 +1538,8 @@ Describe 'Command-Line Parsing'
     It 'moves a file named like a flag'
       result() {
         %text
+        #|$ check_sneaky_path -s
+        #|$ check_sneaky_path dest
         #|$ do_copy_move -s dest
         #|ACTION=Move
         #|DECISION=default
