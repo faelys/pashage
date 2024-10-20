@@ -1052,6 +1052,8 @@ cmd_copy_move() {
 	fi
 	unset PARSE_ERROR
 
+	check_sneaky_paths "$@"
+
 	if [ $# -gt 2 ]; then
 		DEST="$1"
 		shift
