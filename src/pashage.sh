@@ -1072,8 +1072,6 @@ cmd_copy_move() {
 }
 
 cmd_delete() {
-	check_sneaky_paths "$@"
-
 	PARSE_ERROR=no
 	RECURSIVE=no
 	while [ $# -ge 1 ]; do
@@ -1108,6 +1106,8 @@ cmd_delete() {
 		exit 1
 	fi
 	unset PARSE_ERROR
+
+	check_sneaky_paths "$@"
 
 	for ARG in "$@"; do
 		do_delete "${ARG}"
@@ -1326,8 +1326,6 @@ cmd_init() {
 }
 
 cmd_insert() {
-	check_sneaky_paths "$@"
-
 	PARSE_ERROR=no
 	while [ $# -ge 1 ]; do
 		case "$1" in
@@ -1367,6 +1365,8 @@ cmd_insert() {
 		exit 1
 	fi
 	unset PARSE_ERROR
+
+	check_sneaky_paths "$@"
 
 	for ARG in "$@"; do
 		do_insert "${ARG}"
@@ -1424,6 +1424,7 @@ cmd_list_or_show() {
 			exit 1
 		fi
 	fi
+	unset PARSE_ERROR
 
 	check_sneaky_paths "$@"
 
