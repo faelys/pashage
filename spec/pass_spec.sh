@@ -52,6 +52,7 @@ Describe 'Pass-like command'
   export PASSAGE_IDENTITIES_FILE="${SHELLSPEC_WORKDIR}/age-identities"
 
   git_log() {
+    @git -C "${PREFIX}" status --porcelain >&2
     @git -C "${PREFIX}" log --format='%s' --stat >|"${GITLOG}"
   }
 

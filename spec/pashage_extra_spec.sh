@@ -50,6 +50,7 @@ Describe 'Integrated Command Functions'
   NO_UNDERLINE_TEXT='(!U)'
 
   git_log() {
+    @git -C "${PREFIX}" status --porcelain >&2
     @git -C "${PREFIX}" log --format='%s' --stat >|"${GITLOG}"
   }
 
