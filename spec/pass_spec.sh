@@ -480,6 +480,18 @@ Describe 'Pass-like command'
       The result of function git_log should be successful
       The contents of file "${GITLOG}" should equal "$(setup_log)"
     End
+
+    It 'rejects a path containing ..'
+      Skip if 'pass(age) needs bash' check_skip $2
+      Skip if 'passage has no init' [ "$2" = passage ]
+      When run script $1 init --path fluff/../newdir new-id
+      The status should equal 1
+      The output should be blank
+      The error should include 'sneaky'
+      The directory "${PREFIX}/newdir" should not be exist
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
   End
 
   Describe 'ls'
@@ -566,6 +578,16 @@ Describe 'Pass-like command'
       The status should equal 1
       The output should be blank
       The error should equal 'Error: stale/ is not in the password store.'
+    End
+
+    It 'rejects a path containing ..'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 subdir/../fluff/
+      The status should equal 1
+      The output should be blank
+      The error should include 'sneaky'
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
     End
   End
 
@@ -689,6 +711,16 @@ Describe 'Pass-like command'
         #|0000017
       }
       The error should start with "$(expected_err)"
+    End
+
+    It 'rejects a path containing ..'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 subdir/../fluff/one
+      The status should equal 1
+      The output should be blank
+      The error should include 'sneaky'
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
     End
   End
 
@@ -875,6 +907,18 @@ Describe 'Pass-like command'
       }
       The result of function git_log should be successful
       The contents of file "${GITLOG}" should equal "$(expected_log $3)"
+    End
+
+    It 'rejects a path containing ..'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 insert -e fluff/../new-secret
+      The status should equal 1
+      The output should be blank
+      The error should include 'sneaky'
+      The file "${PREFIX}/new-secret.age" should not be exist
+      The file "${PREFIX}/new-secret.gpg" should not be exist
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
     End
   End
 
@@ -1105,6 +1149,17 @@ Describe 'Pass-like command'
       The result of function git_log should be successful
       The contents of file "${GITLOG}" should equal "$(setup_log)"
     End
+
+    It 'rejects a path containing ..'
+      Skip if 'pass(age) needs bash' check_skip $2
+      EDITOR=true
+      When run script $1 edit subdir/../stale
+      The status should equal 1
+      The output should be blank
+      The error should include 'sneaky'
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
   End
 
   Describe 'generate'
@@ -1304,6 +1359,18 @@ Describe 'Pass-like command'
       The result of function git_log should be successful
       The contents of file "${GITLOG}" should equal "$(expected_log $3)"
     End
+
+    It 'rejects a path containing ..'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 generate subdir/../new-secret
+      The status should equal 1
+      The output should be blank
+      The error should include 'sneaky'
+      The file "${PREFIX}/new-secret.age" should not be exist
+      The file "${PREFIX}/new-secret.gpg" should not be exist
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
   End
 
   Describe 'rm'
@@ -1436,6 +1503,18 @@ Describe 'Pass-like command'
       When run script $1 rm -rf stale/
       The status should equal 1
       The error should include 'stale/'
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    It 'rejects a path containing ..'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 delete subdir/../fluff/one
+      The status should equal 1
+      The output should be blank
+      The error should include 'sneaky'
+      The file "${PREFIX}/fluff/one.age" should be exist
+      The file "${PREFIX}/fluff/one.gpg" should be exist
       The result of function git_log should be successful
       The contents of file "${GITLOG}" should equal "$(setup_log)"
     End
@@ -1792,6 +1871,34 @@ Describe 'Pass-like command'
       The result of function git_log should be successful
       The contents of file "${GITLOG}" should equal "$(setup_log)"
     End
+
+    It 'rejects a source path containing ..'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 mv fluff/../stale subdir/
+      The status should equal 1
+      The output should be blank
+      The error should include 'sneaky'
+      The file "${PREFIX}/stale.age" should be exist
+      The file "${PREFIX}/stale.gpg" should be exist
+      The file "${PREFIX}/subdir/stale.age" should not be exist
+      The file "${PREFIX}/subdir/stale.gpg" should not be exist
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    It 'rejects a destination path containing ..'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 mv subdir/file extra/subdir/..
+      The status should equal 1
+      The output should be blank
+      The error should include 'sneaky'
+      The file "${PREFIX}/subdir/file.age" should be exist
+      The file "${PREFIX}/subdir/file.gpg" should be exist
+      The file "${PREFIX}/extra/file.age" should not be exist
+      The file "${PREFIX}/extra/file.gpg" should not be exist
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
   End
 
   Describe 'cp'
@@ -2143,6 +2250,30 @@ Describe 'Pass-like command'
       The directory "${PREFIX}/new-name" should not be exist
       The file "${PREFIX}/new-name.age" should not be exist
       The file "${PREFIX}/new-name.gpg" should not be exist
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    It 'rejects a source path containing ..'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 cp fluff/../stale subdir/
+      The status should equal 1
+      The output should be blank
+      The error should include 'sneaky'
+      The file "${PREFIX}/subdir/stale.age" should not be exist
+      The file "${PREFIX}/subdir/stale.gpg" should not be exist
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    It 'rejects a destination path containing ..'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 cp subdir/file extra/subdir/..
+      The status should equal 1
+      The output should be blank
+      The error should include 'sneaky'
+      The file "${PREFIX}/extra/file.age" should not be exist
+      The file "${PREFIX}/extra/file.gpg" should not be exist
       The result of function git_log should be successful
       The contents of file "${GITLOG}" should equal "$(setup_log)"
     End
