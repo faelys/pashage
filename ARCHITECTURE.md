@@ -38,9 +38,10 @@ The following test sets can be found in `spec/` directory:
 - `usage_spec.sh` tests command functions in isolation, mocking everything;
 - `scm_spec.sh` tests SCM functions in isolation, using the real git
   and filesystem;
-- TODO tests integration, calling command functions with minimal mocks;
 - `pass_spec.sh` tests `pass`-like and `passage`-like behavior of
-  the whole script.
+  the whole script;
+- `pashage_extra_spec.sh` tests integration, calling command functions
+  with minimal mocks, in complement with `pass_spec.sh`.
 
 Platform functions are not tested, because the platform adherence make it
 too difficult to test it automatically.

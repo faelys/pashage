@@ -41,7 +41,7 @@ cov1:
 cov2:
 	shellspec --kcov -s bash \
 	    spec/pass_spec.sh \
-	    spec/command_spec.sh
+	    spec/pashage_extra_spec.sh
 
 tests:
 	shellspec
