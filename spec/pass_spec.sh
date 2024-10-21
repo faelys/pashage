@@ -80,7 +80,8 @@ Describe 'Pass-like command'
     #| stale.gpg              | 3 +++
     #| subdir/file.age        | 2 ++
     #| subdir/file.gpg        | 2 ++
-    #| 21 files changed, 55 insertions(+)
+    #| y.txt                  | 3 +++
+    #| 22 files changed, 58 insertions(+)
   }
 
   setup_id() {
@@ -138,6 +139,10 @@ Describe 'Pass-like command'
     %text | setup_secret '-g'
     #|Recipient:myself
     #|:--
+    %text >"${PREFIX}/y.txt"
+    #|Unencrypted line 1
+    #|Unencrypted line 2
+    #|Unencrypted line 3
     @git -C "${PREFIX}" add .
     @git -C "${PREFIX}" commit -m 'Initial setup' >/dev/null
 
@@ -546,6 +551,11 @@ Describe 'Pass-like command'
       The line 20 of output should include 'subdir'
       The line 21 of output should include 'file'
       The line 22 of output should include 'file'
+      if [ $2 = pashage ]; then
+        The lines of output should equal 22
+      else
+        The line 23 of output should include 'y.txt'
+      fi
     End
 
     It 'does not list a file masquerading as a directory'
@@ -714,6 +724,23 @@ Describe 'Pass-like command'
       The error should start with "$(expected_err)"
     End
 
+    It 'fails to show a non-existent file'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 non-existent
+      The status should equal 1
+      The output should be blank
+      The error should equal \
+        'Error: non-existent is not in the password store.'
+    End
+
+    It 'does not show an unencrypted file in the store'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 show y.txt
+      The status should equal 1
+      The output should be blank
+      The error should equal 'Error: y.txt is not in the password store.'
+    End
+
     It 'rejects a path containing ..'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 subdir/../fluff/one
@@ -745,13 +772,11 @@ Describe 'Pass-like command'
       The output should be blank
     End
 
-    It 'fails to show a non-existent file'
+    It 'does not look into unencrypted files in the store'
       Skip if 'pass(age) needs bash' check_skip $2
-      When run script $1 non-existent
-      The status should equal 1
+      When run script $1 grep Unencrypted
+      The status should be success
       The output should be blank
-      The error should equal \
-        'Error: non-existent is not in the password store.'
     End
   End
 
@@ -1035,6 +1060,34 @@ Describe 'Pass-like command'
         #|Add password for fluff using ed -c.
         #|
         #| fluff.$1 | 2 ++
+        #| 1 file changed, 2 insertions(+)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3)"
+    End
+
+    It 'creates a secret file named like an unencrypted file'
+      EDITOR='ed -c'
+      Skip if 'pass(age) needs bash' check_skip $2
+      Data
+        #|a
+        #|New password in a new file
+        #|.
+        #|wq
+      End
+      When run script $1 edit y.txt
+      The file "${PREFIX}/y.txt.$3" should be exist
+      expected_file() { %text:expand
+        #|$1Recipient:myself
+        #|$1:New password in a new file
+      }
+      The contents of file "${PREFIX}/y.txt.$3" should \
+        equal "$(expected_file "$3")"
+      expected_log() { %text:expand
+        #|Add password for y.txt using ed -c.
+        #|
+        #| y.txt.$1 | 2 ++
         #| 1 file changed, 2 insertions(+)
         setup_log
       }
@@ -1508,6 +1561,17 @@ Describe 'Pass-like command'
       The contents of file "${GITLOG}" should equal "$(setup_log)"
     End
 
+    It 'does not remove an unencrypted file in the store'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 rm -f y.txt
+      The status should equal 1
+      The output should be blank
+      The error should include 'y.txt'
+      The file "${PREFIX}/y.txt" should be exist
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
     It 'rejects a path containing ..'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 delete subdir/../fluff/one
@@ -1608,6 +1672,34 @@ Describe 'Pass-like command'
         #|
         #| subdir/file.$1 => shared/renamed.$1 | 1 +
         #| 1 file changed, 1 insertion(+)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3 $2)"
+    End
+
+    It 'moves an unencrypted file without reencrypting it'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 mv y.txt shared
+      The error should be blank
+      The file "${PREFIX}/y.txt" should not be exist
+      file_contents() { %text
+        #|Unencrypted line 1
+        #|Unencrypted line 2
+        #|Unencrypted line 3
+      }
+      The contents of file "${PREFIX}/shared/y.txt" \
+        should equal "$(file_contents)"
+      expected_log() {
+        if [ "$2" = pashage ]; then
+          %putsn 'Move y.txt to shared/y.txt'
+        else
+          %putsn 'Rename y.txt to shared.'
+        fi
+        %text
+        #|
+        #| y.txt => shared/y.txt | 0
+        #| 1 file changed, 0 insertions(+), 0 deletions(-)
         setup_log
       }
       The result of function git_log should be successful
@@ -1985,6 +2077,33 @@ Describe 'Pass-like command'
         %text:expand
         #|
         #| shared/copy.$1 | 3 +++
+        #| 1 file changed, 3 insertions(+)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3 $2)"
+    End
+
+    It 'copies an unencrypted file without reencrypting it'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 cp y.txt shared
+      The error should be blank
+      file_contents() { %text
+        #|Unencrypted line 1
+        #|Unencrypted line 2
+        #|Unencrypted line 3
+      }
+      The contents of file "${PREFIX}/shared/y.txt" \
+        should equal "$(file_contents)"
+      expected_log() {
+        if [ "$2" = pashage ]; then
+          %putsn 'Copy y.txt to shared/y.txt'
+        else
+          %putsn 'Copy y.txt to shared.'
+        fi
+        %text
+        #|
+        #| shared/y.txt | 3 +++
         #| 1 file changed, 3 insertions(+)
         setup_log
       }
