@@ -1512,7 +1512,7 @@ Describe 'Pass-like command'
 
     It 'removes a directory when forced and recursive'
       Skip if 'pass(age) needs bash' check_skip $2
-      When run script $1 rm -rf fluff/
+      When run script $1 rm -rf fluff
       The directory "${PREFIX}/fluff" should not be exist
       expected_log() { %text:expand
         #|Remove fluff/ from store.
@@ -1552,6 +1552,18 @@ Describe 'Pass-like command'
       The contents of file "${GITLOG}" should equal "$(expected_log $3)"
     End
 
+    It 'does not remove anything with `/` suffix but no recursive flag'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 rm -f extra/
+      The error should include 'extra/'
+      The error should include 's a directory'
+      The directory "${PREFIX}/extra" should be exist
+      The file "${PREFIX}/extra.age" should be exist
+      The file "${PREFIX}/extra.gpg" should be exist
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
     It 'fails to remove a non-existent directory'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 rm -rf stale/
@@ -1564,6 +1576,17 @@ Describe 'Pass-like command'
     It 'does not remove an unencrypted file in the store'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 rm -f y.txt
+      The status should equal 1
+      The output should be blank
+      The error should include 'y.txt'
+      The file "${PREFIX}/y.txt" should be exist
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    It 'does not remove an unencrypted file with `/` suffix'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 rm -rf y.txt/
       The status should equal 1
       The output should be blank
       The error should include 'y.txt'

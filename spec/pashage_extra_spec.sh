@@ -137,11 +137,12 @@ Describe 'Integrated Command Functions'
   BeforeEach setup
   AfterEach cleanup
 
-  cat()    { @cat     "$@"; }
-  diff()   { @diff    "$@"; }
-  git()    { @git     "$@"; }
-  mktemp() { @mktemp  "$@"; }
-  rm()     { @rm      "$@"; }
+  cat()     { @cat     "$@"; }
+  diff()    { @diff    "$@"; }
+  dirname() { @dirname "$@"; }
+  git()     { @git     "$@"; }
+  mktemp()  { @mktemp  "$@"; }
+  rm()      { @rm      "$@"; }
 
   platform_tmpdir() {
     SECURE_TMPDIR="${SHELLSPEC_WORKDIR}/secure"
@@ -150,7 +151,36 @@ Describe 'Integrated Command Functions'
 
 # Describe 'cmd_copy' is not needed (covered by 'cmd_copy_move')
 # Describe 'cmd_copy_move'
-# Describe 'cmd_delete'
+
+  Describe 'cmd_delete'
+    DECISION=default
+
+    It 'deletes multiple files at once, prompting before each one'
+      Data
+        #|y
+        #|n
+        #|y
+      End
+      When call cmd_delete stale subdir/file fluff/two
+      The output should equal 'Are you sure you would like to delete stale? [y/n]Are you sure you would like to delete subdir/file? [y/n]Are you sure you would like to delete fluff/two? [y/n]'
+      The error should be blank
+      The file "${PREFIX}/fluff/two.age" should not be exist
+      The file "${PREFIX}/stale.age" should not be exist
+      The file "${PREFIX}/subdir/file.age" should be exist
+      expected_log() { %text
+        #|Remove fluff/two from store.
+        #|
+        #| fluff/two.age | 4 ----
+        #| 1 file changed, 4 deletions(-)
+        #|Remove stale from store.
+        #|
+        #| stale.age | 3 ---
+        #| 1 file changed, 3 deletions(-)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+  End
 
   Describe 'cmd_edit'
     It 'uses EDITOR in a dumb terminal'
