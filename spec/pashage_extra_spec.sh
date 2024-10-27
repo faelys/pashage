@@ -295,7 +295,39 @@ Describe 'Integrated Command Functions'
     End
   End
 
-# Describe 'cmd_find'
+  Describe 'cmd_find'
+    grep() { @grep "$@"; }
+
+    It 'interprets the pattern as a regular expression'
+      expected_output() { %text
+        #|Search pattern: ^o
+        #|`- (B)fluff(N)
+        #|   `- one
+      }
+      When call cmd_find '^o'
+      The status should be success
+      The output should equal "$(expected_output)"
+      The error should be blank
+      The result of function check_git_log should be successful
+    End
+
+    It 'forwards flags to grep'
+      expected_output() { %text
+        #|Search pattern: -E -i F|I
+        #||- (B)extra(N)
+        #||  `- (B)subdir(N)
+        #||     `- file
+        #|`- (B)subdir(N)
+        #|   `- file
+      }
+      When call cmd_find -E -i 'F|I'
+      The status should be success
+      The output should equal "$(expected_output)"
+      The error should be blank
+      The result of function check_git_log should be successful
+    End
+  End
+
 # Describe 'cmd_generate'
 # Describe 'cmd_git'
 # Describe 'cmd_grep'
