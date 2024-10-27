@@ -487,6 +487,18 @@ Describe 'Pass-like command'
       The contents of file "${GITLOG}" should equal "$(setup_log)"
     End
 
+    It 'displays usage when called without argument'
+      Skip if 'pass(age) needs bash' check_skip $2
+      Skip if 'passage has no init' [ "$2" = passage ]
+      When run script $1 init
+      The status should equal 1
+      The output should be blank
+      The error should include 'Usage:'
+      The error should include ' init '
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
     It 'rejects a path containing ..'
       Skip if 'pass(age) needs bash' check_skip $2
       Skip if 'passage has no init' [ "$2" = passage ]
@@ -622,6 +634,17 @@ Describe 'Pass-like command'
       The lines of output should equal 1
       The line 1 of output should match pattern 'Search *: z'
       The error should be blank
+    End
+
+    It 'displays usage when called without argument'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 find
+      The status should equal 1
+      The output should be blank
+      The error should include 'Usage:'
+      The error should include ' find '
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
     End
   End
 
@@ -778,6 +801,17 @@ Describe 'Pass-like command'
       The status should be success
       The output should be blank
     End
+
+    It 'displays usage when called without argument'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 grep
+      The status should equal 1
+      The output should be blank
+      The error should include 'Usage:'
+      The error should include ' grep '
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
   End
 
   Describe 'insert'
@@ -933,6 +967,17 @@ Describe 'Pass-like command'
       }
       The result of function git_log should be successful
       The contents of file "${GITLOG}" should equal "$(expected_log $3)"
+    End
+
+    It 'displays usage when called without argument'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 insert
+      The status should equal 1
+      The output should be blank
+      The error should include 'Usage:'
+      The error should include ' insert '
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
     End
 
     It 'rejects a path containing ..'
@@ -1204,6 +1249,17 @@ Describe 'Pass-like command'
       The contents of file "${GITLOG}" should equal "$(setup_log)"
     End
 
+    It 'displays usage when called without argument'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 edit
+      The status should equal 1
+      The output should be blank
+      The error should include 'Usage:'
+      The error should include ' edit '
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
     It 'rejects a path containing ..'
       Skip if 'pass(age) needs bash' check_skip $2
       EDITOR=true
@@ -1414,6 +1470,17 @@ Describe 'Pass-like command'
       The contents of file "${GITLOG}" should equal "$(expected_log $3)"
     End
 
+    It 'displays usage when called without argument'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 generate
+      The status should equal 1
+      The output should be blank
+      The error should include 'Usage:'
+      The error should include ' generate '
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
     It 'rejects a path containing ..'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 generate subdir/../new-secret
@@ -1591,6 +1658,17 @@ Describe 'Pass-like command'
       The output should be blank
       The error should include 'y.txt'
       The file "${PREFIX}/y.txt" should be exist
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    It 'displays usage when called without argument'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 delete
+      The status should equal 1
+      The output should be blank
+      The error should include 'Usage:'
+      The error should include ' delete '
       The result of function git_log should be successful
       The contents of file "${GITLOG}" should equal "$(setup_log)"
     End
@@ -1971,6 +2049,16 @@ Describe 'Pass-like command'
       The error should include 'extra/'
       The directory "${PREFIX}/subdir" should be exist
       The file "${PREFIX}/subdir/file.$3" should be exist
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    It 'displays usage when called without argument'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 mv
+      The status should equal 1
+      The output should be blank
+      The error should include 'Usage:'
       The result of function git_log should be successful
       The contents of file "${GITLOG}" should equal "$(setup_log)"
     End
@@ -2384,6 +2472,17 @@ Describe 'Pass-like command'
       The contents of file "${GITLOG}" should equal "$(expected_log $3 $2)"
     End
 
+    It 'displays usage when called without argument'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 copy
+      The status should equal 1
+      The output should be blank
+      The error should include 'Usage:'
+      The error should include ' copy '
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
     It 'fails to copy a non-existent directory'
       Skip if 'pass(age) considers "stale/" as the file "stale"' \
         [ ! $2 = pashage ]
@@ -2427,6 +2526,16 @@ Describe 'Pass-like command'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 git log --format='%s' --stat
       The output should equal "$(setup_log)"
+    End
+
+    It 'displays git usage when called without argument'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 git
+      # The status is success for pass(age) but 1 (from git) for pashage
+      The output should include 'usage: git'
+      The error should be blank
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
     End
 
     remove_git() { rm -rf "${PREFIX}/.git"; }
