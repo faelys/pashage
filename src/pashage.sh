@@ -997,13 +997,14 @@ do_tree_item() {
 }
 
 # Add a tree prefix
-#   $1: prefix of the first line
-#   $2: prefix of the following lines
+#   $1: optional title before the first line
+#   $2: prefix of the first line
+#   $3: prefix of the following lines
 do_tree_prefix() {
 	[ -n "$1" ] && printf '%s\n' "$1"
-	read -r LINE
+	IFS= read -r LINE
 	printf '%s%s\n' "$2" "${LINE}"
-	while read -r LINE; do
+	while IFS= read -r LINE; do
 		printf '%s%s\n' "$3" "${LINE}"
 	done
 	unset LINE
