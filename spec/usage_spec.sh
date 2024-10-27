@@ -801,12 +801,11 @@ Describe 'Command-Line Parsing'
       The error should equal "$ git -C ${PREFIX} log --oneline"
     End
 
-    It 'reports a lack of argument'
-      cat() { @cat; }
+    It 'transmits a lack of argument to git'
+      PREFIX="${SHELLSPEC_WORKDIR}/repo"
       When run cmd_git
       The output should be blank
-      The error should equal 'Usage: prg git git-command-args ...'
-      The status should equal 1
+      The error should equal "$ git -C ${PREFIX}"
     End
 
     It 'aborts without a git repository'

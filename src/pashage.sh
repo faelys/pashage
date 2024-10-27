@@ -1218,19 +1218,16 @@ cmd_generate() {
 }
 
 cmd_git() {
-	if [ $# -lt 1 ]; then
-		cmd_usage 'Usage: ' git >&2
-		exit 1
-	elif [ -d "${PREFIX}/.git" ]; then
+	if [ -d "${PREFIX}/.git" ]; then
 		platform_tmpdir
 		TMPDIR="${SECURE_TMPDIR}" git -C "${PREFIX}" "$@"
-	elif [ "$1" = init ]; then
+	elif [ "${1-}" = init ]; then
 		mkdir -p -- "${PREFIX}"
 		git -C "${PREFIX}" "$@"
 		scm_add '.'
 		scm_commit "Add current contents of password store."
 		cmd_gitconfig
-	elif [ "$1" = clone ]; then
+	elif [ "${1-}" = clone ]; then
 		git "$@" "${PREFIX}"
 		cmd_gitconfig
 	else
