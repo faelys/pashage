@@ -314,6 +314,7 @@ Describe 'Pass-like command'
       Skip if 'pass(age) needs bash' check_skip $2
       Skip if 'passage has no init' [ "$2" = passage ]
       When run script $1 init 'new-id'
+      The status should be success
       The output should include 'Password store'
       expected_log() {
         if [ "$2" = pashage ]; then
@@ -352,6 +353,7 @@ Describe 'Pass-like command'
       Skip if 'pass(age) needs bash' check_skip $2
       Skip if 'passage has no init' [ "$2" = passage ]
       When run script $1 init -p subdir 'new-id'
+      The status should be success
       The output should start with 'Password store'
       The output should include 'subdir'
       expected_log() {
@@ -383,6 +385,7 @@ Describe 'Pass-like command'
       Skip if 'pass(age) needs bash' check_skip $2
       Skip if 'passage has no init' [ "$2" = passage ]
       When run script $1 init -p fluff 'new-id' 'new-master'
+      The status should be success
       The output should start with 'Password store'
       The output should include 'fluff'
       expected_log() {
@@ -516,6 +519,7 @@ Describe 'Pass-like command'
     It 'lists a directory'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 ls subdir
+      The status should be success
       The line 1 of output should include 'subdir'
       The line 2 of output should include 'file'
     End
@@ -523,6 +527,7 @@ Describe 'Pass-like command'
     It 'lists a directory implicitly'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 subdir
+      The status should be success
       The line 1 of output should include 'subdir'
       The line 2 of output should include 'file'
     End
@@ -530,6 +535,7 @@ Describe 'Pass-like command'
     It 'lists a directory when called as `show`'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 show subdir
+      The status should be success
       The line 1 of output should include 'subdir'
       The line 2 of output should include 'file'
     End
@@ -537,6 +543,7 @@ Describe 'Pass-like command'
     It 'lists the whole store without argument'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1
+      The status should be success
       if [ $2 = passage ]; then
         The line 1 of output should equal 'Passage'
       else
@@ -580,6 +587,7 @@ Describe 'Pass-like command'
     It 'lists a directory having an ambiguous name with `/` suffix'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 extra/
+      The status should be success
       The line 1 of output should include 'extra'
       The line 2 of output should include 'subdir'
       The line 3 of output should include 'file'
@@ -618,6 +626,7 @@ Describe 'Pass-like command'
     It 'lists entries matching a substring'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 find o
+      The status should be success
       The lines of output should equal 6
       The line 1 of output should match pattern 'Search *: o'
       The line 2 of output should include 'fluff'
@@ -652,12 +661,14 @@ Describe 'Pass-like command'
     It 'decrypts a password file'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 show subdir/file
+      The status should be success
       The output should equal 'p4ssw0rd'
     End
 
     It 'decrypts a password file implicitly'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 subdir/file
+      The status should be success
       The output should equal 'p4ssw0rd'
     End
 
@@ -672,18 +683,21 @@ Describe 'Pass-like command'
     It 'decrypts a password file named like a flag'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 -- -g
+      The status should be success
       The output should equal '--'
     End
 
     It 'decrypts a password file even when called as `list`'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 ls subdir/file
+      The status should be success
       The output should equal 'p4ssw0rd'
     End
 
     It 'decrypts a file having an ambiguous name without suffix'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 extra
+      The status should be success
       The output should equal 'ambiguous'
     End
 
@@ -691,6 +705,7 @@ Describe 'Pass-like command'
       DISPLAY=mock
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 -q fluff/one
+      The status should be success
       expected_err() { %text:expand
         #|$ feh -x --title ${1}: fluff/one -g +200+200 -
         #|0000000 31 2d 70 61 73 73 77 6f 72 64
@@ -707,6 +722,7 @@ Describe 'Pass-like command'
       DISPLAY=mock
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 --qrcode=2 fluff/three
+      The status should be success
       expected_err() { %text:expand
         #|$ feh -x --title ${1}: fluff/three -g +200+200 -
         #|0000000 55 73 65 72 6e 61 6d 65 3a 20 33 4a 61 6e 65
@@ -723,6 +739,7 @@ Describe 'Pass-like command'
       DISPLAY=mock
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 show -c fluff/three
+      The status should be success
       The output should start with \
         'Copied fluff/three to clipboard. Will clear in 45 seconds.'
       expected_err() { %text
@@ -737,6 +754,7 @@ Describe 'Pass-like command'
       DISPLAY=mock
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 show -c2 fluff/three
+      The status should be success
       The output should start with \
         'Copied fluff/three to clipboard. Will clear in 45 seconds.'
       expected_err() { %text
@@ -779,6 +797,7 @@ Describe 'Pass-like command'
     It 'shows decrypted lines matching a regex'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 grep -i Com
+      The status should be success
       The lines of output should equal 4
       The line 1 of output should include 'fluff'
       The output should include 'three'
@@ -823,6 +842,7 @@ Describe 'Pass-like command'
         #|URL: https://example.com/login
       End
       When run script $1 insert -m rootpass
+      The status should be success
       The output should include 'rootpass'
       The contents of file "${PREFIX}/rootpass.$3" \
         should include "$3:Username: tester"
@@ -844,6 +864,7 @@ Describe 'Pass-like command'
         #|pass-word
       End
       When run script $1 insert newdir/newpass
+      The status should be success
       The output should include 'newdir/newpass'
       The contents of file "${PREFIX}/newdir/newpass.$3" \
         should include "$3:pass-word"
@@ -875,6 +896,7 @@ Describe 'Pass-like command'
         #|pass-word
       End
       When run script $1 insert -- -h
+      The status should be success
       The output should include '-h'
       The contents of file "${PREFIX}/-h.$3" \
         should include "$3:pass-word"
@@ -893,6 +915,7 @@ Describe 'Pass-like command'
       Skip if 'pass(age) needs bash' check_skip $2
       Data "pass-word"
       When run script $1 insert -e newdir/newpass
+      The status should be success
       The output should include 'newdir/newpass'
       The output should not include 'Retype'
       The contents of file "${PREFIX}/newdir/newpass.$3" \
@@ -912,6 +935,7 @@ Describe 'Pass-like command'
       Skip if 'pass(age) needs bash' check_skip $2
       Data "passWord"
       When run script $1 insert -e shared/newpass
+      The status should be success
       The output should include 'shared/newpass'
       The contents of file "${PREFIX}/shared/newpass.$3" \
         should include 'friend'
@@ -934,6 +958,7 @@ Describe 'Pass-like command'
       Skip if 'pass(age) needs bash' check_skip $2
       Data "pass-word"
       When run script $1 insert -e -f subdir/file
+      The status should be success
       The output should include 'subdir/file'
       The output should not include 'Retype'
       The contents of file "${PREFIX}/subdir/file.$3" \
@@ -953,6 +978,7 @@ Describe 'Pass-like command'
       Skip if 'pass(age) needs bash' check_skip $2
       Data "drowssap"
       When run script $1 insert -e new-dir/newpass
+      The status should be success
       The output should include 'new-dir/newpass'
       The contents of file "${PREFIX}/new-dir/newpass.$3" \
         should include 'myself'
@@ -1008,6 +1034,7 @@ Describe 'Pass-like command'
         #|wq
       End
       When run script $1 edit subdir/new
+      The status should be success
       The file "${PREFIX}/subdir/new.$3" should be exist
       expected_file() { %text:expand
         #|$1Recipient:myself
@@ -1037,6 +1064,7 @@ Describe 'Pass-like command'
         #|wq
       End
       When run script $1 edit new-subdir/new
+      The status should be success
       The directory "${PREFIX}/new-subdir" should be exist
       The file "${PREFIX}/new-subdir/new.$3" should be exist
       expected_file() { %text:expand
@@ -1066,6 +1094,7 @@ Describe 'Pass-like command'
         #|wq
       End
       When run script $1 edit -h
+      The status should be success
       The file "${PREFIX}/-h.$3" should be exist
       expected_file() { %text:expand
         #|$1Recipient:myself
@@ -1094,6 +1123,7 @@ Describe 'Pass-like command'
         #|wq
       End
       When run script $1 edit fluff
+      The status should be success
       The file "${PREFIX}/fluff.$3" should be exist
       expected_file() { %text:expand
         #|$1Recipient:myself
@@ -1122,6 +1152,7 @@ Describe 'Pass-like command'
         #|wq
       End
       When run script $1 edit y.txt
+      The status should be success
       The file "${PREFIX}/y.txt.$3" should be exist
       expected_file() { %text:expand
         #|$1Recipient:myself
@@ -1149,6 +1180,7 @@ Describe 'Pass-like command'
         #|wq
       End
       When run script $1 edit fluff/two
+      The status should be success
       expected_file() { %text:expand
         #|$1Recipient:master
         #|$1Recipient:myself
@@ -1178,6 +1210,7 @@ Describe 'Pass-like command'
         #|wq
       End
       When run script $1 edit extra
+      The status should be success
       expected_file() { %text:expand
         #|$1Recipient:myself
         #|$1:New line
@@ -1205,6 +1238,7 @@ Describe 'Pass-like command'
         #|wq
       End
       When run script $1 edit stale
+      The status should be success
       expected_file() { %text:expand
         #|$1Recipient:myself
         #|$1:0-password
@@ -1227,6 +1261,8 @@ Describe 'Pass-like command'
       Skip if 'pass(age) needs bash' check_skip $2
       Data 'q'
       When run script $1 edit stale
+      The status should equal \
+        "$(if [ $2 = pashage ]; then echo 0; else echo 1; fi)"
       expected_file() { %text:expand
         #|$1Recipient:master
         #|$1Recipient:myself
@@ -1276,6 +1312,7 @@ Describe 'Pass-like command'
     It 'generates a new file'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 generate newdir/newfile
+      The status should be success
       The output should include 'The generated password for'
       The file "${PREFIX}/newdir/newfile.$3" should be exist
       The lines of contents of file "${PREFIX}/newdir/newfile.$3" should \
@@ -1308,6 +1345,7 @@ Describe 'Pass-like command'
     It 'generates a new file named like a flag'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 generate -- -h
+      The status should be success
       The output should include 'The generated password for'
       The file "${PREFIX}/-h.$3" should be exist
       The lines of contents of file "${PREFIX}/-h.$3" should equal 2
@@ -1329,6 +1367,7 @@ Describe 'Pass-like command'
     It 'generates a new file named like a directory'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 generate fluff
+      The status should be success
       The output should include 'The generated password for'
       The file "${PREFIX}/fluff.$3" should be exist
       The lines of contents of file "${PREFIX}/fluff.$3" should equal 2
@@ -1350,6 +1389,7 @@ Describe 'Pass-like command'
     It 'generates a new file in a new directory'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 generate brand-new-dir/file
+      The status should be success
       The output should include 'The generated password for'
       The file "${PREFIX}/brand-new-dir/file.$3" should be exist
       The lines of contents of file "${PREFIX}/brand-new-dir/file.$3" should \
@@ -1372,6 +1412,7 @@ Describe 'Pass-like command'
     It 'generates a new file without symbols'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 generate -n newfile 4
+      The status should be success
       The output should include 'The generated password for'
       The file "${PREFIX}/newfile.$3" should be exist
       The lines of contents of file "${PREFIX}/newfile.$3" should \
@@ -1396,6 +1437,7 @@ Describe 'Pass-like command'
     It 'replaces an existing file when forced'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 generate -f fluff/three 20
+      The status should be success
       The output should include 'The generated password for'
       The lines of contents of file "${PREFIX}/fluff/three.$3" should equal 3
       The output should \
@@ -1414,6 +1456,7 @@ Describe 'Pass-like command'
     It 'replaces the first line of an existing file'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 generate -ni fluff/three 4
+      The status should be success
       The output should include 'The generated password for'
       The lines of contents of file "${PREFIX}/fluff/three.$3" should equal 5
       The line 3 of contents of file "${PREFIX}/fluff/three.$3" should \
@@ -1435,6 +1478,7 @@ Describe 'Pass-like command'
       DISPLAY=mock
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 generate -nc subdir/new
+      The status should be success
       The output should not include 'The generated password for'
       The output should not \
         include "$(@sed -n "2s/$3://p" "${PREFIX}/subdir/new.$3")"
@@ -1456,6 +1500,7 @@ Describe 'Pass-like command'
       DISPLAY=mock
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 generate -qn new
+      The status should be success
       The output should not include 'The generated password for'
       The output should not include "$(@sed -n "2s/$3://p" "${PREFIX}/new.$3")"
       The error should start with '$ feh -x --title pas'
@@ -1498,6 +1543,7 @@ Describe 'Pass-like command'
     It 'removes a file without confirmation when forced'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 rm -f subdir/file
+      The status should be success
       The output should include 'subdir/file'
       The error should be blank
       The file "${PREFIX}/subdir/file.$3" should not be exist
@@ -1525,6 +1571,7 @@ Describe 'Pass-like command'
     It 'removes a file named like a flag'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 rm -f -- -g
+      The status should be success
       The output should include '-g'
       The error should be blank
       The file "${PREFIX}/-g.$3" should not be exist
@@ -1542,6 +1589,7 @@ Describe 'Pass-like command'
     It 'removes a file having an ambiguous name without suffix'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 rm -f extra
+      The status should be success
       The output should include 'extra'
       The error should be blank
       The file "${PREFIX}/extra.$3" should not be exist
@@ -1569,6 +1617,8 @@ Describe 'Pass-like command'
     It 'does not remove a directory without `-r` even when forced'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 rm -f fluff
+      The status should equal \
+        "$(if [ $2 = pashage ]; then echo 1; else echo 0; fi)"
       The error should include 'fluff/'
       The error should include 's a directory'
       The directory "${PREFIX}/fluff" should be exist
@@ -1580,6 +1630,7 @@ Describe 'Pass-like command'
     It 'removes a directory when forced and recursive'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 rm -rf fluff
+      The status should be success
       The directory "${PREFIX}/fluff" should not be exist
       expected_log() { %text:expand
         #|Remove fluff/ from store.
@@ -1602,6 +1653,7 @@ Describe 'Pass-like command'
     It 'removes a directory having an ambiguous name with `/` suffix'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 rm -rf extra/
+      The status should be success
       The output should include 'extra'
       The error should be blank
       The file "${PREFIX}/extra.age" should be exist
@@ -1622,6 +1674,8 @@ Describe 'Pass-like command'
     It 'does not remove anything with `/` suffix but no recursive flag'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 rm -f extra/
+      The status should equal \
+        "$(if [ $2 = pashage ]; then echo 1; else echo 0; fi)"
       The error should include 'extra/'
       The error should include 's a directory'
       The directory "${PREFIX}/extra" should be exist
@@ -1690,6 +1744,7 @@ Describe 'Pass-like command'
     It 'renames a file without reencrypting'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 mv subdir/file subdir/renamed
+      The status should be success
       The error should be blank
       The file "${PREFIX}/subdir/file.$3" should not be exist
       file_contents() { %text:expand
@@ -1727,6 +1782,7 @@ Describe 'Pass-like command'
     It 'renames a file named like a flag'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 mv -- -g -h
+      The status should be success
       The error should be blank
       The file "${PREFIX}/-g.$3" should not be exist
       file_contents() { %text:expand
@@ -1754,6 +1810,7 @@ Describe 'Pass-like command'
     It 'reencrypts a moved file'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 mv subdir/file shared/renamed
+      The status should be success
       The error should be blank
       The file "${PREFIX}/subdir/file.$3" should not be exist
       file_contents() { %text:expand
@@ -1782,6 +1839,7 @@ Describe 'Pass-like command'
     It 'moves an unencrypted file without reencrypting it'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 mv y.txt shared
+      The status should be success
       The error should be blank
       The file "${PREFIX}/y.txt" should not be exist
       file_contents() { %text
@@ -1810,6 +1868,7 @@ Describe 'Pass-like command'
     It 'reencrypts relevant files in a moved directory'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 mv subdir shared/
+      The status should be success
       The error should be blank
       The file "${PREFIX}/subdir/file.$3" should not be exist
       file_contents() { %text:expand
@@ -1847,6 +1906,7 @@ Describe 'Pass-like command'
     It 'moves a file into a new directory'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 mv subdir/file new-subdir/
+      The status should be success
       The error should be blank
       The file "${PREFIX}/subdir/file.$3" should not be exist
       file_contents() { %text:expand
@@ -1884,6 +1944,7 @@ Describe 'Pass-like command'
     It 'renames a directory with recipients'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 mv fluff filler
+      The status should be success
       The error should be blank
       The directory "${PREFIX}/fluff" should not be exist
       The directory "${PREFIX}/filler" should be exist
@@ -1913,6 +1974,7 @@ Describe 'Pass-like command'
     It 'renames a directory without recipients'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 mv subdir newdir
+      The status should be success
       The error should be blank
       The directory "${PREFIX}/subdir" should not be exist
       file_contents() { %text:expand
@@ -1941,6 +2003,7 @@ Describe 'Pass-like command'
     It 'overwrites an existing file when forced'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 mv -f fluff/two fluff/one
+      The status should be success
       The file "${PREFIX}/fluff/two.$3" should not be exist
       file_contents() { %text:expand
         #|${1}Recipient:master
@@ -1970,6 +2033,7 @@ Describe 'Pass-like command'
     It 'renames a file having an ambiguous name without suffix'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 mv extra new
+      The status should be success
       The file "${PREFIX}/extra.$3" should not be exist
       file_contents() { %text:expand
         #|${1}Recipient:myself
@@ -1996,6 +2060,7 @@ Describe 'Pass-like command'
     It 'renames a directory having an ambiguous name with `/` suffix'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 mv extra/ new
+      The status should be success
       The directory "${PREFIX}/extra" should not be exist
       The file "${PREFIX}/new/subdir/file.age" should be exist
       The file "${PREFIX}/new/subdir/file.gpg" should be exist
@@ -2019,6 +2084,7 @@ Describe 'Pass-like command'
     It 'moves a file to a directory having an ambiguous name without suffix'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 mv subdir/file extra
+      The status should be success
       The file "${PREFIX}/subdir/file.$3" should not be exist
       file_contents() { %text:expand
         #|${1}Recipient:myself
@@ -2045,6 +2111,7 @@ Describe 'Pass-like command'
     It 'does not merge directories recursively'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 mv -f subdir/ extra/
+      The status should equal 1
       The error should include 'subdir'
       The error should include 'extra/'
       The directory "${PREFIX}/subdir" should be exist
@@ -2109,6 +2176,7 @@ Describe 'Pass-like command'
     It 'copies a file without reencrypting'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 cp subdir/file subdir/copy
+      The status should be success
       The error should be blank
       file_contents() { %text:expand
         #|${1}Recipient:myself
@@ -2145,6 +2213,7 @@ Describe 'Pass-like command'
     It 'copies a file named like a flag'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 cp -- -g -h
+      The status should be success
       The error should be blank
       file_contents() { %text:expand
         #|${1}Recipient:myself
@@ -2171,6 +2240,7 @@ Describe 'Pass-like command'
     It 'reencrypts a copied file'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 cp subdir/file shared/copy
+      The status should be success
       The error should be blank
       file_contents() { %text:expand
         #|${1}Recipient:myself
@@ -2198,6 +2268,7 @@ Describe 'Pass-like command'
     It 'copies an unencrypted file without reencrypting it'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 cp y.txt shared
+      The status should be success
       The error should be blank
       file_contents() { %text
         #|Unencrypted line 1
@@ -2225,6 +2296,7 @@ Describe 'Pass-like command'
     It 'reencrypts relevant files in a copied directory'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 cp subdir shared/
+      The status should be success
       The error should be blank
       file_contents() { %text:expand
         #|${1}Recipient:myself
@@ -2261,6 +2333,7 @@ Describe 'Pass-like command'
     It 'copies a file into a new directory'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 cp subdir/file new-subdir/
+      The status should be success
       The error should be blank
       file_contents() { %text:expand
         #|${1}Recipient:myself
@@ -2297,6 +2370,7 @@ Describe 'Pass-like command'
     It 'copies a directory with recipients'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 cp fluff filler
+      The status should be success
       The error should be blank
       The directory "${PREFIX}/filler" should be exist
       expected_log() {
@@ -2325,6 +2399,7 @@ Describe 'Pass-like command'
     It 'copies a directory without recipients'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 cp subdir newdir
+      The status should be success
       The error should be blank
       file_contents() { %text:expand
         #|${1}Recipient:myself
@@ -2352,6 +2427,7 @@ Describe 'Pass-like command'
     It 'overwrites an existing file when forced'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 cp -f fluff/two fluff/one
+      The status should be success
       file_contents() { %text:expand
         #|${1}Recipient:master
         #|${1}Recipient:myself
@@ -2379,6 +2455,7 @@ Describe 'Pass-like command'
     It 'overwrites collisions when copying recursively and forcefully'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 cp -f subdir/ extra/
+      The status should be success
       expected_log() {
         if [ "$2" = pashage ]; then
           %putsn 'Copy subdir/ to extra/subdir/'
@@ -2399,6 +2476,7 @@ Describe 'Pass-like command'
     It 'copies a file having an ambiguous name without suffix'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 cp extra new
+      The status should be success
       file_contents() { %text:expand
         #|${1}Recipient:myself
         #|${1}:ambiguous
@@ -2424,6 +2502,7 @@ Describe 'Pass-like command'
     It 'copies a directory having an ambiguous name with `/` suffix'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 cp extra/ new
+      The status should be success
       file_contents() { %text:expand
         #|${1}Recipient:myself
         #|${1}:Pa55worD
@@ -2450,6 +2529,7 @@ Describe 'Pass-like command'
     It 'copies a file to a directory having an ambiguous name without suffix'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 cp subdir/file extra
+      The status should be success
       file_contents() { %text:expand
         #|${1}Recipient:myself
         #|${1}:p4ssw0rd
@@ -2525,13 +2605,15 @@ Describe 'Pass-like command'
     It 'transmits arguments to git'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 git log --format='%s' --stat
+      The status should be success
       The output should equal "$(setup_log)"
     End
 
     It 'displays git usage when called without argument'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 git
-      # The status is success for pass(age) but 1 (from git) for pashage
+      The status should equal \
+        "$(if [ $2 = pashage ]; then echo 1; else echo 0; fi)"
       The output should include 'usage: git'
       The error should be blank
       The result of function git_log should be successful
@@ -2566,6 +2648,7 @@ Describe 'Pass-like command'
     It 'displays a help text with supported commands'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 help
+      The status should be success
       if ! [ $2 = passage ]; then
         The output should include ' init '
       fi
@@ -2585,6 +2668,7 @@ Describe 'Pass-like command'
     It 'displays a version box'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 version
+      The status should be success
       The output should include 'password manager'
       The output should start with '============='
       The output should end with '============='

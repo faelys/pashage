@@ -26,24 +26,28 @@ Describe 'Internal Helper Functions'
   Describe 'check_sneaky_path'
     It 'accept an empty path'
       When run check_sneaky_path ''
+      The status should be success
       The error should be blank
       The output should be blank
     End
 
     It 'accepts a file name'
       When run check_sneaky_path 'a'
+      The status should be success
       The error should be blank
       The output should be blank
     End
 
     It 'accepts an absolute path'
       When run check_sneaky_path '/a/b/c'
+      The status should be success
       The error should be blank
       The output should be blank
     End
 
     It 'accepts a relative path'
       When run check_sneaky_path 'a/b/c/'
+      The status should be success
       The error should be blank
       The output should be blank
     End
@@ -87,12 +91,14 @@ Describe 'Internal Helper Functions'
 
     It 'accepts several good paths'
       When run check_sneaky_paths a b/c /d/e/f
+      The status should be success
       The error should be blank
       The output should be blank
     End
 
     It 'accepts an empty argument list'
       When run check_sneaky_paths
+      The status should be success
       The error should be blank
       The output should be blank
     End
@@ -117,6 +123,7 @@ Describe 'Internal Helper Functions'
 
     It 'continues silently when the command is successful'
       When run checked echo_ret 'it runs' 0
+      The status should be success
       The output should equal 'it runs'
       The error should be blank
     End
@@ -132,11 +139,13 @@ Describe 'Internal Helper Functions'
   Describe 'glob_exists'
     It 'answers y when the glob matches something'
       When call glob_exists /*
+      The status should be success
       The variable ANSWER should equal y
     End
 
     It 'answers n when the glob does not match anything'
       When call glob_exists non-existent/*
+      The status should be success
       The variable ANSWER should equal n
     End
   End
@@ -156,24 +165,28 @@ Describe 'Internal Helper Functions'
 
     It 'returns root from root'
       When call set_LOCAL_RECIPIENT_FILE foo
+      The status should be success
       The variable LOCAL_RECIPIENT_FILE should equal \
         "${PREFIX}/.age-recipients"
     End
 
     It 'returns root from unmarked subdirectory'
       When call set_LOCAL_RECIPIENT_FILE special/foo
+      The status should be success
       The variable LOCAL_RECIPIENT_FILE should equal \
         "${PREFIX}/.age-recipients"
     End
 
     It 'returns subdirectory from itself'
       When call set_LOCAL_RECIPIENT_FILE subdir/foo
+      The status should be success
       The variable LOCAL_RECIPIENT_FILE should equal \
         "${PREFIX}/subdir/.age-recipients"
     End
 
     It 'returns subdirectory from sub-subdirectory'
       When call set_LOCAL_RECIPIENT_FILE subdir/subsub/foo
+      The status should be success
       The variable LOCAL_RECIPIENT_FILE should equal \
         "${PREFIX}/subdir/.age-recipients"
     End
@@ -186,22 +199,26 @@ Describe 'Internal Helper Functions'
 
     It 'returns nothing from empty root'
       When call set_LOCAL_RECIPIENT_FILE foo
+      The status should be success
       The variable LOCAL_RECIPIENT_FILE should equal ''
     End
 
     It 'returns nothing from unmarked subdirectory below empty root'
       When call set_LOCAL_RECIPIENT_FILE special/foo
+      The status should be success
       The variable LOCAL_RECIPIENT_FILE should equal ''
     End
 
     It 'returns subdirectory from itself even under empty root'
       When call set_LOCAL_RECIPIENT_FILE subdir/foo
+      The status should be success
       The variable LOCAL_RECIPIENT_FILE should equal \
         "${PREFIX}/subdir/.age-recipients"
     End
 
     It 'returns subdirectory from sub-subdirectory even under empty root'
       When call set_LOCAL_RECIPIENT_FILE subdir/subsub/foo
+      The status should be success
       The variable LOCAL_RECIPIENT_FILE should equal \
         "${PREFIX}/subdir/.age-recipients"
     End
@@ -224,6 +241,7 @@ Describe 'Internal Helper Functions'
       It 'accepts an uppercase N'
         Data 'N'
         When call yesno 'prompt'
+        The status should be success
         The output should equal 'prompt [y/n]'
         The variable ANSWER should equal 'N'
       End
@@ -231,6 +249,7 @@ Describe 'Internal Helper Functions'
       It 'accepts an uppercase Y'
         Data 'YES'
         When call yesno 'prompt'
+        The status should be success
         The output should equal 'prompt [y/n]'
         The variable ANSWER should equal 'y'
       End
@@ -242,6 +261,7 @@ Describe 'Internal Helper Functions'
       It 'accepts a lowercase N'
         Data 'no'
         When call yesno 'prompt'
+        The status should be success
         The output should equal 'prompt [y/n]'
         The variable ANSWER should equal 'n'
       End
@@ -249,6 +269,7 @@ Describe 'Internal Helper Functions'
       It 'accepts an uppercase Y'
         Data 'Y'
         When call yesno 'prompt'
+        The status should be success
         The output should equal 'prompt [y/n]'
         The variable ANSWER should equal 'y'
       End
@@ -272,6 +293,7 @@ Describe 'Internal Helper Functions'
 
       It 'accepts a lowercase Y after bad input'
         When call yesno 'prompt'
+        The status should be success
         The output should equal 'prompt [y/n]'
         The variable ANSWER should equal 'y'
       End

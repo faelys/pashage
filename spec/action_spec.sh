@@ -81,6 +81,7 @@ Describe 'Action Functions'
         #|$ scm_commit Move sub/secret.age to sub/renamed.age
       }
       When call do_copy_move sub/secret sub/renamed
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -98,6 +99,7 @@ Describe 'Action Functions'
         #|$ scm_commit Copy root.age to sub/root.age
       }
       When call do_copy_move root sub/
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -115,6 +117,7 @@ Describe 'Action Functions'
         #|$ scm_commit Copy root.age to sub/moved.age
       }
       When call do_copy_move root.age sub/moved.age
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -131,6 +134,7 @@ Describe 'Action Functions'
         #|$ scm_commit Copy root.age to sub/root.age
       }
       When call do_copy_move root sub/
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -144,6 +148,7 @@ Describe 'Action Functions'
         #|$ scm_commit Move notes.txt to sub/notes.txt
       }
       When call do_copy_move notes.txt sub/
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -158,6 +163,7 @@ Describe 'Action Functions'
         #|$ scm_commit Move notes.txt to sub/notes.txt
       }
       When call do_copy_move notes.txt sub/
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -170,6 +176,7 @@ Describe 'Action Functions'
         #|$ scm_commit Move sub/secret.age to subdir/secret.age
       }
       When call do_copy_move sub/secret subdir
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -194,6 +201,7 @@ Describe 'Action Functions'
         #|$ scm_commit Move root.age to sub/secret.age
       }
       When call do_copy_move root sub/secret
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -206,6 +214,7 @@ Describe 'Action Functions'
         #|$ scm_commit Move sub/ to subdir/sub/
       }
       When call do_copy_move sub subdir/
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -227,6 +236,7 @@ Describe 'Action Functions'
         #|$ scm_commit Move sub/bare/ to subdir/new-bare/
       }
       When call do_copy_move sub/bare subdir/new-bare
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -255,6 +265,7 @@ Describe 'Action Functions'
         #|$ scm_commit Copy sub/bare/ to subdir/new-bare/
       }
       When call do_copy_move sub/bare subdir/new-bare
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -310,6 +321,7 @@ Describe 'Action Functions'
         #|$ scm_mv root.age non-existent
       }
       When run do_copy_move_file root.age non-existent
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -332,6 +344,7 @@ Describe 'Action Functions'
 
     IDENTITIES_FILE='/path/to/identity'
     When call do_decrypt '/path/to/encrypted/file.age'
+    The status should be success
     The output should equal 'cleartext'
     The error should equal \
       '$ age -d -i /path/to/identity -- /path/to/encrypted/file.age'
@@ -343,6 +356,7 @@ Describe 'Action Functions'
       unset GPG_AGENT_INFO
       unset GPG
       When call do_decrypt_gpg /path/to/encrypted/file.gpg
+      The status should be success
       The error should equal \
         '$ gpg -d --quiet --yes --compress-algo=none --no-encrypt-to -- /path/to/encrypted/file.gpg'
     End
@@ -352,6 +366,7 @@ Describe 'Action Functions'
       GPG_AGENT_INFO=agent-info
       unset GPG
       When call do_decrypt_gpg /path/to/encrypted/file.gpg
+      The status should be success
       The error should equal \
         '$ gpg -d --quiet --yes --compress-algo=none --no-encrypt-to --batch --use-agent -- /path/to/encrypted/file.gpg'
     End
@@ -361,6 +376,7 @@ Describe 'Action Functions'
       unset GPG_AGENT_INFO
       unset GPG
       When call do_decrypt_gpg /path/to/encrypted/file.gpg
+      The status should be success
       The error should equal \
         '$ gpg2 -d --quiet --yes --compress-algo=none --no-encrypt-to --batch --use-agent -- /path/to/encrypted/file.gpg'
     End
@@ -370,6 +386,7 @@ Describe 'Action Functions'
       unset GPG_AGENT_INFO
       GPG=user_cmd
       When call do_decrypt_gpg /path/to/encrypted/file.gpg
+      The status should be success
       The error should equal \
         '$ user_cmd -d --quiet --yes --compress-algo=none --no-encrypt-to -- /path/to/encrypted/file.gpg'
     End
@@ -413,6 +430,7 @@ Describe 'Action Functions'
         #|$ scm_commit Deinitialize store root
       }
       When call do_deinit ''
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -426,6 +444,7 @@ Describe 'Action Functions'
         #|$ scm_commit Deinitialize sub
       }
       When call do_deinit sub
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -439,6 +458,7 @@ Describe 'Action Functions'
         #|$ scm_commit Deinitialize sub
       }
       When call do_deinit sub
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -489,6 +509,7 @@ Describe 'Action Functions'
         #|$ scm_commit Remove sub/entry from store.
       }
       When call do_delete sub/entry
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -504,6 +525,7 @@ Describe 'Action Functions'
         #|$ yesno Are you sure you would like to delete sub/entry?
       }
       When call do_delete sub/entry
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -516,6 +538,7 @@ Describe 'Action Functions'
         #|$ scm_commit Remove empty/ from store.
       }
       When call do_delete empty
+      The status should be success
       The output should equal 'Removing empty/'
       The error should equal "$(result)"
     End
@@ -528,6 +551,7 @@ Describe 'Action Functions'
         #|$ scm_commit Remove sub from store.
       }
       When call do_delete sub
+      The status should be success
       The output should equal 'Removing sub'
       The error should equal "$(result)"
     End
@@ -540,6 +564,7 @@ Describe 'Action Functions'
         #|$ scm_commit Remove sub/ from store.
       }
       When call do_delete sub/
+      The status should be success
       The output should equal 'Removing sub/'
       The error should equal "$(result)"
     End
@@ -652,6 +677,7 @@ Describe 'Action Functions'
       }
       EDIT_CMD=edit
       When call do_edit sub/new
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -664,6 +690,7 @@ Describe 'Action Functions'
       }
       EDIT_CMD=true
       When call do_edit new
+      The status should be success
       The output should equal 'New password for new not saved.'
       The error should equal "$(result)"
     End
@@ -687,6 +714,7 @@ Describe 'Action Functions'
       }
       EDIT_CMD=edit
       When call do_edit existing
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -703,6 +731,7 @@ Describe 'Action Functions'
       }
       EDIT_CMD=true
       When call do_edit existing
+      The status should be success
       The output should equal 'Password for existing unchanged.'
       The error should equal "$(result)"
     End
@@ -720,6 +749,7 @@ Describe 'Action Functions'
         #|$ edit ${SECURE_TMPDIR}/XXXXXX-subdir-new.txt
       }
       When call do_edit subdir/new
+      The status should be success
       The output should equal 'New password for subdir/new not saved.'
       The error should equal "$(result)"
     End
@@ -737,6 +767,7 @@ Describe 'Action Functions'
         #|$ edit ${SECURE_TMPDIR}/XXXXXX-subdir-new.txt
       }
       When call do_edit subdir/new
+      The status should be success
       The output should equal 'New password for subdir/new not saved.'
       The error should equal "$(result)"
     End
@@ -754,6 +785,7 @@ Describe 'Action Functions'
         #|$ edit ${SECURE_TMPDIR}/XXXXXX-subdir-new.txt
       }
       When call do_edit subdir/new
+      The status should be success
       The output should equal 'New password for subdir/new not saved.'
       The error should equal "$(result)"
     End
@@ -771,6 +803,7 @@ Describe 'Action Functions'
         #|$ edit ${SECURE_TMPDIR}/XXXXXX-subdir-new.txt
       }
       When call do_edit subdir/new
+      The status should be success
       The output should equal 'New password for subdir/new not saved.'
       The error should equal "$(result)"
     End
@@ -787,6 +820,7 @@ Describe 'Action Functions'
         #|$ vi ${SECURE_TMPDIR}/XXXXXX-subdir-new.txt
       }
       When call do_edit subdir/new
+      The status should be success
       The output should equal 'New password for subdir/new not saved.'
       The error should equal "$(result)"
     End
@@ -836,6 +870,7 @@ Describe 'Action Functions'
         #|$ age -e -i /path/to/identity -o /prefix/encrypted/file.age
       }
       When run do_encrypt 'encrypted/file.age'
+      The status should be success
       The error should equal "$(result)"
     End
 
@@ -853,6 +888,7 @@ Describe 'Action Functions'
         #|$ age -e -R /path/to/recipients -o ${PREFIX}/existing-file
       }
       When run do_encrypt 'existing-file'
+      The status should be success
       The error should equal "$(result)"
       The variable OVERWRITE should equal no
     End
@@ -871,6 +907,7 @@ Describe 'Action Functions'
         #|$ age -e -R /path/to/recipients -o ${PREFIX}/existing-file
       }
       When run do_encrypt 'existing-file'
+      The status should be success
       The error should equal "$(result)"
       The variable OVERWRITE should equal yes
     End
@@ -902,6 +939,7 @@ Describe 'Action Functions'
       }
 
       When call do_encrypt 'encrypted/file.age'
+      The status should be success
       The error should equal "$(result)"
     End
   End
@@ -975,6 +1013,7 @@ Describe 'Action Functions'
         #|> 0123456789
       }
       When call do_generate sub/new 10 '[alnum:]'
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -997,6 +1036,7 @@ Describe 'Action Functions'
         #|> 0123456789
       }
       When call do_generate sub/new 10 '[alnum:]'
+      The status should be success
       The output should equal \
         '(B)The generated password for (U)sub/new(!U) is:(N)'
       The error should equal "$(result)"
@@ -1017,6 +1057,7 @@ Describe 'Action Functions'
         #|> 0123456789
       }
       When call do_generate existing 10 '[alnum:]'
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1041,6 +1082,7 @@ Describe 'Action Functions'
         #|> 0123456789
       }
       When call do_generate existing 10 '[alnum:]'
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
       The variable OVERWRITE should equal 'once'
@@ -1060,6 +1102,7 @@ Describe 'Action Functions'
         #|$ yesno An entry already exists for existing. Overwrite it?
       }
       When call do_generate existing 10 '[alnum:]'
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1092,6 +1135,7 @@ Describe 'Action Functions'
         #|> 0123456789
       }
       When call do_generate existing 10 '[alnum:]'
+      The status should be success
       The output should equal 'Decrypting previous secret for existing'
       The error should equal "$(result)"
     End
@@ -1132,6 +1176,7 @@ Describe 'Action Functions'
         ( cd "${PREFIX}" && do_grep '' "$@" )
       }
       When call start_do_grep ot
+      The status should be success
       The output should equal "$(result)"
     End
   End
@@ -1163,6 +1208,7 @@ Describe 'Action Functions'
         #|$ scm_commit Set age recipients at store root
       }
       When call do_init '' identity
+      The status should be success
       The output should equal 'Password store recipients set at store root'
       The error should equal "$(result)"
       The file "${PREFIX}/.age-recipients" should be exist
@@ -1185,6 +1231,7 @@ Describe 'Action Functions'
         #|identity 2
       }
       When call do_init sub 'identity 1' 'identity 2'
+      The status should be success
       The output should equal 'Password store recipients set at sub'
       The error should equal "$(result)"
       The file "${PREFIX}/sub/.age-recipients" should be exist
@@ -1202,6 +1249,7 @@ Describe 'Action Functions'
         #|$ scm_commit Set age recipients at store root
       }
       When call do_init '' identity
+      The status should be success
       The output should equal 'Password store recipients set at store root'
       The error should equal "$(result)"
       The file "${PREFIX}/.age-recipients" should be exist
@@ -1258,6 +1306,7 @@ Describe 'Action Functions'
       End
 
       When call do_insert 'subdir/new'
+      The status should be success
       The output should equal 'Enter password for subdir/new: '
       The error should equal "$(result)"
     End
@@ -1283,6 +1332,7 @@ Describe 'Action Functions'
       End
 
       When call do_insert 'subdir/new'
+      The status should be success
       The output should equal \
         'Enter contents of subdir/new and press Ctrl+D when finished:'
       The error should equal "$(result)"
@@ -1319,6 +1369,7 @@ Describe 'Action Functions'
       End
 
       When call do_insert 'subdir/new'
+      The status should be success
       The output should equal "$(o_result)"
       The error should equal "$(e_result)"
     End
@@ -1343,6 +1394,7 @@ Describe 'Action Functions'
       Data 'password'
 
       When call do_insert 'existing'
+      The status should be success
       The output should equal \
         'Enter contents of existing and press Ctrl+D when finished:'
       The error should equal "$(result)"
@@ -1363,6 +1415,7 @@ Describe 'Action Functions'
       Data 'password'
 
       When call do_insert 'existing'
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1386,6 +1439,7 @@ Describe 'Action Functions'
       Data 'password'
 
       When call do_insert 'existing'
+      The status should be success
       The output should equal \
         'Enter contents of existing and press Ctrl+D when finished:'
       The error should equal "$(result)"
@@ -1429,6 +1483,7 @@ Describe 'Action Functions'
 
     It 'lists the whole store'
       When call do_list_or_show ''
+      The status should be success
       The output should be blank
       The error should equal "$ do_tree ${PREFIX} Password Store"
     End
@@ -1440,6 +1495,7 @@ Describe 'Action Functions'
         #|$ do_show other/lower
       }
       When call do_list_or_show 'other/lower'
+      The status should be success
       The error should equal "$(result)"
     End
 
@@ -1450,11 +1506,13 @@ Describe 'Action Functions'
         #|$ do_show subdir/subsub/old
       }
       When call do_list_or_show 'subdir/subsub/old'
+      The status should be success
       The error should equal "$(result)"
     End
 
     It 'lists a subdirectory'
       When call do_list_or_show 'subdir'
+      The status should be success
       The output should be blank
       The error should equal "$ do_tree ${PREFIX}/subdir subdir"
     End
@@ -1509,6 +1567,7 @@ Describe 'Action Functions'
         #|$ scm_add subdir/subsub/deep.age
       }
       When call do_reencrypt subdir/subsub/deep
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1526,6 +1585,7 @@ Describe 'Action Functions'
         #|$ scm_add subdir/subsub/deep.age
       }
       When call do_reencrypt subdir/
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1548,6 +1608,7 @@ Describe 'Action Functions'
         #|$ scm_add subdir/subsub/deep.age
       }
       When call do_reencrypt subdir
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1582,6 +1643,7 @@ Describe 'Action Functions'
       Data cleartext
       SHOW=text
       When call do_show
+      The status should be success
       The output should equal "$(cleartext)"
     End
 
@@ -1594,6 +1656,7 @@ Describe 'Action Functions'
       SELECTED_LINE=1
       SHOW=clip
       When call do_show title
+      The status should be success
       The output should be blank
       The error should equal 'password line'
     End
@@ -1607,6 +1670,7 @@ Describe 'Action Functions'
       SELECTED_LINE=1
       SHOW=qrcode
       When call do_show title
+      The status should be success
       The output should be blank
       The error should equal 'password line'
     End
@@ -1661,6 +1725,7 @@ Describe 'Action Functions'
         #|____L_(R)old(N)
       }
       When call do_tree "${PREFIX}" 'Title'
+      The status should be success
       The output should equal "$(result)"
     End
 
@@ -1675,6 +1740,7 @@ Describe 'Action Functions'
         #|____L_(R)old(N)
       }
       When call do_tree "${PREFIX}" 'Title' -i L
+      The status should be success
       The output should equal "$(result)"
     End
 
@@ -1685,16 +1751,19 @@ Describe 'Action Functions'
         #|L_root
       }
       When call do_tree "${PREFIX}" 'Title' t
+      The status should be success
       The output should equal "$(result)"
     End
 
     It 'might not display anything'
       When call do_tree "${PREFIX}" 'Title' z
+      The status should be success
       The output should equal ''
     End
 
     It 'does not display an empty title'
       When call do_tree "${PREFIX}" '' t
+      The status should be success
       The output should equal 'L_root'
     End
   End

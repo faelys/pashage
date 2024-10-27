@@ -162,6 +162,7 @@ Describe 'Integrated Command Functions'
         #|y
       End
       When call cmd_delete stale subdir/file fluff/two
+      The status should be success
       The output should equal 'Are you sure you would like to delete stale? [y/n]Are you sure you would like to delete subdir/file? [y/n]Are you sure you would like to delete fluff/two? [y/n]'
       The error should be blank
       The file "${PREFIX}/fluff/two.age" should not be exist

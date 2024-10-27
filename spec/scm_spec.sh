@@ -58,6 +58,7 @@ Describe 'Integrated SCM Functions'
         scm_add untracked.txt
       }
       When call testcase
+      The status should be success
       The output should be blank
       The result of function git_status should be successful
       The contents of file "${SHELLSPEC_WORKDIR}/git-status.txt" \
@@ -70,6 +71,7 @@ Describe 'Integrated SCM Functions'
         scm_add subdir/file.txt
       }
       When call testcase
+      The status should be success
       The output should be blank
       The result of function git_status should be successful
       The contents of file "${SHELLSPEC_WORKDIR}/git-status.txt" \
@@ -159,6 +161,7 @@ Describe 'Integrated SCM Functions'
 
     It 'creates and adds a file'
       When call scm_cp subdir/file.txt file-copy.txt
+      The status should be success
       The output should be blank
       The contents of file "${PREFIX}/subdir/file.txt" should equal 'data'
       The contents of file "${PREFIX}/file-copy.txt" should equal 'data'
@@ -169,6 +172,7 @@ Describe 'Integrated SCM Functions'
 
     It 'copies and adds a directory recursively'
       When call scm_cp subdir newdir
+      The status should be success
       The output should be blank
       The contents of file "${PREFIX}/subdir/file.txt" should equal 'data'
       The contents of file "${PREFIX}/newdir/file.txt" should equal 'data'
@@ -183,6 +187,7 @@ Describe 'Integrated SCM Functions'
 
     It 'deletes a file'
       When call scm_del subdir/file.txt
+      The status should be success
       The output should be blank
       The file "${PREFIX}/subdir/file.txt" should not be exist
       The result of function git_status should be successful
@@ -192,6 +197,7 @@ Describe 'Integrated SCM Functions'
 
     It 'deletes a directory recursively'
       When call scm_del subdir
+      The status should be success
       The output should be blank
       The directory "${PREFIX}/subdir" should not be exist
       The result of function git_status should be successful
@@ -205,6 +211,7 @@ Describe 'Integrated SCM Functions'
 
     It 'moves a file and records the move'
       When call scm_mv subdir/file.txt file.txt
+      The status should be success
       The output should be blank
       The file "${PREFIX}/subdir/file.txt" should not be exist
       The contents of file "${PREFIX}/file.txt" should equal 'data'
@@ -215,6 +222,7 @@ Describe 'Integrated SCM Functions'
 
     It 'moves a directory recursively and records the move'
       When call scm_mv subdir newdir
+      The status should be success
       The output should be blank
       The directory "${PREFIX}/subdir" should not be exist
       The contents of file "${PREFIX}/newdir/file.txt" should equal 'data'
@@ -229,6 +237,7 @@ Describe 'Integrated SCM Functions'
 
     It 'removes a file'
       When call scm_rm subdir/file.txt
+      The status should be success
       The output should be blank
       The file "${PREFIX}/subdir/file.txt" should not be exist
       The result of function git_status should be successful
@@ -238,6 +247,7 @@ Describe 'Integrated SCM Functions'
 
     It 'removes a directory recursively'
       When call scm_rm subdir
+      The status should be success
       The output should be blank
       The directory "${PREFIX}/subdir" should not be exist
       The result of function git_status should be successful
@@ -309,6 +319,7 @@ Describe 'Integrated SCM Functions without SCM'
 
     It 'creates a file'
       When call scm_cp subdir/file.txt file-copy.txt
+      The status should be success
       The output should be blank
       The contents of file "${PREFIX}/subdir/file.txt" should equal 'data'
       The contents of file "${PREFIX}/file-copy.txt" should equal 'data'
@@ -316,6 +327,7 @@ Describe 'Integrated SCM Functions without SCM'
 
     It 'copies a directory recursively'
       When call scm_cp subdir newdir
+      The status should be success
       The output should be blank
       The contents of file "${PREFIX}/subdir/file.txt" should equal 'data'
       The contents of file "${PREFIX}/newdir/file.txt" should equal 'data'
@@ -325,12 +337,14 @@ Describe 'Integrated SCM Functions without SCM'
   Describe 'scm_del'
     It 'does nothing with a file'
       When call scm_del subdir/file.txt
+      The status should be success
       The output should be blank
       The contents of file "${PREFIX}/subdir/file.txt" should equal 'data'
     End
 
     It 'does nothing with a directory'
       When call scm_del subdir
+      The status should be success
       The output should be blank
       The contents of file "${PREFIX}/subdir/file.txt" should equal 'data'
     End
@@ -341,6 +355,7 @@ Describe 'Integrated SCM Functions without SCM'
 
     It 'moves a file'
       When call scm_mv subdir/file.txt file.txt
+      The status should be success
       The output should be blank
       The file "${PREFIX}/subdir/file.txt" should not be exist
       The contents of file "${PREFIX}/file.txt" should equal 'data'
@@ -348,6 +363,7 @@ Describe 'Integrated SCM Functions without SCM'
 
     It 'moves a directory recursively'
       When call scm_mv subdir newdir
+      The status should be success
       The output should be blank
       The directory "${PREFIX}/subdir" should not be exist
       The contents of file "${PREFIX}/newdir/file.txt" should equal 'data'
@@ -359,12 +375,14 @@ Describe 'Integrated SCM Functions without SCM'
 
     It 'removes a file'
       When call scm_rm subdir/file.txt
+      The status should be success
       The output should be blank
       The file "${PREFIX}/subdir/file.txt" should not be exist
     End
 
     It 'removes a directory recursively'
       When call scm_rm subdir
+      The status should be success
       The output should be blank
       The directory "${PREFIX}/subdir" should not be exist
     End

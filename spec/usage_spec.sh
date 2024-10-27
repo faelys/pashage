@@ -169,6 +169,7 @@ Describe 'Command-Line Parsing'
         #|SCM_ACTION=scm_cp
       }
       When call cmd_copy src1 src2 src3 dest
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -185,6 +186,7 @@ Describe 'Command-Line Parsing'
         #|SCM_ACTION=scm_cp
       }
       When call cmd_copy --force src dest
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -201,6 +203,7 @@ Describe 'Command-Line Parsing'
         #|SCM_ACTION=scm_cp
       }
       When call cmd_copy -f src dest
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -217,6 +220,7 @@ Describe 'Command-Line Parsing'
         #|SCM_ACTION=scm_cp
       }
       When call cmd_copy -- -s dest
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -267,6 +271,7 @@ Describe 'Command-Line Parsing'
         #|RECURSIVE=no
       }
       When call cmd_delete --force arg1
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -280,6 +285,7 @@ Describe 'Command-Line Parsing'
         #|RECURSIVE=no
       }
       When call cmd_delete -f arg1
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -293,6 +299,7 @@ Describe 'Command-Line Parsing'
         #|RECURSIVE=yes
       }
       When call cmd_delete --recursive arg1
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -306,6 +313,7 @@ Describe 'Command-Line Parsing'
         #|RECURSIVE=yes
       }
       When call cmd_delete -r arg1
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -319,6 +327,7 @@ Describe 'Command-Line Parsing'
         #|RECURSIVE=yes
       }
       When call cmd_delete --recursive --force arg1
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -332,6 +341,7 @@ Describe 'Command-Line Parsing'
         #|RECURSIVE=yes
       }
       When call cmd_delete -rf arg1
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -345,6 +355,7 @@ Describe 'Command-Line Parsing'
         #|RECURSIVE=yes
       }
       When call cmd_delete -fr arg1
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -366,6 +377,7 @@ Describe 'Command-Line Parsing'
         #|RECURSIVE=no
       }
       When call cmd_delete arg1 arg2 arg3
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -383,6 +395,7 @@ Describe 'Command-Line Parsing'
         #|RECURSIVE=no
       }
       When call cmd_delete -- -f arg2
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -435,6 +448,7 @@ Describe 'Command-Line Parsing'
         #|VISUAL=vi
       }
       When call cmd_edit arg1 arg2 arg3
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -453,6 +467,7 @@ Describe 'Command-Line Parsing'
 
     It 'uses the argument list directly'
       When call cmd_find -i pattern
+      The status should be success
       The output should equal 'Search pattern: -i pattern'
       The error should equal '$ do_tree /prefix  -i pattern'
     End
@@ -486,6 +501,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=text
       }
       When call cmd_generate secret
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -501,6 +517,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=text
       }
       When call cmd_generate secret 12
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -516,6 +533,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=text
       }
       When call cmd_generate -- -f
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -531,6 +549,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=clip
       }
       When call cmd_generate --clip secret
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -546,6 +565,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=clip
       }
       When call cmd_generate -c secret
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -561,6 +581,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=qrcode
       }
       When call cmd_generate --qrcode secret
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -576,6 +597,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=qrcode
       }
       When call cmd_generate -q secret
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -591,6 +613,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=clip
       }
       When call cmd_generate --clip --no-symbols secret
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -606,6 +629,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=clip
       }
       When call cmd_generate -cn secret
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -621,6 +645,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=qrcode
       }
       When call cmd_generate --no-symbols --qrcode secret
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -636,6 +661,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=qrcode
       }
       When call cmd_generate -nq secret
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -651,6 +677,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=text
       }
       When call cmd_generate --inplace secret
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -666,6 +693,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=text
       }
       When call cmd_generate -i secret
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -681,6 +709,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=text
       }
       When call cmd_generate --force secret
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -696,6 +725,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=text
       }
       When call cmd_generate -f secret
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -778,6 +808,7 @@ Describe 'Command-Line Parsing'
         #|$ cmd_gitconfig
       }
       When call cmd_git init
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -790,6 +821,7 @@ Describe 'Command-Line Parsing'
         #|$ cmd_gitconfig
       }
       When call cmd_git clone origin
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -797,13 +829,15 @@ Describe 'Command-Line Parsing'
     It 'runs the git command into the store'
       PREFIX="${SHELLSPEC_WORKDIR}/repo"
       When call cmd_git log --oneline
+      The status should be success
       The output should be blank
       The error should equal "$ git -C ${PREFIX} log --oneline"
     End
 
-    It 'transmits a lack of argument to git'
+    It 'transmits an empty argument list to git'
       PREFIX="${SHELLSPEC_WORKDIR}/repo"
       When run cmd_git
+      The status should be success
       The output should be blank
       The error should equal "$ git -C ${PREFIX}"
     End
@@ -850,6 +884,7 @@ Describe 'Command-Line Parsing'
         #|$ git -C ${PREFIX} config --local diff.age.textconv age -d -i id
       }
       When call cmd_gitconfig
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
       The contents of file "${PREFIX}/.gitattributes" should equal '*.age diff=age'
@@ -871,6 +906,7 @@ Describe 'Command-Line Parsing'
         #|*.age diff=age
       }
       When call cmd_gitconfig
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
       The contents of file "${PREFIX}/.gitattributes" should equal "$(attrs)"
@@ -884,6 +920,7 @@ Describe 'Command-Line Parsing'
         #|$ git -C ${PREFIX} config --local diff.age.textconv age -d -i id
       }
       When call cmd_gitconfig
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
       The contents of file "${PREFIX}/.gitattributes" should equal '*.age diff=age'
@@ -904,6 +941,7 @@ Describe 'Command-Line Parsing'
 
     It 'uses the argument list directly'
       When call cmd_grep -i pattern
+      The status should be success
       The output should be blank
       The error should equal '$ do_grep  -i pattern'
     End
@@ -929,6 +967,7 @@ Describe 'Command-Line Parsing'
         #|$ cmd_usage     $
       }
       When call cmd_help
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -946,6 +985,7 @@ Describe 'Command-Line Parsing'
         #|OVERWRITE=yes
       }
       When call cmd_init recipient-1 recipient-2
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -959,6 +999,7 @@ Describe 'Command-Line Parsing'
         #|OVERWRITE=yes
       }
       When call cmd_init --path=sub recipient
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -972,6 +1013,7 @@ Describe 'Command-Line Parsing'
         #|OVERWRITE=yes
       }
       When call cmd_init --path sub recipient
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -985,6 +1027,7 @@ Describe 'Command-Line Parsing'
         #|OVERWRITE=yes
       }
       When call cmd_init -psub recipient
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -998,6 +1041,7 @@ Describe 'Command-Line Parsing'
         #|OVERWRITE=yes
       }
       When call cmd_init -p sub recipient
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1010,6 +1054,7 @@ Describe 'Command-Line Parsing'
         #|DECISION=default
       }
       When call cmd_init -p sub ''
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1023,6 +1068,7 @@ Describe 'Command-Line Parsing'
         #|OVERWRITE=yes
       }
       When call cmd_init -- -recipient
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1082,6 +1128,7 @@ Describe 'Command-Line Parsing'
         #|OVERWRITE=no
       }
       When call cmd_insert secret1 secret2
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1096,6 +1143,7 @@ Describe 'Command-Line Parsing'
         #|OVERWRITE=no
       }
       When call cmd_insert -- -c
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1110,6 +1158,7 @@ Describe 'Command-Line Parsing'
         #|OVERWRITE=no
       }
       When call cmd_insert -e secret
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1124,6 +1173,7 @@ Describe 'Command-Line Parsing'
         #|OVERWRITE=no
       }
       When call cmd_insert --echo secret
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1138,6 +1188,7 @@ Describe 'Command-Line Parsing'
         #|OVERWRITE=yes
       }
       When call cmd_insert -fe secret
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1152,6 +1203,7 @@ Describe 'Command-Line Parsing'
         #|OVERWRITE=yes
       }
       When call cmd_insert -e -f secret
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1166,6 +1218,7 @@ Describe 'Command-Line Parsing'
         #|OVERWRITE=yes
       }
       When call cmd_insert --force --echo secret
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1180,6 +1233,7 @@ Describe 'Command-Line Parsing'
         #|OVERWRITE=no
       }
       When call cmd_insert -m secret
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1194,6 +1248,7 @@ Describe 'Command-Line Parsing'
         #|OVERWRITE=no
       }
       When call cmd_insert --multiline secret
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1208,6 +1263,7 @@ Describe 'Command-Line Parsing'
         #|OVERWRITE=yes
       }
       When call cmd_insert -mf secret
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1222,6 +1278,7 @@ Describe 'Command-Line Parsing'
         #|OVERWRITE=yes
       }
       When call cmd_insert -m -f secret
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1236,6 +1293,7 @@ Describe 'Command-Line Parsing'
         #|OVERWRITE=yes
       }
       When call cmd_insert --force --multiline secret
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1290,6 +1348,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=text
       }
       When call cmd_list_or_show
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1311,6 +1370,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=text
       }
       When call cmd_list_or_show arg1 arg2 arg3
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1324,6 +1384,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=text
       }
       When call cmd_list_or_show -- -c
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1337,6 +1398,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=clip
       }
       When call cmd_list_or_show -c arg
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1350,6 +1412,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=clip
       }
       When call cmd_list_or_show --clip arg
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1363,6 +1426,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=clip
       }
       When call cmd_list_or_show -c2 arg
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1376,6 +1440,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=clip
       }
       When call cmd_list_or_show --clip=2 arg
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1389,6 +1454,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=qrcode
       }
       When call cmd_list_or_show -q arg
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1402,6 +1468,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=qrcode
       }
       When call cmd_list_or_show --qrcode arg
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1415,6 +1482,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=qrcode
       }
       When call cmd_list_or_show -q3 arg
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1428,6 +1496,7 @@ Describe 'Command-Line Parsing'
         #|SHOW=qrcode
       }
       When call cmd_list_or_show --qrcode=3 arg
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1498,6 +1567,7 @@ Describe 'Command-Line Parsing'
         #|SCM_ACTION=scm_mv
       }
       When call cmd_move src1 src2 src3 dest
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1514,6 +1584,7 @@ Describe 'Command-Line Parsing'
         #|SCM_ACTION=scm_mv
       }
       When call cmd_move --force src dest
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1530,6 +1601,7 @@ Describe 'Command-Line Parsing'
         #|SCM_ACTION=scm_mv
       }
       When call cmd_move -f src dest
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1546,6 +1618,7 @@ Describe 'Command-Line Parsing'
         #|SCM_ACTION=scm_mv
       }
       When call cmd_move -- -s dest
+      The status should be success
       The output should be blank
       The error should equal "$(result)"
     End
@@ -1575,17 +1648,20 @@ Describe 'Command-Line Parsing'
 
     It 'generates random characters with default parameters'
       When run cmd_random
+      The status should be success
       The error should equal \
         "$ random_chars ${GENERATED_LENGTH} ${CHARACTER_SET}"
     End
 
     It 'generates random characters with default character set'
       When run cmd_random 8
+      The status should be success
       The error should equal "$ random_chars 8 ${CHARACTER_SET}"
     End
 
     It 'generates random characters with the given arguments'
       When run cmd_random 8 a-z
+      The status should be success
       The error should equal "$ random_chars 8 a-z"
     End
 
@@ -1606,12 +1682,14 @@ Describe 'Command-Line Parsing'
 
     It 'displays a human-reable usage string'
       When call cmd_usage
+      The status should be success
       The first line of output should equal 'Usage:'
       The error should be blank
     End
 
     It 'includes help about all commands'
       When call cmd_usage
+      The status should be success
       The output should include 'prg copy'
       The output should include 'prg delete'
       The output should include 'prg edit'
@@ -1659,6 +1737,7 @@ Describe 'Command-Line Parsing'
         #|==============================================
       }
       When call cmd_version
+      The status should be success
       The output should match pattern "$(result)"
     End
   End
