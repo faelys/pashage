@@ -1632,8 +1632,13 @@ Describe 'Pass-like command'
       When run script $1 rm -rf fluff
       The status should be success
       The directory "${PREFIX}/fluff" should not be exist
-      expected_log() { %text:expand
-        #|Remove fluff/ from store.
+      expected_log() {
+        if [ $1 = pashage ]; then
+          %putsn 'Remove fluff/ from store.'
+        else
+          %putsn 'Remove fluff from store.'
+        fi
+        %text:expand
         #|
         #| fluff/.age-recipients | 2 --
         #| fluff/.gpg-id         | 2 --
@@ -1647,7 +1652,7 @@ Describe 'Pass-like command'
         setup_log
       }
       The result of function git_log should be successful
-      The contents of file "${GITLOG}" should equal "$(expected_log $3)"
+      The contents of file "${GITLOG}" should equal "$(expected_log $2)"
     End
 
     It 'removes a directory having an ambiguous name with `/` suffix'
