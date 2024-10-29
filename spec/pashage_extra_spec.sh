@@ -131,6 +131,7 @@ Describe 'Integrated Command Functions'
   cleanup() {
     @rm -rf "${PREFIX}"
     @rm -f "${IDENTITIES_FILE}"
+    @rm -rf "${SHELLSPEC_WORKDIR}/clone"
     @rm -rf "${SHELLSPEC_WORKDIR}/secure"
   }
 
@@ -421,6 +422,7 @@ Describe 'Integrated Command Functions'
         #| 8 files changed, 4 insertions(+)
       }
       The result of function check_git_log should be successful
+      PREFIX="${SOURCE}"
     End
   End
 
