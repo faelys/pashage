@@ -388,7 +388,42 @@ Describe 'Integrated Command Functions'
     End
   End
 
-# Describe 'cmd_git'
+  Describe 'cmd_git'
+    It 'initializes a clone like a new repository'
+      SOURCE="${PREFIX}"
+      PREFIX="${SHELLSPEC_WORKDIR}/clone"
+      expected_err() { %text:expand
+        #|Cloning into '${PREFIX}'...
+        #|done.
+      }
+      When call cmd_git clone "${SOURCE}"
+      The status should be success
+      The output should be blank
+      The error should equal "$(expected_err)"
+      The file "${PREFIX}/.gitattributes" should be exist
+      The contents of file "${PREFIX}/.gitattributes" should equal \
+        '*.age diff=age'
+      expected_log() { %text
+        #|Configure git repository for age file diff.
+        #|
+        #| .gitattributes | 1 +
+        #| 1 file changed, 1 insertion(+)
+        #|Initial setup
+        #|
+        #| extra/subdir/file.age  | Bin 0 -> 33 bytes
+        #| fluff/.age-recipients  |   2 ++
+        #| fluff/one.age          | Bin 0 -> 55 bytes
+        #| fluff/three.age        | Bin 0 -> 110 bytes
+        #| fluff/two.age          | Bin 0 -> 90 bytes
+        #| shared/.age-recipients |   2 ++
+        #| stale.age              | Bin 0 -> 55 bytes
+        #| subdir/file.age        | Bin 0 -> 33 bytes
+        #| 8 files changed, 4 insertions(+)
+      }
+      The result of function check_git_log should be successful
+    End
+  End
+
 # Describe 'cmd_grep'
 # Describe 'cmd_gitconfig'
 # Describe 'cmd_help'
