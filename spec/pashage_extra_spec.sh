@@ -138,11 +138,14 @@ Describe 'Integrated Command Functions'
   AfterEach cleanup
 
   cat()     { @cat     "$@"; }
+  dd()      { @dd      "$@"; }
   diff()    { @diff    "$@"; }
   dirname() { @dirname "$@"; }
   git()     { @git     "$@"; }
+  mkdir()   { @mkdir   "$@"; }
   mktemp()  { @mktemp  "$@"; }
   rm()      { @rm      "$@"; }
+  tr()      { @tr      "$@"; }
 
   platform_tmpdir() {
     SECURE_TMPDIR="${SHELLSPEC_WORKDIR}/secure"
@@ -328,7 +331,63 @@ Describe 'Integrated Command Functions'
     End
   End
 
-# Describe 'cmd_generate'
+  Describe 'cmd_generate'
+    DECISION=default
+    OVERWRITE=no
+    SHOW=text
+
+    random_chars() { %- 0123456789 ; }
+
+    It 'overwrites after asking for confirmation'
+      expected_out() { %text
+        #|An entry already exists for subdir/file. Overwrite it? [y/n](B)The generated password for (U)subdir/file(!U) is:(N)
+        #|0123456789
+      }
+      Data 'y'
+      When call cmd_generate subdir/file 10
+      The status should be success
+      The output should equal "$(expected_out)"
+      The error should be blank
+      expected_file() { %text:expand
+        #|ageRecipient:myself
+        #|age:0123456789
+      }
+      The contents of file "${PREFIX}/subdir/file.age" should \
+        equal "$(expected_file)"
+      expected_log() { %text
+        #|Add generated password for subdir/file.
+        #|
+        #| subdir/file.age | 2 +-
+        #| 1 file changed, 1 insertion(+), 1 deletion(-)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+
+    It 'does nothing without confirmation'
+      Data 'n'
+      When call cmd_generate subdir/file 10
+      The status should be success
+      The output should equal \
+        'An entry already exists for subdir/file. Overwrite it? [y/n]'
+      The error should be blank
+      The result of function check_git_log should be successful
+    End
+
+    It 'cannot overwrite a directory'
+      run_test() {
+        mkdir -p "${PREFIX}/new-secret.age" && \
+        cmd_generate -f new-secret 10
+      }
+      When run run_test
+      The status should equal 1
+      The output should be blank
+      The error should equal 'Cannot replace directory new-secret.age'
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+  End
+
 # Describe 'cmd_git'
 # Describe 'cmd_grep'
 # Describe 'cmd_gitconfig'

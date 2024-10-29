@@ -1515,9 +1515,72 @@ Describe 'Pass-like command'
       The contents of file "${GITLOG}" should equal "$(expected_log $3)"
     End
 
+    It 'reports a generation error'
+      Mock tr
+        if [ "$1" = '-dc' ]; then
+          %putsn '0123456789'
+        else
+          @tr "$@"
+        fi
+      End
+      expected_err() {
+        if [ "$1" = pashage ]; then
+          %putsn 'Error while generating password: 10/12 bytes read'
+        else
+          %putsn 'Could not generate password from /dev/urandom.'
+        fi
+      }
+      When run script $1 generate -f new-secret 12
+      The status should equal 1
+      The output should be blank
+      The error should equal "$(expected_err $2)"
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
     It 'displays usage when called without argument'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 generate
+      The status should equal 1
+      The output should be blank
+      The error should include 'Usage:'
+      The error should include ' generate '
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    It 'displays usage when called with incompatible display options'
+      When run script $1 generate --clip --qrcode new-secret
+      The status should equal 1
+      The output should be blank
+      The error should include 'Usage:'
+      The error should include ' generate '
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    It 'displays usage when called with reversed incompatible display options'
+      When run script $1 generate --qrcode --clip new-secret
+      The status should equal 1
+      The output should be blank
+      The error should include 'Usage:'
+      The error should include ' generate '
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    It 'displays usage when called with incompatible overwriting options'
+      When run script $1 generate --force --inplace new-secret
+      The status should equal 1
+      The output should be blank
+      The error should include 'Usage:'
+      The error should include ' generate '
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    It 'displays usage when called with reversed incompatible overwriting opt'
+      When run script $1 generate --inplace --force new-secret
       The status should equal 1
       The output should be blank
       The error should include 'Usage:'
