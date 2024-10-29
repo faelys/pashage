@@ -16,7 +16,7 @@ check_eq() {
 case "$1" in
   -e)
 	shift
-	MOCK_AGE_OUT="$(@mktemp -- "$(dirname "$2")/mock-gpg-encrypt.XXXXXXX")"
+	MOCK_AGE_OUT="$(@mktemp -- "$(@dirname "$2")/mock-gpg-encrypt.XXXXXXX")"
 	DEST='-'
 	while [ $# -gt 0 ]; do
 		case "$1" in
