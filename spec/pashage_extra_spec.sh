@@ -428,7 +428,111 @@ Describe 'Integrated Command Functions'
 
 # Describe 'cmd_grep' is not needed (fully covered in pass_spec.sh)
 
-# Describe 'cmd_gitconfig'
+  Describe 'cmd_gitconfig'
+    grep() { @grep "$@"; }
+
+    It 'creates a new .gitattributes and configures diff'
+      When call cmd_gitconfig
+      The status should be success
+      The output should be blank
+      The error should be blank
+      The file "${PREFIX}/.gitattributes" should be exist
+      The contents of file "${PREFIX}/.gitattributes" should equal \
+        '*.age diff=age'
+      expected_log() { %text
+        #|Configure git repository for age file diff.
+        #|
+        #| .gitattributes | 1 +
+        #| 1 file changed, 1 insertion(+)
+        #|Initial setup
+        #|
+        #| extra/subdir/file.age  | Bin 0 -> 33 bytes
+        #| fluff/.age-recipients  |   2 ++
+        #| fluff/one.age          | Bin 0 -> 55 bytes
+        #| fluff/three.age        | Bin 0 -> 110 bytes
+        #| fluff/two.age          | Bin 0 -> 90 bytes
+        #| shared/.age-recipients |   2 ++
+        #| stale.age              | Bin 0 -> 55 bytes
+        #| subdir/file.age        | Bin 0 -> 33 bytes
+        #| 8 files changed, 4 insertions(+)
+      }
+      The result of function check_git_log should be successful
+    End
+
+    It 'expands an existing .gitattributes'
+      run_test() {
+        %putsn '# Existing but empty' >"${PREFIX}/.gitattributes"
+        @git -C "${PREFIX}" add .gitattributes >/dev/null
+        @git -C "${PREFIX}" commit -m 'Test case setup' >/dev/null
+        cmd_gitconfig
+      }
+      When call run_test
+      The status should be success
+      The output should be blank
+      The error should be blank
+      expected_file() { %text
+        #|# Existing but empty
+        #|*.age diff=age
+      }
+      The file "${PREFIX}/.gitattributes" should be exist
+      The contents of file "${PREFIX}/.gitattributes" should \
+        equal "$(expected_file)"
+      expected_log() { %text
+        #|Configure git repository for age file diff.
+        #|
+        #| .gitattributes | 1 +
+        #| 1 file changed, 1 insertion(+)
+        #|Test case setup
+        #|
+        #| .gitattributes | 1 +
+        #| 1 file changed, 1 insertion(+)
+        #|Initial setup
+        #|
+        #| extra/subdir/file.age  | Bin 0 -> 33 bytes
+        #| fluff/.age-recipients  |   2 ++
+        #| fluff/one.age          | Bin 0 -> 55 bytes
+        #| fluff/three.age        | Bin 0 -> 110 bytes
+        #| fluff/two.age          | Bin 0 -> 90 bytes
+        #| shared/.age-recipients |   2 ++
+        #| stale.age              | Bin 0 -> 55 bytes
+        #| subdir/file.age        | Bin 0 -> 33 bytes
+        #| 8 files changed, 4 insertions(+)
+      }
+      The result of function check_git_log should be successful
+    End
+
+    It 'is idempotent'
+      run_test() {
+        cmd_gitconfig && cmd_gitconfig
+      }
+      When call run_test
+      The status should be success
+      The output should be blank
+      The error should be blank
+      The file "${PREFIX}/.gitattributes" should be exist
+      The contents of file "${PREFIX}/.gitattributes" should equal \
+        '*.age diff=age'
+      expected_log() { %text
+        #|Configure git repository for age file diff.
+        #|
+        #| .gitattributes | 1 +
+        #| 1 file changed, 1 insertion(+)
+        #|Initial setup
+        #|
+        #| extra/subdir/file.age  | Bin 0 -> 33 bytes
+        #| fluff/.age-recipients  |   2 ++
+        #| fluff/one.age          | Bin 0 -> 55 bytes
+        #| fluff/three.age        | Bin 0 -> 110 bytes
+        #| fluff/two.age          | Bin 0 -> 90 bytes
+        #| shared/.age-recipients |   2 ++
+        #| stale.age              | Bin 0 -> 55 bytes
+        #| subdir/file.age        | Bin 0 -> 33 bytes
+        #| 8 files changed, 4 insertions(+)
+      }
+      The result of function check_git_log should be successful
+    End
+  End
+
 # Describe 'cmd_help'
 # Describe 'cmd_init'
 # Describe 'cmd_insert'
