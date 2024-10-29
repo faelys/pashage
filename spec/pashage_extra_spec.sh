@@ -424,7 +424,8 @@ Describe 'Integrated Command Functions'
     End
   End
 
-# Describe 'cmd_grep'
+# Describe 'cmd_grep' is not needed (fully covered in pass_spec.sh)
+
 # Describe 'cmd_gitconfig'
 # Describe 'cmd_help'
 # Describe 'cmd_init'
