@@ -384,7 +384,7 @@ Describe 'Pass-like command'
     It 're-encrypts a subdirectory after replacing recipient ids'
       Skip if 'pass(age) needs bash' check_skip $2
       Skip if 'passage has no init' [ "$2" = passage ]
-      When run script $1 init -p fluff 'new-id' 'new-master'
+      When run script $1 init --path=fluff 'new-id' 'new-master'
       The status should be success
       The output should start with 'Password store'
       The output should include 'fluff'
@@ -420,7 +420,7 @@ Describe 'Pass-like command'
     It 're-encrypts a subdirectory after removing dedicated recipient ids'
       Skip if 'pass(age) needs bash' check_skip $2
       Skip if 'passage has no init' [ "$2" = passage ]
-      When run script $1 init -p fluff ''
+      When run script $1 init -pfluff ''
       The status should be successful
       expected_log() {
         if [ "$2" = pashage ]; then
@@ -494,6 +494,30 @@ Describe 'Pass-like command'
       Skip if 'pass(age) needs bash' check_skip $2
       Skip if 'passage has no init' [ "$2" = passage ]
       When run script $1 init
+      The status should equal 1
+      The output should be blank
+      The error should include 'Usage:'
+      The error should include ' init '
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    It 'displays usage when called with incomplete flag'
+      Skip if 'pass(age) needs bash' check_skip $2
+      Skip if 'passage has no init' [ "$2" = passage ]
+      When run script $1 init -p
+      The status should equal 1
+      The output should be blank
+      The error should include 'Usage:'
+      The error should include ' init '
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    It 'displays usage when called with unknown flag'
+      Skip if 'pass(age) needs bash' check_skip $2
+      Skip if 'passage has no init' [ "$2" = passage ]
+      When run script $1 init -x new-id-1 new-id-2
       The status should equal 1
       The output should be blank
       The error should include 'Usage:'

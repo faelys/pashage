@@ -145,6 +145,7 @@ Describe 'Integrated Command Functions'
   git()     { @git     "$@"; }
   mkdir()   { @mkdir   "$@"; }
   mktemp()  { @mktemp  "$@"; }
+  mv()      { @mv      "$@"; }
   rm()      { @rm      "$@"; }
   tr()      { @tr      "$@"; }
 
@@ -546,7 +547,34 @@ Describe 'Integrated Command Functions'
     End
   End
 
-# Describe 'cmd_init'
+  Describe 'cmd_init'
+    DECISION=default
+
+    It 're-encrypts the whole store using a recipient ids named like a flag'
+      When run cmd_init -- -p 'new-id'
+      The status should be success
+      The output should equal 'Password store recipients set at store root'
+      The error should be blank
+      expected_file() { %text
+        #|-p
+        #|new-id
+      }
+      The contents of file "${PREFIX}/.age-recipients" should \
+        equal "$(expected_file)"
+      expected_log() { %text
+        #|Set age recipients at store root
+        #|
+        #| .age-recipients       | 2 ++
+        #| extra/subdir/file.age | 3 ++-
+        #| stale.age             | 4 ++--
+        #| subdir/file.age       | 3 ++-
+        #| 4 files changed, 8 insertions(+), 4 deletions(-)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+  End
+
 # Describe 'cmd_insert'
 # Describe 'cmd_list_or_show'
 # Describe 'cmd_move' is not needed (covered by 'cmd_copy_move')
