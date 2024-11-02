@@ -767,7 +767,46 @@ Describe 'Integrated Command Functions'
   End
 
 # Describe 'cmd_move' is not needed (covered by 'cmd_copy_move')
-# Describe 'cmd_random'
+
+  Describe 'cmd_random'
+    It 'generates random characters'
+      When call cmd_random 2 '[:digit:]'
+      The status should be success
+      The error should be blank
+      The output should match pattern '[0-9][0-9]'
+    End
+
+    It 'defaults to using CHARACTER_SET'
+      PREV_CHARACTER_SET="${CHARACTER_SET}"
+      CHARACTER_SET='[:lower:]'
+      When call cmd_random 2
+      The status should be success
+      The error should be blank
+      The output should match pattern '[a-z][a-z]'
+      CHARACTER_SET="${PREV_CHARACTER_SET}"
+    End
+
+    It 'defaults to using both GENERATED_LENGTH and CHARACTER_SET'
+      PREV_CHARACTER_SET="${CHARACTER_SET}"
+      PREV_GENERATED_LENGTH="${GENERATED_LENGTH}"
+      CHARACTER_SET='[:upper:]'
+      GENERATED_LENGTH=5
+      When call cmd_random
+      The status should be success
+      The error should be blank
+      The output should match pattern '[A-Z][A-Z][A-Z][A-Z][A-Z]'
+      CHARACTER_SET="${PREV_CHARACTER_SET}"
+      GENERATED_LENGTH="${PREV_GENERATED_LENGTH}"
+    End
+
+    It 'displays usage when called with too many arguments'
+      PROGRAM=prg
+      When run cmd_random 2 '[:digit:]' extra
+      The status should equal 1
+      The output should be blank
+      The error should equal 'Usage: prg random [pass-length [character-set]]'
+    End
+  End
 
   Describe 'cmd_usage'
     It 'defaults to four-space indentation'
