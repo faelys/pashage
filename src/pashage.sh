@@ -1385,30 +1385,32 @@ cmd_insert() {
 
 cmd_list_or_show() {
 	PARSE_ERROR=no
+	USE_CLIP=no
+	USE_QRCODE=no
 
 	while [ $# -ge 1 ]; do
 		case "$1" in
 		    -c|--clip)
-			SHOW=clip
+			USE_CLIP=yes
 			shift ;;
 		    -c?*)
 			SELECTED_LINE="${1#-c}"
-			SHOW=clip
+			USE_CLIP=yes
 			shift ;;
 		    --clip=*)
 			SELECTED_LINE="${1#--clip=}"
-			SHOW=clip
+			USE_CLIP=yes
 			shift ;;
 		    -q|--qrcode)
-			SHOW=qrcode
+			USE_QRCODE=yes
 			shift ;;
 		    -q?*)
 			SELECTED_LINE="${1#-q}"
-			SHOW=qrcode
+			USE_QRCODE=yes
 			shift ;;
 		    --qrcode=*)
 			SELECTED_LINE="${1#--qrcode=}"
-			SHOW=qrcode
+			USE_QRCODE=yes
 			shift ;;
 		    --)
 			shift
@@ -1420,6 +1422,21 @@ cmd_list_or_show() {
 			break ;;
 		esac
 	done
+
+	case "${USE_CLIP}-${USE_QRCODE}" in
+	    no-no)
+		SHOW=text
+		;;
+	    yes-no)
+		SHOW=clip
+		;;
+	    no-yes)
+		SHOW=qrcode
+		;;
+	    *)
+		PARSE_ERROR=yes
+		;;
+	esac
 
 	if [ "${PARSE_ERROR}" = yes ]; then
 		if [ "${COMMAND}" = "l${COMMAND#l}" ]; then
