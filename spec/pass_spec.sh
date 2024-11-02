@@ -186,8 +186,7 @@ Describe 'Pass-like command'
   End
 
   Mock dd
-    . "${SHELLSPEC_SUPPORT_BIN}"
-    invoke dd "$@"
+    @dd "$@"
   End
 
   Mock diff
