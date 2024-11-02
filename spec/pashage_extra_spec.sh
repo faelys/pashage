@@ -62,10 +62,26 @@ Describe 'Integrated Command Functions'
     #| fluff/one.age          | 3 +++
     #| fluff/three.age        | 5 +++++
     #| fluff/two.age          | 4 ++++
+    #| old.gpg                | 3 +++
     #| shared/.age-recipients | 2 ++
     #| stale.age              | 3 +++
     #| subdir/file.age        | 2 ++
-    #| 8 files changed, 23 insertions(+)
+    #| 9 files changed, 26 insertions(+)
+  }
+
+  setup_log_bin() { %text
+    #|Initial setup
+    #|
+    #| extra/subdir/file.age  | Bin 0 -> 33 bytes
+    #| fluff/.age-recipients  |   2 ++
+    #| fluff/one.age          | Bin 0 -> 55 bytes
+    #| fluff/three.age        | Bin 0 -> 110 bytes
+    #| fluff/two.age          | Bin 0 -> 90 bytes
+    #| old.gpg                |   3 +++
+    #| shared/.age-recipients |   2 ++
+    #| stale.age              | Bin 0 -> 55 bytes
+    #| subdir/file.age        | Bin 0 -> 33 bytes
+    #| 9 files changed, 7 insertions(+)
   }
 
   expected_log() { setup_log; } # Default log to override as needed
@@ -120,6 +136,10 @@ Describe 'Integrated Command Functions'
     #|Recipient:master
     #|Recipient:myself
     #|:0-password
+    %text >"${PREFIX}/old.gpg"
+    #|gpgRecipient:myOldSelf
+    #|gpg:very-old-password
+    #|gpg:Username: previous-life
     @git -C "${PREFIX}" add .
     @git -C "${PREFIX}" commit -m 'Initial setup' >/dev/null
 
@@ -306,8 +326,9 @@ Describe 'Integrated Command Functions'
     It 'interprets the pattern as a regular expression'
       expected_output() { %text
         #|Search pattern: ^o
-        #|`- (B)fluff(N)
-        #|   `- one
+        #||- (B)fluff(N)
+        #||  `- one
+        #|`- (R)old(N)
       }
       When call cmd_find '^o'
       The status should be success
@@ -410,17 +431,7 @@ Describe 'Integrated Command Functions'
         #|
         #| .gitattributes | 1 +
         #| 1 file changed, 1 insertion(+)
-        #|Initial setup
-        #|
-        #| extra/subdir/file.age  | Bin 0 -> 33 bytes
-        #| fluff/.age-recipients  |   2 ++
-        #| fluff/one.age          | Bin 0 -> 55 bytes
-        #| fluff/three.age        | Bin 0 -> 110 bytes
-        #| fluff/two.age          | Bin 0 -> 90 bytes
-        #| shared/.age-recipients |   2 ++
-        #| stale.age              | Bin 0 -> 55 bytes
-        #| subdir/file.age        | Bin 0 -> 33 bytes
-        #| 8 files changed, 4 insertions(+)
+        setup_log_bin
       }
       The result of function check_git_log should be successful
       PREFIX="${SOURCE}"
@@ -445,17 +456,7 @@ Describe 'Integrated Command Functions'
         #|
         #| .gitattributes | 1 +
         #| 1 file changed, 1 insertion(+)
-        #|Initial setup
-        #|
-        #| extra/subdir/file.age  | Bin 0 -> 33 bytes
-        #| fluff/.age-recipients  |   2 ++
-        #| fluff/one.age          | Bin 0 -> 55 bytes
-        #| fluff/three.age        | Bin 0 -> 110 bytes
-        #| fluff/two.age          | Bin 0 -> 90 bytes
-        #| shared/.age-recipients |   2 ++
-        #| stale.age              | Bin 0 -> 55 bytes
-        #| subdir/file.age        | Bin 0 -> 33 bytes
-        #| 8 files changed, 4 insertions(+)
+        setup_log_bin
       }
       The result of function check_git_log should be successful
     End
@@ -487,17 +488,7 @@ Describe 'Integrated Command Functions'
         #|
         #| .gitattributes | 1 +
         #| 1 file changed, 1 insertion(+)
-        #|Initial setup
-        #|
-        #| extra/subdir/file.age  | Bin 0 -> 33 bytes
-        #| fluff/.age-recipients  |   2 ++
-        #| fluff/one.age          | Bin 0 -> 55 bytes
-        #| fluff/three.age        | Bin 0 -> 110 bytes
-        #| fluff/two.age          | Bin 0 -> 90 bytes
-        #| shared/.age-recipients |   2 ++
-        #| stale.age              | Bin 0 -> 55 bytes
-        #| subdir/file.age        | Bin 0 -> 33 bytes
-        #| 8 files changed, 4 insertions(+)
+        setup_log_bin
       }
       The result of function check_git_log should be successful
     End
@@ -518,17 +509,7 @@ Describe 'Integrated Command Functions'
         #|
         #| .gitattributes | 1 +
         #| 1 file changed, 1 insertion(+)
-        #|Initial setup
-        #|
-        #| extra/subdir/file.age  | Bin 0 -> 33 bytes
-        #| fluff/.age-recipients  |   2 ++
-        #| fluff/one.age          | Bin 0 -> 55 bytes
-        #| fluff/three.age        | Bin 0 -> 110 bytes
-        #| fluff/two.age          | Bin 0 -> 90 bytes
-        #| shared/.age-recipients |   2 ++
-        #| stale.age              | Bin 0 -> 55 bytes
-        #| subdir/file.age        | Bin 0 -> 33 bytes
-        #| 8 files changed, 4 insertions(+)
+        setup_log_bin
       }
       The result of function check_git_log should be successful
     End
@@ -742,9 +723,81 @@ Describe 'Integrated Command Functions'
     End
   End
 
-# Describe 'cmd_list_or_show'
+  Describe 'cmd_list_or_show'
+    SHOW=text
+
+    It 'decrypts a GPG secret in the store'
+      GPG=mock-gpg
+      When call cmd_list_or_show old
+      The status should be success
+      The error should be blank
+      expected_out() { %text
+        #|very-old-password
+        #|Username: previous-life
+      }
+      The output should equal "$(expected_out)"
+    End
+
+    It 'displays both list and show usage on parse error with ambiguity'
+      PROGRAM=prg
+      COMMAND=both
+      When run cmd_list_or_show -x
+      The status should equal 1
+      The output should be blank
+      expected_err() { %text
+        #|Usage: prg [list] [subfolder]
+        #|       prg [show] [--clip[=line-number],-c[line-number] |
+        #|                   --qrcode[=line-number],-q[line-number]] pass-name
+      }
+      The error should equal "$(expected_err)"
+    End
+
+    It 'displays list usage on parse error with list command'
+      PROGRAM=prg
+      COMMAND=list
+      When run cmd_list_or_show -x
+      The status should equal 1
+      The output should be blank
+      expected_err() { %text
+        #|Usage: prg [list] [subfolder]
+      }
+      The error should equal "$(expected_err)"
+    End
+
+    It 'displays show usage on parse error with show command'
+      PROGRAM=prg
+      COMMAND=show
+      When run cmd_list_or_show -x
+      The status should equal 1
+      The output should be blank
+      expected_err() { %text
+        #|Usage: prg [show] [--clip[=line-number],-c[line-number] |
+        #|                   --qrcode[=line-number],-q[line-number]] pass-name
+      }
+      The error should equal "$(expected_err)"
+    End
+  End
+
 # Describe 'cmd_move' is not needed (covered by 'cmd_copy_move')
 # Describe 'cmd_random'
 # Describe 'cmd_usage'
 # Describe 'cmd_version'
+
+  Describe 'unreachable defensive code'
+    # This sections breaks the end-to-end scheme of this file
+    # to reach full coverage, by precisely identifying unreachable lines
+    # written for defensive programming against internal inconsistencies.
+
+    It 'includes invalid values of SHOW in do_show'
+      SHOW='invalid'
+      When run do_show
+      The status should equal 1
+      The output should be blank
+      expected_err() { %text
+        #|Usage: prg [show] [--clip[=line-number],-c[line-number] |
+        #|                   --qrcode[=line-number],-q[line-number]] pass-name
+      }
+      The error should equal 'Unexpected SHOW value "invalid"'
+    End
+  End
 End

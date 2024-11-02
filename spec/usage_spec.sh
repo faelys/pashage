@@ -1501,6 +1501,19 @@ Describe 'Command-Line Parsing'
       The error should equal "$(result)"
     End
 
+    It 'reports incompatible show options'
+      cat() { @cat; }
+      result() { %text
+        #|Usage: prg [list] [subfolder]
+        #|       prg [show] [--clip[=line-number],-c[line-number] |
+        #|                   --qrcode[=line-number],-q[line-number]] pass-name
+      }
+      When run cmd_list_or_show -q -c arg
+      The output should be blank
+      The error should equal "$(result)"
+      The status should equal 1
+    End
+
     It 'reports a bad option for both commands'
       cat() { @cat; }
       result() { %text

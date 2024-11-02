@@ -742,10 +742,27 @@ Describe 'Pass-like command'
       fi
     End
 
-    It 'displays the given line as a QR-code'
+    It 'displays the given long-option line as a QR-code'
       DISPLAY=mock
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 --qrcode=2 fluff/three
+      The status should be success
+      expected_err() { %text:expand
+        #|$ feh -x --title ${1}: fluff/three -g +200+200 -
+        #|0000000 55 73 65 72 6e 61 6d 65 3a 20 33 4a 61 6e 65
+        #|0000017
+      }
+      if [ $2 = pashage ]; then
+        The error should equal "$(expected_err 'pashage')"
+      else
+        The error should equal "$(expected_err 'pass')"
+      fi
+    End
+
+    It 'displays the given short-option line as a QR-code'
+      DISPLAY=mock
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 -q2 fluff/three
       The status should be success
       expected_err() { %text:expand
         #|$ feh -x --title ${1}: fluff/three -g +200+200 -
@@ -774,7 +791,22 @@ Describe 'Pass-like command'
       The error should start with "$(expected_err)"
     End
 
-    It 'pastes a selected line into the clipboard'
+    It 'pastes a selected long-option line into the clipboard'
+      DISPLAY=mock
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 show --clip=2 fluff/three
+      The status should be success
+      The output should start with \
+        'Copied fluff/three to clipboard. Will clear in 45 seconds.'
+      expected_err() { %text
+        #|$ xclip -selection clipboard
+        #|0000000 55 73 65 72 6e 61 6d 65 3a 20 33 4a 61 6e 65
+        #|0000017
+      }
+      The error should start with "$(expected_err)"
+    End
+
+    It 'pastes a selected short-option line into the clipboard'
       DISPLAY=mock
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 show -c2 fluff/three
@@ -804,6 +836,17 @@ Describe 'Pass-like command'
       The status should equal 1
       The output should be blank
       The error should equal 'Error: y.txt is not in the password store.'
+    End
+
+    It 'displays usage when called with incompatible arguments'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 show -c -q subdir/file
+      The status should equal 1
+      The output should be blank
+      The error should include 'Usage:'
+      The error should include 'show'
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
     End
 
     It 'rejects a path containing ..'
