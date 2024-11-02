@@ -1596,6 +1596,7 @@ Describe 'Pass-like command'
     End
 
     It 'reports a generation error'
+      Skip if 'pass(age) needs bash' check_skip $2
       Mock tr
         if [ "$1" = '-dc' ]; then
           %putsn '0123456789'
@@ -1630,6 +1631,7 @@ Describe 'Pass-like command'
     End
 
     It 'displays usage when called with incompatible display options'
+      Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 generate --clip --qrcode new-secret
       The status should equal 1
       The output should be blank
@@ -1640,6 +1642,7 @@ Describe 'Pass-like command'
     End
 
     It 'displays usage when called with reversed incompatible display options'
+      Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 generate --qrcode --clip new-secret
       The status should equal 1
       The output should be blank
@@ -1650,6 +1653,7 @@ Describe 'Pass-like command'
     End
 
     It 'displays usage when called with incompatible overwriting options'
+      Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 generate --force --inplace new-secret
       The status should equal 1
       The output should be blank
@@ -1660,6 +1664,7 @@ Describe 'Pass-like command'
     End
 
     It 'displays usage when called with reversed incompatible overwriting opt'
+      Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 generate --inplace --force new-secret
       The status should equal 1
       The output should be blank
