@@ -785,8 +785,15 @@ do_insert() {
 
 	if [ "${MULTILINE}" = yes ]; then
 		printf '%s\n' \
-		    "Enter contents of $1 and press Ctrl+D when finished:"
-		do_encrypt "$1.age"
+		    "Enter contents of $1 and" \
+		    "press Ctrl+D or enter an empty line when finished:"
+		while IFS= read -r LINE; do
+			if [ -n "${LINE}" ]; then
+				printf '%s\n' "${LINE}"
+			else
+				break
+			fi
+		done | do_encrypt "$1.age"
 
 	elif [ "${ECHO}" = yes ] \
 	    || ! type stty >/dev/null 2>&1 \

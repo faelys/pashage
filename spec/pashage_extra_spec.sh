@@ -610,6 +610,68 @@ Describe 'Integrated Command Functions'
       The result of function check_git_log should be successful
     End
 
+    It 'inserts several new multi-line entries'
+      stty() { false; }
+      Data
+        #|password-1
+        #| extra spaced line
+        #|
+        #|y
+        #|password-2
+        #|	extra tabbed line
+        #|
+        #|password-3
+      End
+      When call cmd_insert -m newdir/pass-1 subdir/file newdir/pass-2
+      The status should be success
+      The error should be blank
+      expected_out() { %text
+        #|Enter contents of newdir/pass-1 and
+        #|press Ctrl+D or enter an empty line when finished:
+        #|An entry already exists for subdir/file. Overwrite it? [y/n]Enter contents of subdir/file and
+        #|press Ctrl+D or enter an empty line when finished:
+        #|Enter contents of newdir/pass-2 and
+        #|press Ctrl+D or enter an empty line when finished:
+      }
+      The output should equal "$(expected_out)"
+      expected_file_1() { %text
+        #|ageRecipient:myself
+        #|age:password-1
+        #|age: extra spaced line
+      }
+      expected_file_2() { %text
+        #|ageRecipient:myself
+        #|age:password-2
+        #|age:	extra tabbed line
+      }
+      expected_file_3() { %text
+        #|ageRecipient:myself
+        #|age:password-3
+      }
+      The contents of file "${PREFIX}/newdir/pass-1.age" \
+        should equal "$(expected_file_1)"
+      The contents of file "${PREFIX}/subdir/file.age" \
+        should equal "$(expected_file_2)"
+      The contents of file "${PREFIX}/newdir/pass-2.age" \
+        should equal "$(expected_file_3)"
+      expected_log() { %text
+        #|Add given password for newdir/pass-2 to store.
+        #|
+        #| newdir/pass-2.age | 2 ++
+        #| 1 file changed, 2 insertions(+)
+        #|Add given password for subdir/file to store.
+        #|
+        #| subdir/file.age | 3 ++-
+        #| 1 file changed, 2 insertions(+), 1 deletion(-)
+        #|Add given password for newdir/pass-1 to store.
+        #|
+        #| newdir/pass-1.age | 3 +++
+        #| 1 file changed, 3 insertions(+)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+
     It 'inserts a new single-line entry on the second try'
       stty() { :; }
       Data

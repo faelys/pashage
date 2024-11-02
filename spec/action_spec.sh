@@ -1311,9 +1311,44 @@ Describe 'Action Functions'
       The error should equal "$(result)"
     End
 
-    It 'inserts the whole standard input'
+    It 'inserts the standard input until the first blank line'
       MULTILINE=yes
       OVERWRITE=yes
+      o_result() { %text
+        #|Enter contents of subdir/new and
+        #|press Ctrl+D or enter an empty line when finished:
+      }
+      result() {
+        %text:expand
+        #|$ scm_begin
+        #|$ mkdir -p -- ${PREFIX}/subdir
+        #|$ do_encrypt subdir/new.age
+        #|> line 1
+        #|> line 2
+        #|$ scm_add subdir/new.age
+        #|$ scm_commit Add given password for subdir/new to store.
+      }
+      Data
+        #|line 1
+        #|line 2
+        #|
+        #|line 3
+        #|line 4
+      End
+
+      When call do_insert 'subdir/new'
+      The status should be success
+      The output should equal "$(o_result)"
+      The error should equal "$(result)"
+    End
+
+    It 'inserts the whole standard input without blank line'
+      MULTILINE=yes
+      OVERWRITE=yes
+      o_result() { %text
+        #|Enter contents of subdir/new and
+        #|press Ctrl+D or enter an empty line when finished:
+      }
       result() {
         %text:expand
         #|$ scm_begin
@@ -1333,8 +1368,7 @@ Describe 'Action Functions'
 
       When call do_insert 'subdir/new'
       The status should be success
-      The output should equal \
-        'Enter contents of subdir/new and press Ctrl+D when finished:'
+      The output should equal "$(o_result)"
       The error should equal "$(result)"
     End
 
@@ -1381,6 +1415,10 @@ Describe 'Action Functions'
         mocklog yesno "$@"
         ANSWER=y
       }
+      o_result() { %text
+        #|Enter contents of existing and
+        #|press Ctrl+D or enter an empty line when finished:
+      }
       result() {
         %text:expand
         #|$ yesno An entry already exists for existing. Overwrite it?
@@ -1395,8 +1433,7 @@ Describe 'Action Functions'
 
       When call do_insert 'existing'
       The status should be success
-      The output should equal \
-        'Enter contents of existing and press Ctrl+D when finished:'
+      The output should equal "$(o_result)"
       The error should equal "$(result)"
       The variable OVERWRITE should equal once
     End
@@ -1427,6 +1464,10 @@ Describe 'Action Functions'
         mocklog yesno "$@"
         ANSWER=y
       }
+      o_result() { %text
+        #|Enter contents of existing and
+        #|press Ctrl+D or enter an empty line when finished:
+      }
       result() {
         %text:expand
         #|$ scm_begin
@@ -1440,8 +1481,7 @@ Describe 'Action Functions'
 
       When call do_insert 'existing'
       The status should be success
-      The output should equal \
-        'Enter contents of existing and press Ctrl+D when finished:'
+      The output should equal "$(o_result)"
       The error should equal "$(result)"
     End
   End
