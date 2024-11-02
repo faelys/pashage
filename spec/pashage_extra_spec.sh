@@ -780,7 +780,25 @@ Describe 'Integrated Command Functions'
 
 # Describe 'cmd_move' is not needed (covered by 'cmd_copy_move')
 # Describe 'cmd_random'
-# Describe 'cmd_usage'
+
+  Describe 'cmd_usage'
+    It 'defaults to four-space indentation'
+      PROGRAM=prg
+      When call cmd_usage
+      The status should be success
+      The error should be blank
+      The output should equal "$(cmd_usage '    ')"
+    End
+
+    It 'fails with an unknown command'
+      PROGRAM=prg
+      When run cmd_usage 'Usage: ' bad version
+      The status should equal 1
+      The output should be blank
+      The error should equal 'cmd_usage: unknown command "bad"'
+    End
+  End
+
 # Describe 'cmd_version' is not needed (fully covered in pass_spec.sh)
 
   Describe 'unreachable defensive code'
