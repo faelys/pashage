@@ -533,7 +533,19 @@ Describe 'Integrated Command Functions'
     End
   End
 
-# Describe 'cmd_help'
+  Describe 'cmd_help'
+    It 'displays a help text with pashage-specific supported commands'
+      PROGRAM=prg
+      When call cmd_help
+      The status should be success
+      The output should include ' prg copy '
+      The output should include ' prg delete '
+      The output should include ' prg gitconfig'
+      The output should include ' prg move '
+      The output should include ' prg random '
+    End
+  End
+
 # Describe 'cmd_init'
 # Describe 'cmd_insert'
 # Describe 'cmd_list_or_show'
