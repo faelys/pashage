@@ -143,6 +143,7 @@ Describe 'Integrated Command Functions'
   diff()    { @diff    "$@"; }
   dirname() { @dirname "$@"; }
   git()     { @git     "$@"; }
+  head()    { @head    "$@"; }
   mkdir()   { @mkdir   "$@"; }
   mktemp()  { @mktemp  "$@"; }
   mv()      { @mv      "$@"; }
@@ -575,7 +576,81 @@ Describe 'Integrated Command Functions'
     End
   End
 
-# Describe 'cmd_insert'
+  Describe 'cmd_insert'
+    ECHO=no
+    MULTILINE=no
+    OVERWRITE=no
+
+    It 'inserts a new single-line entry on the second try'
+      stty() { :; }
+      Data
+        #|first try
+        #|First Try
+        #|pass-word
+        #|pass-word
+      End
+      When call cmd_insert newdir/newpass
+      The status should be success
+      The error should be blank
+      expected_out() { %text | @sed 's/\$$//'
+        #|Enter password for newdir/newpass:  $
+        #|Retype password for newdir/newpass: $
+        #|Passwords don't match$
+        #|Enter password for newdir/newpass:  $
+        #|Retype password for newdir/newpass: $
+      }
+      The output should equal "$(expected_out)"
+      The contents of file "${PREFIX}/newdir/newpass.age" \
+        should include "age:pass-word"
+      expected_log() { %text
+        #|Add given password for newdir/newpass to store.
+        #|
+        #| newdir/newpass.age | 2 ++
+        #| 1 file changed, 2 insertions(+)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+
+    It 'overwrites an entry after confirmation'
+      Data
+        #|y
+        #|pass-word
+      End
+      When call cmd_insert -e subdir/file
+      The status should be success
+      The error should be blank
+      The output should equal 'An entry already exists for subdir/file. Overwrite it? [y/n]Enter password for subdir/file: '
+      expected_file() { %text
+        #|ageRecipient:myself
+        #|age:pass-word
+      }
+      The contents of file "${PREFIX}/subdir/file.age" \
+        should equal "$(expected_file)"
+      expected_log() { %text
+        #|Add given password for subdir/file to store.
+        #|
+        #| subdir/file.age | 2 +-
+        #| 1 file changed, 1 insertion(+), 1 deletion(-)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+
+    It 'does not overwrite an entry without confirmation'
+      Data
+        #|n
+        #|pass-word
+      End
+      When call cmd_insert -e subdir/file
+      The status should be success
+      The error should be blank
+      The output should equal \
+        'An entry already exists for subdir/file. Overwrite it? [y/n]'
+      The result of function check_git_log should be successful
+    End
+  End
+
 # Describe 'cmd_list_or_show'
 # Describe 'cmd_move' is not needed (covered by 'cmd_copy_move')
 # Describe 'cmd_random'

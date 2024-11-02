@@ -883,6 +883,9 @@ Describe 'Pass-like command'
 
     It 'inserts a new single-line entry'
       Skip if 'pass(age) needs bash' check_skip $2
+      Mock stty
+        true
+      End
       Data
         #|pass-word
         #|pass-word
@@ -1022,6 +1025,17 @@ Describe 'Pass-like command'
     It 'displays usage when called without argument'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 insert
+      The status should equal 1
+      The output should be blank
+      The error should include 'Usage:'
+      The error should include ' insert '
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    It 'displays usage when called with incompatible arguments'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 insert -em new-secret
       The status should equal 1
       The output should be blank
       The error should include 'Usage:'
