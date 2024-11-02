@@ -143,7 +143,6 @@ Describe 'Integrated Command Functions'
   diff()    { @diff    "$@"; }
   dirname() { @dirname "$@"; }
   git()     { @git     "$@"; }
-  head()    { @head    "$@"; }
   mkdir()   { @mkdir   "$@"; }
   mktemp()  { @mktemp  "$@"; }
   mv()      { @mv      "$@"; }
@@ -580,6 +579,36 @@ Describe 'Integrated Command Functions'
     ECHO=no
     MULTILINE=no
     OVERWRITE=no
+
+    It 'inserts several new single-line entries'
+      stty() { false; }
+      Data
+        #|password-1
+        #|n
+        #|password-2
+        #|password-3
+      End
+      When call cmd_insert -e newdir/pass-1 subdir/file newdir/pass-2
+      The status should be success
+      The error should be blank
+      The output should equal 'Enter password for newdir/pass-1: An entry already exists for subdir/file. Overwrite it? [y/n]Enter password for newdir/pass-2: '
+      The contents of file "${PREFIX}/newdir/pass-1.age" \
+        should include "age:password-1"
+      The contents of file "${PREFIX}/newdir/pass-2.age" \
+        should include "age:password-2"
+      expected_log() { %text
+        #|Add given password for newdir/pass-2 to store.
+        #|
+        #| newdir/pass-2.age | 2 ++
+        #| 1 file changed, 2 insertions(+)
+        #|Add given password for newdir/pass-1 to store.
+        #|
+        #| newdir/pass-1.age | 2 ++
+        #| 1 file changed, 2 insertions(+)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
 
     It 'inserts a new single-line entry on the second try'
       stty() { :; }

@@ -793,7 +793,11 @@ do_insert() {
 	    || ! stty >/dev/null 2>&1
 	then
 		printf 'Enter password for %s: ' "$1"
-		head -n 1 | do_encrypt "$1.age"
+		IFS= read -r LINE
+		do_encrypt "$1.age" <<-EOF
+			${LINE}
+		EOF
+		unset LINE
 
 	else
 		while true; do
