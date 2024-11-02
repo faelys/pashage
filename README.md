@@ -42,8 +42,11 @@ by the GPL, so to be on the safe side I'm using GPL v2+ too.
 
 ### Behavior Differences
 
-- Not using a terminal does not imply `--force`, instead `pash` asks for
+- Not using a terminal does not imply `--force`, instead `pashage` asks for
 a confirming `y` on a standard input line.
+
+- The commands `copy`, `edit`, `insert`, `list`, `move`, and `show`
+accept multiple arguments to operate on many secrets at once.
 
 - The `edit` command does not warn a about using `/tmp` rather than
 `/dev/shm`, because the warning does not seem actionable and quickly
@@ -59,9 +62,15 @@ a glob.
 I didn't really understand the original `init` command, so I'm not sure
 how different it is; but now it installs `.age-recipients` and re-encrypts.
 
+- The `insert` command makes the user try again when entering mismatching
+passwords.
+
 - TODO
 
 ### New Features and Extensions
+
+- The new `gitconfig` command configures an existing store repository to
+decrypt before `diff`.
 
 - The new `random` command leverages password generation without touching
 the password store.
