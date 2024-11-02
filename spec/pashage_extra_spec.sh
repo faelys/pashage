@@ -781,7 +781,7 @@ Describe 'Integrated Command Functions'
 # Describe 'cmd_move' is not needed (covered by 'cmd_copy_move')
 # Describe 'cmd_random'
 # Describe 'cmd_usage'
-# Describe 'cmd_version'
+# Describe 'cmd_version' is not needed (fully covered in pass_spec.sh)
 
   Describe 'unreachable defensive code'
     # This sections breaks the end-to-end scheme of this file

@@ -2818,6 +2818,8 @@ Describe 'Pass-like command'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 version
       The status should be success
+      The output should include "$2:"
+      The output should match pattern "*v[0-9].[0-9].[0-9]*"
       The output should include 'password manager'
       The output should start with '============='
       The output should end with '============='
