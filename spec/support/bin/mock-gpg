@@ -62,11 +62,13 @@ case "$1" in
 	check_eq "$2" '--yes'                "Unexpected gpg -d \$2: \"$2\""
 	check_eq "$3" '--compress-algo=none' "Unexpected gpg -d \$3: \"$3\""
 	check_eq "$4" '--no-encrypt-to'      "Unexpected gpg -d \$4: \"$4\""
-	@grep -v '^gpg' "$5" >&2 && die "Bad encrypted file \"$5\""
+	shift 4
+	[ "${1:-}" = '--' ] && shift
+	@grep -v '^gpg' -- "$1" >&2 && die "Bad encrypted file \"$1\""
 	if [ "${OUTPUT}" = '-' ]; then
-		@sed -n -- 's/^gpg://p' "$5"
+		@sed -n -- 's/^gpg://p' "$1"
 	else
-		@sed -n -- 's/^gpg://p' "$5" >|"${OUTPUT}"
+		@sed -n -- 's/^gpg://p' "$1" >|"${OUTPUT}"
 	fi
 	;;
     --list-config)
