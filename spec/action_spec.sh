@@ -91,7 +91,6 @@ Describe 'Action Functions'
       SCM_ACTION=scm_cp
       result() {
         %text:expand
-        #|$ mkdir -p -- ${PREFIX}/sub/
         #|$ scm_begin
         #|$ do_decrypt ${PREFIX}/root.age
         #|$ do_encrypt sub/root.age
@@ -126,9 +125,7 @@ Describe 'Action Functions'
       DECISION=keep
       ACTION=Copy
       SCM_ACTION=scm_cp
-      result() {
-        %text:expand
-        #|$ mkdir -p -- ${PREFIX}/sub/
+      result() { %text
         #|$ scm_begin
         #|$ scm_cp root.age sub/root.age
         #|$ scm_commit Copy root.age to sub/root.age
@@ -140,9 +137,7 @@ Describe 'Action Functions'
     End
 
     It 'does not re-encrypt a non-encrypted file'
-      result() {
-        %text:expand
-        #|$ mkdir -p -- ${PREFIX}/sub/
+      result() { %text
         #|$ scm_begin
         #|$ scm_mv notes.txt sub/notes.txt
         #|$ scm_commit Move notes.txt to sub/notes.txt
@@ -155,9 +150,7 @@ Describe 'Action Functions'
 
     It 'does not re-encrypt a non-encrypted file even when forced'
       DECISION=force
-      result() {
-        %text:expand
-        #|$ mkdir -p -- ${PREFIX}/sub/
+      result() { %text
         #|$ scm_begin
         #|$ scm_mv notes.txt sub/notes.txt
         #|$ scm_commit Move notes.txt to sub/notes.txt
@@ -169,8 +162,7 @@ Describe 'Action Functions'
     End
 
     It 'moves a file without re-encrypting to another directory'
-      result() {
-        %text:expand
+      result() { %text
         #|$ scm_begin
         #|$ scm_mv sub/secret.age subdir/secret.age
         #|$ scm_commit Move sub/secret.age to subdir/secret.age
@@ -301,7 +293,7 @@ Describe 'Action Functions'
     It 'cannot overwrite a directory with a file'
       When run do_copy_move notes.txt subdir
       The output should be blank
-      The error should equal 'Error: subdir already contains notes.txt'
+      The error should equal 'Error: subdir already contains notes.txt/'
       The status should equal 1
     End
 

@@ -250,16 +250,13 @@ do_copy_move() {
 			fi
 		fi
 
-	elif [ "$2" = "${2%/}/" ]; then
-		mkdir -p -- "${PREFIX}/$2"
+	elif [ "$2" = "${2%/}/" ] || [ -d "${PREFIX}/$2" ]; then
+		[ -d "${PREFIX}/$2" ] || mkdir -p -- "${PREFIX}/$2"
 		[ -d "${PREFIX}/$2" ] || die "Error: $2 is not a directory"
-		DEST="$2$(basename "${SRC}")"
-		LOCAL_ACTION=do_copy_move_file
 
-	elif [ -d "${PREFIX}/$2" ]; then
 		DEST="${2%/}/$(basename "${SRC}")"
 		if [ -d "${PREFIX}/${DEST}" ]; then
-			die "Error: $2 already contains $(basename "${SRC}")"
+			die "Error: $2 already contains $(basename "${SRC}")/"
 		fi
 		LOCAL_ACTION=do_copy_move_file
 
