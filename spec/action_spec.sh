@@ -41,7 +41,7 @@ Describe 'Action Functions'
     }
 
     basename() { @basename "$@"; }
-    diff() { @diff "$@"; }
+    cat() { @cat "$@"; }
     dirname() { @dirname "$@"; }
 
     mkdir() { mocklog mkdir "$@"; }
@@ -202,7 +202,13 @@ Describe 'Action Functions'
       result() {
         %text:expand
         #|$ scm_begin
-        #|$ scm_mv sub/ subdir/sub/
+        #|$ mkdir -p -- ${PREFIX}/subdir/sub
+        #|$ scm_mv sub/.age-recipients subdir/sub/.age-recipients
+        #|$ mkdir -p -- ${PREFIX}/subdir/sub/bare
+        #|$ scm_mv sub/bare/deep.age subdir/sub/bare/deep.age
+        #|$ mkdir -p -- ${PREFIX}/subdir/sub/bare/sub
+        #|$ scm_mv sub/bare/sub/deepest.age subdir/sub/bare/sub/deepest.age
+        #|$ scm_mv sub/secret.age subdir/sub/secret.age
         #|$ scm_commit Move sub/ to subdir/sub/
       }
       When call do_copy_move sub subdir/
@@ -211,7 +217,46 @@ Describe 'Action Functions'
       The error should equal "$(result)"
     End
 
-    It 'recursively re-enecrypts a directory'
+    It 'recursively moves files to a directory with the same identity'
+      result() {
+        %text:expand
+        #|$ scm_begin
+        #|$ mkdir -p -- ${PREFIX}/subdir/new-bare
+        #|$ scm_mv sub/bare/deep.age subdir/new-bare/deep.age
+        #|$ mkdir -p -- ${PREFIX}/subdir/new-bare/sub
+        #|$ scm_mv sub/bare/sub/deepest.age subdir/new-bare/sub/deepest.age
+        #|$ scm_commit Move sub/bare/ to subdir/new-bare/
+      }
+      When call do_copy_move sub/bare subdir/new-bare
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'recursively re-encrypts a directory'
+      result() {
+        %text:expand
+        #|$ scm_begin
+        #|$ mkdir -p -- ${PREFIX}/new-bare
+        #|$ do_decrypt ${PREFIX}/sub/bare/deep.age
+        #|$ do_encrypt new-bare/deep.age
+        #|$ scm_rm sub/bare/deep.age
+        #|$ scm_add new-bare/deep.age
+        #|$ mkdir -p -- ${PREFIX}/new-bare/sub
+        #|$ do_decrypt ${PREFIX}/sub/bare/sub/deepest.age
+        #|$ do_encrypt new-bare/sub/deepest.age
+        #|$ scm_rm sub/bare/sub/deepest.age
+        #|$ scm_add new-bare/sub/deepest.age
+        #|$ scm_commit Move sub/bare/ to new-bare/
+      }
+      When call do_copy_move sub/bare new-bare
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'recursively re-encrypts a directory with the same identity when forced'
+      DECISION=force
       result() {
         %text:expand
         #|$ scm_begin
@@ -294,14 +339,6 @@ Describe 'Action Functions'
       When run do_copy_move notes.txt subdir
       The output should be blank
       The error should equal 'Error: subdir already contains notes.txt/'
-      The status should equal 1
-    End
-
-    It 'checks internal consistency of DECISION'
-      DECISION=garbage
-      When run do_copy_move root subdir
-      The output should be blank
-      The error should equal 'Unexpected DECISION value "garbage"'
       The status should equal 1
     End
 

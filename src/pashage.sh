@@ -89,10 +89,12 @@ set_LOCAL_RECIPIENT_FILE() {
 
 	if ! [ -f "${PREFIX}${LOCAL_RECIPIENT_FILE}/.age-recipients" ]; then
 		LOCAL_RECIPIENT_FILE=
+		LOCAL_RECIPIENTS=
 		return 0
 	fi
 
 	LOCAL_RECIPIENT_FILE="${PREFIX}${LOCAL_RECIPIENT_FILE}/.age-recipients"
+	LOCAL_RECIPIENTS="$(cat "${LOCAL_RECIPIENT_FILE}")"
 }
 
 # Count how many characters are in the first argument
@@ -273,51 +275,10 @@ do_copy_move() {
 		LOCAL_ACTION=do_copy_move_file
 	fi
 
-	case "${DECISION}" in
-	    force|interactive)
-		ANSWER=y
-		;;
-	    keep)
-		ANSWER=n
-		;;
-	    default)
-		if [ "${SRC}" = "${SRC%/}/" ]; then
-			# Handled in do_copy_move_dir
-			ANSWER=y
-		else
-			set_LOCAL_RECIPIENT_FILE "${SRC}"
-			SRC_FILE="${LOCAL_RECIPIENT_FILE}"
-			set_LOCAL_RECIPIENT_FILE "${DEST}"
-			DST_FILE="${LOCAL_RECIPIENT_FILE}"
-
-			if [ "${SRC_FILE}" = "${DST_FILE}" ]; then
-				ANSWER=n
-			elif [ -n "${SRC_FILE}" ] \
-			    && [ -n "${DST_FILE}" ] \
-			    && diff "${SRC_FILE}" "${DST_FILE}" >/dev/null 2>&1
-			then
-				ANSWER=n
-			else
-				ANSWER=y
-			fi
-
-			unset DST_FILE
-			unset SRC_FILE
-		fi
-		;;
-	    *)
-		die "Unexpected DECISION value \"${DECISION}\""
-		;;
-	esac
-
 	scm_begin
 	SCM_COMMIT_MSG="${ACTION} ${SRC} to ${DEST}"
 
-	if [ "${ANSWER}" = y ]; then
-		"${LOCAL_ACTION}" "${SRC}" "${DEST}"
-	else
-		"${SCM_ACTION}" "${SRC}" "${DEST}"
-	fi
+	"${LOCAL_ACTION}" "${SRC}" "${DEST}"
 
 	scm_commit "${SCM_COMMIT_MSG}"
 
@@ -337,29 +298,22 @@ do_copy_move_dir() {
 	[ "$2" = "${2%/}/" ] || [ -z "$2" ] || die 'Internal error'
 	[ -d "${PREFIX}/$1" ] || die 'Internal error'
 
-	if [ -e "${PREFIX}/$1.age-recipients" ] \
-	    && { [ "${DECISION}" = keep ] || [ "${DECISION}" = default ]; }
-	then
-		# Recipiends are transported too, no need to reencrypt
-		"${SCM_ACTION}" "$1" "$2"
-	else
-		[ -d "${PREFIX}/$2" ] || mkdir -p -- "${PREFIX}/${2%/}"
+	[ -d "${PREFIX}/$2" ] || mkdir -p -- "${PREFIX}/${2%/}"
 
-		for ARG in "${PREFIX}/$1".* "${PREFIX}/$1"*; do
-			SRC="${ARG#"${PREFIX}/"}"
-			DEST="$2$(basename "${ARG}")"
+	for ARG in "${PREFIX}/$1".* "${PREFIX}/$1"*; do
+		SRC="${ARG#"${PREFIX}/"}"
+		DEST="$2$(basename "${ARG}")"
 
-			if [ -f "${ARG}" ]; then
-				do_copy_move_file "${SRC}" "${DEST}"
-			elif [ -d "${ARG}" ] && [ "${ARG}" = "${ARG%/.*}" ]
-			then
-				do_copy_move_dir "${SRC}/" "${DEST}/"
-			fi
-		done
+		if [ -f "${ARG}" ]; then
+			do_copy_move_file "${SRC}" "${DEST}"
+		elif [ -d "${ARG}" ] && [ "${ARG}" = "${ARG%/.*}" ]
+		then
+			do_copy_move_dir "${SRC}/" "${DEST}/"
+		fi
+	done
 
-		unset ARG
-		rmdir -p -- "${PREFIX}/$1" 2>/dev/null || true
-	fi
+	unset ARG
+	rmdir -p -- "${PREFIX}/$1" 2>/dev/null || true
 }
 
 # Copy or move a secret file (depending on ${ACTION})
@@ -388,7 +342,22 @@ do_copy_move_file() {
 		    interactive)
 			yesno "Reencrypt ${1%.age} into ${2%.age}?"
 			;;
-		    default|force)
+		    default)
+			set_LOCAL_RECIPIENT_FILE "$1"
+			SRC_RCPT="${LOCAL_RECIPIENTS}"
+			set_LOCAL_RECIPIENT_FILE "$2"
+			DST_RCPT="${LOCAL_RECIPIENTS}"
+
+			if [ "${SRC_RCPT}" = "${DST_RCPT}" ]; then
+				ANSWER=n
+			else
+				ANSWER=y
+			fi
+
+			unset DST_RCPT
+			unset SRC_RCPT
+			;;
+		    force)
 			ANSWER=y
 			;;
 		    *)

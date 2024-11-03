@@ -158,6 +158,7 @@ Describe 'Internal Helper Functions'
       echo "Toplevel recipient" >"${PREFIX}/.age-recipients"
       echo "Subdir recipient" >"${PREFIX}/subdir/.age-recipients"
     }
+    cat() { @cat "$@"; }
     cleanup() { @rm -rf "${PREFIX}"; }
 
     BeforeEach 'setup'
@@ -168,6 +169,7 @@ Describe 'Internal Helper Functions'
       The status should be success
       The variable LOCAL_RECIPIENT_FILE should equal \
         "${PREFIX}/.age-recipients"
+      The variable LOCAL_RECIPIENTS should equal 'Toplevel recipient'
     End
 
     It 'returns root from unmarked subdirectory'
@@ -175,6 +177,7 @@ Describe 'Internal Helper Functions'
       The status should be success
       The variable LOCAL_RECIPIENT_FILE should equal \
         "${PREFIX}/.age-recipients"
+      The variable LOCAL_RECIPIENTS should equal 'Toplevel recipient'
     End
 
     It 'returns subdirectory from itself'
@@ -182,6 +185,7 @@ Describe 'Internal Helper Functions'
       The status should be success
       The variable LOCAL_RECIPIENT_FILE should equal \
         "${PREFIX}/subdir/.age-recipients"
+      The variable LOCAL_RECIPIENTS should equal 'Subdir recipient'
     End
 
     It 'returns subdirectory from sub-subdirectory'
@@ -189,6 +193,7 @@ Describe 'Internal Helper Functions'
       The status should be success
       The variable LOCAL_RECIPIENT_FILE should equal \
         "${PREFIX}/subdir/.age-recipients"
+      The variable LOCAL_RECIPIENTS should equal 'Subdir recipient'
     End
 
     setup() {
@@ -201,12 +206,14 @@ Describe 'Internal Helper Functions'
       When call set_LOCAL_RECIPIENT_FILE foo
       The status should be success
       The variable LOCAL_RECIPIENT_FILE should equal ''
+      The variable LOCAL_RECIPIENTS should equal ''
     End
 
     It 'returns nothing from unmarked subdirectory below empty root'
       When call set_LOCAL_RECIPIENT_FILE special/foo
       The status should be success
       The variable LOCAL_RECIPIENT_FILE should equal ''
+      The variable LOCAL_RECIPIENTS should equal ''
     End
 
     It 'returns subdirectory from itself even under empty root'
@@ -214,6 +221,7 @@ Describe 'Internal Helper Functions'
       The status should be success
       The variable LOCAL_RECIPIENT_FILE should equal \
         "${PREFIX}/subdir/.age-recipients"
+      The variable LOCAL_RECIPIENTS should equal 'Subdir recipient'
     End
 
     It 'returns subdirectory from sub-subdirectory even under empty root'
@@ -221,6 +229,7 @@ Describe 'Internal Helper Functions'
       The status should be success
       The variable LOCAL_RECIPIENT_FILE should equal \
         "${PREFIX}/subdir/.age-recipients"
+      The variable LOCAL_RECIPIENTS should equal 'Subdir recipient'
     End
   End
 
