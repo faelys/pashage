@@ -1067,16 +1067,16 @@ cmd_copy_move() {
 	check_sneaky_paths "$@"
 
 	if [ $# -gt 2 ]; then
-		DEST="$1"
+		SHARED_DEST="$1"
 		shift
 		for ARG in "$@"; do
 			shift
-			set -- "$@" "${DEST}"
-			DEST="${ARG}"
+			set -- "$@" "${SHARED_DEST}"
+			SHARED_DEST="${ARG}"
 		done
 
 		for ARG in "$@"; do
-			do_copy_move "${ARG}" "${DEST%/}/"
+			do_copy_move "${ARG}" "${SHARED_DEST%/}/"
 		done
 	else
 		do_copy_move "$@"
