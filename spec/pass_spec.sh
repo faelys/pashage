@@ -2296,6 +2296,16 @@ Describe 'Pass-like command'
       The contents of file "${GITLOG}" should equal "$(setup_log)"
     End
 
+    It 'fails to move a directory into a file masquerading as a directory'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 mv subdir y.txt/
+      The status should equal 1
+      The error should include 'y.txt'
+      The error should include 'ot a directory'
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
     It 'rejects a source path containing ..'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 mv fluff/../stale subdir/
@@ -2320,6 +2330,24 @@ Describe 'Pass-like command'
       The file "${PREFIX}/subdir/file.gpg" should be exist
       The file "${PREFIX}/extra/file.age" should not be exist
       The file "${PREFIX}/extra/file.gpg" should not be exist
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    extra_setup() {
+      @mkdir "${PREFIX}/extra/stale.age" "${PREFIX}/extra/stale.gpg"
+    }
+    BeforeEach extra_setup
+
+    It 'fails to move a file where a directory already exists'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 mv -f stale extra/
+      The status should equal 1
+      if [ "$2" = pashage ]; then
+        The error should equal 'Error: extra/ already contains stale.age/'
+      else
+        The error should match pattern 'mv: *directory*'
+      fi
       The result of function git_log should be successful
       The contents of file "${GITLOG}" should equal "$(setup_log)"
     End
@@ -2729,6 +2757,15 @@ Describe 'Pass-like command'
       The contents of file "${GITLOG}" should equal "$(setup_log)"
     End
 
+    It 'fails to copy a directory into a file masquerading as a directory'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 cp subdir y.txt/
+      The status should equal 1
+      The error should include 'y.txt is not a directory'
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
     It 'rejects a source path containing ..'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 cp fluff/../stale subdir/
@@ -2749,6 +2786,24 @@ Describe 'Pass-like command'
       The error should include 'sneaky'
       The file "${PREFIX}/extra/file.age" should not be exist
       The file "${PREFIX}/extra/file.gpg" should not be exist
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(setup_log)"
+    End
+
+    extra_setup() {
+      @mkdir "${PREFIX}/extra/stale.age" "${PREFIX}/extra/stale.gpg"
+    }
+    BeforeEach extra_setup
+
+    It 'fails to copy a file where a directory already exists'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 cp -f stale extra/
+      The status should equal 1
+      if [ "$2" = pashage ]; then
+        The error should equal 'Error: extra/ already contains stale.age/'
+      else
+        The error should match pattern 'cp: *directory*'
+      fi
       The result of function git_log should be successful
       The contents of file "${GITLOG}" should equal "$(setup_log)"
     End

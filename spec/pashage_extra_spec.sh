@@ -66,7 +66,8 @@ Describe 'Integrated Command Functions'
     #| shared/.age-recipients | 2 ++
     #| stale.age              | 3 +++
     #| subdir/file.age        | 2 ++
-    #| 9 files changed, 26 insertions(+)
+    #| y.txt                  | 3 +++
+    #| 10 files changed, 29 insertions(+)
   }
 
   setup_log_bin() { %text
@@ -81,7 +82,8 @@ Describe 'Integrated Command Functions'
     #| shared/.age-recipients |   2 ++
     #| stale.age              | Bin 0 -> 55 bytes
     #| subdir/file.age        | Bin 0 -> 33 bytes
-    #| 9 files changed, 7 insertions(+)
+    #| y.txt                  |   3 +++
+    #| 10 files changed, 10 insertions(+)
   }
 
   expected_log() { setup_log; } # Default log to override as needed
@@ -140,6 +142,10 @@ Describe 'Integrated Command Functions'
     #|gpgRecipient:myOldSelf
     #|gpg:very-old-password
     #|gpg:Username: previous-life
+    %text >"${PREFIX}/y.txt"
+    #|# Title
+    #|Line of text
+    #|End of note
     @git -C "${PREFIX}" add .
     @git -C "${PREFIX}" commit -m 'Initial setup' >/dev/null
 
@@ -158,16 +164,18 @@ Describe 'Integrated Command Functions'
   BeforeEach setup
   AfterEach cleanup
 
-  cat()     { @cat     "$@"; }
-  dd()      { @dd      "$@"; }
-  diff()    { @diff    "$@"; }
-  dirname() { @dirname "$@"; }
-  git()     { @git     "$@"; }
-  mkdir()   { @mkdir   "$@"; }
-  mktemp()  { @mktemp  "$@"; }
-  mv()      { @mv      "$@"; }
-  rm()      { @rm      "$@"; }
-  tr()      { @tr      "$@"; }
+  basename() { @basename "$@"; }
+  cat()      { @cat      "$@"; }
+  cp()       { @cp       "$@"; }
+  dd()       { @dd       "$@"; }
+  diff()     { @diff     "$@"; }
+  dirname()  { @dirname  "$@"; }
+  git()      { @git      "$@"; }
+  mkdir()    { @mkdir    "$@"; }
+  mktemp()   { @mktemp   "$@"; }
+  mv()       { @mv       "$@"; }
+  rm()       { @rm       "$@"; }
+  tr()       { @tr       "$@"; }
 
   platform_tmpdir() {
     SECURE_TMPDIR="${SHELLSPEC_WORKDIR}/secure"
@@ -175,7 +183,104 @@ Describe 'Integrated Command Functions'
   }
 
 # Describe 'cmd_copy' is not needed (covered by 'cmd_copy_move')
-# Describe 'cmd_copy_move'
+
+  Describe 'cmd_copy_move'
+    DECISION=default
+    OVERWRITE=no
+
+    It 'processes several files and directories into a directory'
+      When call cmd_move extra stale subdir
+      The status should be success
+      The error should be blank
+      The output should be blank
+      expected_log() { %text
+        #|Move stale.age to subdir/stale.age
+        #|
+        #| stale.age => subdir/stale.age | 0
+        #| 1 file changed, 0 insertions(+), 0 deletions(-)
+        #|Move extra/ to subdir/extra/
+        #|
+        #| {extra => subdir/extra}/subdir/file.age | 0
+        #| 1 file changed, 0 insertions(+), 0 deletions(-)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+
+    It 'processes unencrypted files'
+      When run cmd_move y.txt shared/yy
+      The status should be success
+      The error should be blank
+      The output should be blank
+      expected_log() { %text
+        #|Move y.txt to shared/yy
+        #|
+        #| y.txt => shared/yy | 0
+        #| 1 file changed, 0 insertions(+), 0 deletions(-)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+
+    It 'does not overwrite a file without confirmation'
+      Data 'n'
+      When call cmd_copy subdir/file stale
+      The status should be success
+      The error should be blank
+      The output should equal 'stale.age already exists. Overwrite? [y/n]'
+      The result of function check_git_log should be successful
+    End
+
+    It 'overwrites a file after confirmation'
+      Data 'y'
+      When call cmd_copy subdir/file stale
+      The status should be success
+      The error should be blank
+      The output should equal 'stale.age already exists. Overwrite? [y/n]'
+      expected_log() { %text
+        #|Copy subdir/file.age to stale.age
+        #|
+        #| stale.age | 3 +--
+        #| 1 file changed, 1 insertion(+), 2 deletions(-)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+
+    It 'display copy usage with `c*` commands'
+      PROGRAM=prg
+      COMMAND=curious
+      When run cmd_copy_move single
+      The status should equal 1
+      The output should be blank
+      The error should equal 'Usage: prg copy [--force,-f] old-path new-path'
+      The result of function check_git_log should be successful
+    End
+
+    It 'display move usage with `m*` commands'
+      PROGRAM=prg
+      COMMAND=memory
+      When run cmd_copy_move single
+      The status should equal 1
+      The output should be blank
+      The error should equal 'Usage: prg move [--force,-f] old-path new-path'
+      The result of function check_git_log should be successful
+    End
+
+    It 'displays both usages when in doubt'
+      PROGRAM=prg
+      COMMAND=bad
+      When run cmd_copy_move single
+      The status should equal 1
+      The output should be blank
+      expected_err() { %text
+        #|Usage: prg copy [--force,-f] old-path new-path
+        #|       prg move [--force,-f] old-path new-path
+      }
+      The error should equal "$(expected_err)"
+      The result of function check_git_log should be successful
+    End
+  End
 
   Describe 'cmd_delete'
     DECISION=default
@@ -832,6 +937,14 @@ Describe 'Integrated Command Functions'
     # This sections breaks the end-to-end scheme of this file
     # to reach full coverage, by precisely identifying unreachable lines
     # written for defensive programming against internal inconsistencies.
+
+    It 'includes invalid values of DECISION in do_copy_move_file'
+      DECISION='invalid'
+      When run do_copy_move_file subdir/file.age extra/file.age
+      The status should equal 1
+      The output should be blank
+      The error should equal 'Unexpected DECISION value "invalid"'
+    End
 
     It 'includes invalid values of SHOW in do_show'
       SHOW='invalid'

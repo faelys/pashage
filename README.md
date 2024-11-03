@@ -48,6 +48,9 @@ a confirming `y` on a standard input line.
 - The commands `copy`, `edit`, `insert`, `list`, `move`, and `show`
 accept multiple arguments to operate on many secrets at once.
 
+- The commands `copy` and `move` also operate on unencrypted files in the
+password store.
+
 - The `edit` command does not warn a about using `/tmp` rather than
 `/dev/shm`, because the warning does not seem actionable and quickly
 becomes ignored noise.
@@ -65,8 +68,6 @@ how different it is; but now it installs `.age-recipients` and re-encrypts.
 - The `insert` command makes the user try again when entering mismatching
 passwords.
 
-- TODO
-
 ### New Features and Extensions
 
 - The new `gitconfig` command configures an existing store repository to
@@ -74,8 +75,6 @@ decrypt before `diff`.
 
 - The new `random` command leverages password generation without touching
 the password store.
-
-- TODO
 
 ## Manual
 
