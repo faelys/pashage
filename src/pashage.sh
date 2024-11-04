@@ -1005,6 +1005,26 @@ cmd_copy_move() {
 		    -f|--force)
 			OVERWRITE=yes
 			shift ;;
+		    -e|--reencrypt)
+			[ "${DECISION}" = default ] || PARSE_ERROR=yes
+			DECISION=force
+			shift ;;
+		    -i|--interactive)
+			[ "${DECISION}" = default ] || PARSE_ERROR=yes
+			DECISION=interactive
+			shift ;;
+		    -k|--keep)
+			[ "${DECISION}" = default ] || PARSE_ERROR=yes
+			DECISION=keep
+			shift ;;
+		    -[efik]?*)
+			REST="${1#??}"
+			FIRST="${1%"${REST}"}"
+			shift
+			set -- "${FIRST}" "-${REST}" "$@"
+			unset FIRST
+			unset REST
+			;;
 		    --)
 			shift
 			break ;;
@@ -1505,11 +1525,12 @@ EOF
 			;;
 		    copy)
 			cat <<EOF
-${F}${PROGRAM} copy [--force,-f] old-path new-path
+${F}${PROGRAM} copy [--reencrypt,-e | --interactive,-i | --keep,-k ]
+${I}${BLANKPG}      [--force,-f] old-path new-path
 EOF
 			[ "${VERBOSE}" = yes ] && cat <<EOF
 ${I}    Copies old-path to new-path, optionally forcefully,
-${I}    selectively reencrypting.
+${I}    reencrypting if needed or forced.
 EOF
 			;;
 		    delete)
@@ -1606,11 +1627,12 @@ EOF
 			;;
 		    move)
 			cat <<EOF
-${F}${PROGRAM} move [--force,-f] old-path new-path
+${F}${PROGRAM} move [--reencrypt,-e | --interactive,-i | --keep,-k ]
+${I}${BLANKPG}      [--force,-f] old-path new-path
 EOF
 			[ "${VERBOSE}" = yes ] && cat <<EOF
 ${I}    Renames or moves old-path to new-path, optionally forcefully,
-${I}    selectively reencrypting.
+${I}    reencrypting if needed or forced.
 EOF
 			;;
 		    random)

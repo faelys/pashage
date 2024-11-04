@@ -208,6 +208,108 @@ Describe 'Command-Line Parsing'
       The error should equal "$(result)"
     End
 
+    It 'always reencrypts with a long option'
+      result() {
+        %text
+        #|$ check_sneaky_path src
+        #|$ check_sneaky_path dest
+        #|$ do_copy_move src dest
+        #|ACTION=Copy
+        #|DECISION=force
+        #|OVERWRITE=no
+        #|SCM_ACTION=scm_cp
+      }
+      When call cmd_copy --reencrypt src dest
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'always reencrypts with a short option'
+      result() {
+        %text
+        #|$ check_sneaky_path src
+        #|$ check_sneaky_path dest
+        #|$ do_copy_move src dest
+        #|ACTION=Copy
+        #|DECISION=force
+        #|OVERWRITE=no
+        #|SCM_ACTION=scm_cp
+      }
+      When call cmd_copy -e src dest
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'interactively reencrypts with a long option'
+      result() {
+        %text
+        #|$ check_sneaky_path src
+        #|$ check_sneaky_path dest
+        #|$ do_copy_move src dest
+        #|ACTION=Copy
+        #|DECISION=interactive
+        #|OVERWRITE=no
+        #|SCM_ACTION=scm_cp
+      }
+      When call cmd_copy --interactive src dest
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'interactively reencrypts with a short option'
+      result() {
+        %text
+        #|$ check_sneaky_path src
+        #|$ check_sneaky_path dest
+        #|$ do_copy_move src dest
+        #|ACTION=Copy
+        #|DECISION=interactive
+        #|OVERWRITE=no
+        #|SCM_ACTION=scm_cp
+      }
+      When call cmd_copy -i src dest
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'never reencrypts with a long option'
+      result() {
+        %text
+        #|$ check_sneaky_path src
+        #|$ check_sneaky_path dest
+        #|$ do_copy_move src dest
+        #|ACTION=Copy
+        #|DECISION=keep
+        #|OVERWRITE=no
+        #|SCM_ACTION=scm_cp
+      }
+      When call cmd_copy --keep src dest
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'never reencrypts with a short option'
+      result() {
+        %text
+        #|$ check_sneaky_path src
+        #|$ check_sneaky_path dest
+        #|$ do_copy_move src dest
+        #|ACTION=Copy
+        #|DECISION=keep
+        #|OVERWRITE=no
+        #|SCM_ACTION=scm_cp
+      }
+      When call cmd_copy -k src dest
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
     It 'copies a file named like a flag'
       result() {
         %text
@@ -225,11 +327,40 @@ Describe 'Command-Line Parsing'
       The error should equal "$(result)"
     End
 
+    usage_text() { %text
+        #|Usage: prg copy [--reencrypt,-e | --interactive,-i | --keep,-k ]
+        #|                [--force,-f] old-path new-path
+      }
+
     It 'reports a bad option'
       cat() { @cat; }
       When run cmd_copy -s arg
       The output should be blank
-      The error should equal 'Usage: prg copy [--force,-f] old-path new-path'
+      The error should equal "$(usage_text)"
+      The status should equal 1
+    End
+
+    It 'reports incompatible re-encryption options (-e and -i)'
+      cat() { @cat; }
+      When run cmd_copy -ei src dest
+      The output should be blank
+      The error should equal "$(usage_text)"
+      The status should equal 1
+    End
+
+    It 'reports incompatible re-encryption options (-i and -k)'
+      cat() { @cat; }
+      When run cmd_copy -ik src dest
+      The output should be blank
+      The error should equal "$(usage_text)"
+      The status should equal 1
+    End
+
+    It 'reports incompatible re-encryption options (-k and -e)'
+      cat() { @cat; }
+      When run cmd_copy -ke src dest
+      The output should be blank
+      The error should equal "$(usage_text)"
       The status should equal 1
     End
 
@@ -237,7 +368,7 @@ Describe 'Command-Line Parsing'
       cat() { @cat; }
       When run cmd_copy src
       The output should be blank
-      The error should equal 'Usage: prg copy [--force,-f] old-path new-path'
+      The error should equal "$(usage_text)"
       The status should equal 1
     End
   End
@@ -248,8 +379,10 @@ Describe 'Command-Line Parsing'
     It 'reports both commands when confused'
       cat() { @cat; }
       result() { %text
-        #|Usage: prg copy [--force,-f] old-path new-path
-        #|       prg move [--force,-f] old-path new-path
+        #|Usage: prg copy [--reencrypt,-e | --interactive,-i | --keep,-k ]
+        #|                [--force,-f] old-path new-path
+        #|       prg move [--reencrypt,-e | --interactive,-i | --keep,-k ]
+        #|                [--force,-f] old-path new-path
       }
       When run cmd_copy src
       The output should be blank
@@ -1619,6 +1752,108 @@ Describe 'Command-Line Parsing'
       The error should equal "$(result)"
     End
 
+    It 'always reencrypts with a long option'
+      result() {
+        %text
+        #|$ check_sneaky_path src
+        #|$ check_sneaky_path dest
+        #|$ do_copy_move src dest
+        #|ACTION=Move
+        #|DECISION=force
+        #|OVERWRITE=no
+        #|SCM_ACTION=scm_mv
+      }
+      When call cmd_move --reencrypt src dest
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'always reencrypts with a short option'
+      result() {
+        %text
+        #|$ check_sneaky_path src
+        #|$ check_sneaky_path dest
+        #|$ do_copy_move src dest
+        #|ACTION=Move
+        #|DECISION=force
+        #|OVERWRITE=no
+        #|SCM_ACTION=scm_mv
+      }
+      When call cmd_move -e src dest
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'interactively reencrypts with a long option'
+      result() {
+        %text
+        #|$ check_sneaky_path src
+        #|$ check_sneaky_path dest
+        #|$ do_copy_move src dest
+        #|ACTION=Move
+        #|DECISION=interactive
+        #|OVERWRITE=no
+        #|SCM_ACTION=scm_mv
+      }
+      When call cmd_move --interactive src dest
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'interactively reencrypts with a short option'
+      result() {
+        %text
+        #|$ check_sneaky_path src
+        #|$ check_sneaky_path dest
+        #|$ do_copy_move src dest
+        #|ACTION=Move
+        #|DECISION=interactive
+        #|OVERWRITE=no
+        #|SCM_ACTION=scm_mv
+      }
+      When call cmd_move -i src dest
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'never reencrypts with a long option'
+      result() {
+        %text
+        #|$ check_sneaky_path src
+        #|$ check_sneaky_path dest
+        #|$ do_copy_move src dest
+        #|ACTION=Move
+        #|DECISION=keep
+        #|OVERWRITE=no
+        #|SCM_ACTION=scm_mv
+      }
+      When call cmd_move --keep src dest
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'never reencrypts with a short option'
+      result() {
+        %text
+        #|$ check_sneaky_path src
+        #|$ check_sneaky_path dest
+        #|$ do_copy_move src dest
+        #|ACTION=Move
+        #|DECISION=keep
+        #|OVERWRITE=no
+        #|SCM_ACTION=scm_mv
+      }
+      When call cmd_move -k src dest
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
     It 'moves a file named like a flag'
       result() {
         %text
@@ -1636,11 +1871,40 @@ Describe 'Command-Line Parsing'
       The error should equal "$(result)"
     End
 
+    usage_text() { %text
+      #|Usage: prg move [--reencrypt,-e | --interactive,-i | --keep,-k ]
+      #|                [--force,-f] old-path new-path
+    }
+
     It 'reports a bad option'
       cat() { @cat; }
       When run cmd_move -s arg
       The output should be blank
-      The error should equal 'Usage: prg move [--force,-f] old-path new-path'
+      The error should equal "$(usage_text)"
+      The status should equal 1
+    End
+
+    It 'reports incompatible re-encryption options (-e and -i)'
+      cat() { @cat; }
+      When run cmd_move -ei src dest
+      The output should be blank
+      The error should equal "$(usage_text)"
+      The status should equal 1
+    End
+
+    It 'reports incompatible re-encryption options (-i and -k)'
+      cat() { @cat; }
+      When run cmd_move -ik src dest
+      The output should be blank
+      The error should equal "$(usage_text)"
+      The status should equal 1
+    End
+
+    It 'reports incompatible re-encryption options (-k and -e)'
+      cat() { @cat; }
+      When run cmd_move -ke src dest
+      The output should be blank
+      The error should equal "$(usage_text)"
       The status should equal 1
     End
 
@@ -1648,7 +1912,7 @@ Describe 'Command-Line Parsing'
       cat() { @cat; }
       When run cmd_move src
       The output should be blank
-      The error should equal 'Usage: prg move [--force,-f] old-path new-path'
+      The error should equal "$(usage_text)"
       The status should equal 1
     End
   End

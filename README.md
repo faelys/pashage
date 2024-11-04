@@ -70,6 +70,9 @@ passwords.
 
 ### New Features and Extensions
 
+- The commands `copy` and `move` have new flags to control re-encryption
+(always, never, ask for each file).
+
 - The new `gitconfig` command configures an existing store repository to
 decrypt before `diff`.
 

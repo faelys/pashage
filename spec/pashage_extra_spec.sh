@@ -247,23 +247,142 @@ Describe 'Integrated Command Functions'
       The result of function check_git_log should be successful
     End
 
-    It 'display copy usage with `c*` commands'
+    It 'does not re-encrypt by default when recipients do not change'
+      When call cmd_move stale renamed
+      The status should be success
+      The error should be blank
+      The output should be blank
+      expected_log() { %text
+        #|Move stale.age to renamed.age
+        #|
+        #| stale.age => renamed.age | 0
+        #| 1 file changed, 0 insertions(+), 0 deletions(-)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+
+    It 're-encrypts by default when recipients change'
+      When call cmd_move stale shared
+      The status should be success
+      The error should be blank
+      The output should be blank
+      expected_file() { %text
+        #|ageRecipient:myself
+        #|ageRecipient:friend
+        #|age:0-password
+      }
+      The contents of file "${PREFIX}/shared/stale.age" should \
+        equal "$(expected_file)"
+      expected_log() { %text
+        #|Move stale.age to shared/stale.age
+        #|
+        #| stale.age => shared/stale.age | 2 +-
+        #| 1 file changed, 1 insertion(+), 1 deletion(-)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+
+    It 'always re-encrypts when forced'
+      When call cmd_move --reencrypt stale renamed
+      The status should be success
+      The error should be blank
+      The output should be blank
+      expected_log() { %text
+        #|Move stale.age to renamed.age
+        #|
+        #| stale.age => renamed.age | 1 -
+        #| 1 file changed, 1 deletion(-)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+
+    It 'never re-encrypts when forced'
+      When call cmd_move --keep stale shared
+      The status should be success
+      The error should be blank
+      The output should be blank
+      expected_log() { %text
+        #|Move stale.age to shared/stale.age
+        #|
+        #| stale.age => shared/stale.age | 0
+        #| 1 file changed, 0 insertions(+), 0 deletions(-)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+
+    It 'interactively re-encrypts when asked'
+      Data
+        #|n
+        #|y
+      End
+      When call cmd_move --interactive stale extra/subdir/file shared
+      The status should be success
+      The error should be blank
+      The output should equal 'Reencrypt stale into shared/stale? [y/n]Reencrypt extra/subdir/file into shared/file? [y/n]'
+      expected_file() { %text
+        #|ageRecipient:myself
+        #|ageRecipient:friend
+        #|age:Pa55worD
+      }
+      The contents of file "${PREFIX}/shared/file.age" should \
+        equal "$(expected_file)"
+      expected_log() { %text
+        #|Move extra/subdir/file.age to shared/file.age
+        #|
+        #| {extra/subdir => shared}/file.age | 1 +
+        #| 1 file changed, 1 insertion(+)
+        #|Move stale.age to shared/stale.age
+        #|
+        #| stale.age => shared/stale.age | 0
+        #| 1 file changed, 0 insertions(+), 0 deletions(-)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+
+    It 'displays usage when called with incompatible reencryption arguments'
+      PROGRAM=prg
+      COMMAND=copy
+      When run cmd_copy_move -eik stale shared/
+      The status should equal 1
+      The output should be blank
+      expected_err() { %text
+        #|Usage: prg copy [--reencrypt,-e | --interactive,-i | --keep,-k ]
+        #|                [--force,-f] old-path new-path
+      }
+      The error should equal "$(expected_err)"
+      The result of function check_git_log should be successful
+    End
+
+    It 'displays copy usage with `c*` commands'
       PROGRAM=prg
       COMMAND=curious
       When run cmd_copy_move single
       The status should equal 1
       The output should be blank
-      The error should equal 'Usage: prg copy [--force,-f] old-path new-path'
+      expected_err() { %text
+        #|Usage: prg copy [--reencrypt,-e | --interactive,-i | --keep,-k ]
+        #|                [--force,-f] old-path new-path
+      }
+      The error should equal "$(expected_err)"
       The result of function check_git_log should be successful
     End
 
-    It 'display move usage with `m*` commands'
+    It 'displays move usage with `m*` commands'
       PROGRAM=prg
       COMMAND=memory
       When run cmd_copy_move single
       The status should equal 1
       The output should be blank
-      The error should equal 'Usage: prg move [--force,-f] old-path new-path'
+      expected_err() { %text
+        #|Usage: prg move [--reencrypt,-e | --interactive,-i | --keep,-k ]
+        #|                [--force,-f] old-path new-path
+      }
+      The error should equal "$(expected_err)"
       The result of function check_git_log should be successful
     End
 
@@ -274,8 +393,10 @@ Describe 'Integrated Command Functions'
       The status should equal 1
       The output should be blank
       expected_err() { %text
-        #|Usage: prg copy [--force,-f] old-path new-path
-        #|       prg move [--force,-f] old-path new-path
+        #|Usage: prg copy [--reencrypt,-e | --interactive,-i | --keep,-k ]
+        #|                [--force,-f] old-path new-path
+        #|       prg move [--reencrypt,-e | --interactive,-i | --keep,-k ]
+        #|                [--force,-f] old-path new-path
       }
       The error should equal "$(expected_err)"
       The result of function check_git_log should be successful
