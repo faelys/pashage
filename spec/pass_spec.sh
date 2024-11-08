@@ -2884,4 +2884,279 @@ Describe 'Pass-like command'
       The output should end with '============='
     End
   End
+
+  Describe 'working outside of a repository:'
+    REF_PREFIX="${SHELLSPEC_WORKDIR}/ref"
+    CHANGE_FILE="${SHELLSPEC_WORKDIR}/changes.diff"
+    make_gitless() {
+      @rm -rf "${PREFIX}/.git"
+      @cp -r "${PREFIX}" "${REF_PREFIX}"
+    }
+    clean_gitless() {
+      @rm -rf "${REF_PREFIX}" "${CHANGE_FILE}"
+    }
+    BeforeEach make_gitless
+    AfterEach clean_gitless
+
+    check_changes() {
+      (cd "${SHELLSPEC_WORKDIR}" && @diff -r ref store ||true)>"${CHANGE_FILE}"
+    }
+
+    Example 'init'
+      Skip if 'pass(age) needs bash' check_skip $2
+      Skip if 'passage has no init' [ "$2" = passage ]
+      When run script $1 init 'new-id'
+      The error should be blank
+      The status should be success
+      The output should include 'Password store'
+      changes() {
+        %text:expand
+        #|diff -r ref/-g.$1 store/-g.$1
+        #|1c1
+        #|< $1Recipient:myself
+        #|---
+        #|> $1Recipient:new-id
+        if [ "$1" = age ]; then
+          %putsn 'Only in store: .age-recipients'
+        else
+          %text
+          #|diff -r ref/.gpg-id store/.gpg-id
+          #|1c1
+          #|< myself
+          #|---
+          #|> new-id
+        fi
+        %text:expand
+        #|diff -r ref/extra/subdir/file.$1 store/extra/subdir/file.$1
+        #|1c1
+        #|< $1Recipient:myself
+        #|---
+        #|> $1Recipient:new-id
+        #|diff -r ref/extra.$1 store/extra.$1
+        #|1c1
+        #|< $1Recipient:myself
+        #|---
+        #|> $1Recipient:new-id
+        #|diff -r ref/stale.$1 store/stale.$1
+        #|1,2c1
+        #|< $1Recipient:master
+        #|< $1Recipient:myself
+        #|---
+        #|> $1Recipient:new-id
+        #|diff -r ref/subdir/file.$1 store/subdir/file.$1
+        #|1c1
+        #|< $1Recipient:myself
+        #|---
+        #|> $1Recipient:new-id
+      }
+      The directory "${PREFIX}/.git" should not be exist
+      The result of function check_changes should be successful
+      The contents of file "${CHANGE_FILE}" should equal "$(changes $3)"
+    End
+
+    Example 'ls'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 ls subdir
+      The status should be success
+      The error should be blank
+      The line 1 of output should include 'subdir'
+      The line 2 of output should include 'file'
+      The directory "${PREFIX}/.git" should not be exist
+      The result of function check_changes should be successful
+      The contents of file "${CHANGE_FILE}" should equal ''
+    End
+
+    Example 'find'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 find o
+      The status should be success
+      The lines of output should equal 6
+      The line 1 of output should match pattern 'Search *: o'
+      The line 2 of output should include 'fluff'
+      The line 3 of output should include 'one'
+      The line 4 of output should include 'one'
+      The line 5 of output should include 'two'
+      The line 6 of output should include 'two'
+      The directory "${PREFIX}/.git" should not be exist
+      The result of function check_changes should be successful
+      The contents of file "${CHANGE_FILE}" should equal ''
+    End
+
+    Example 'show'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 show subdir/file
+      The status should be success
+      The output should equal 'p4ssw0rd'
+      The error should be blank
+      The directory "${PREFIX}/.git" should not be exist
+      The result of function check_changes should be successful
+      The contents of file "${CHANGE_FILE}" should equal ''
+    End
+
+    Example 'grep'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 grep -i Com
+      The status should be success
+      The lines of output should equal 4
+      The line 1 of output should include 'fluff'
+      The output should include 'three'
+      The line 2 of output should include 'https://example.'
+      The line 3 of output should include 'fluff'
+      The output should include 'two'
+      The line 4 of output should include 'https://example.'
+      The directory "${PREFIX}/.git" should not be exist
+      The result of function check_changes should be successful
+      The contents of file "${CHANGE_FILE}" should equal ''
+    End
+
+    Example 'insert'
+      Skip if 'pass(age) needs bash' check_skip $2
+      Data
+        #|password
+        #|Username: tester
+        #|URL: https://example.com/login
+      End
+      When run script $1 insert -m rootpass
+      The status should be success
+      The output should include 'rootpass'
+      The error should be blank
+      expected_file() { %text:expand
+        #|$1Recipient:myself
+        #|$1:password
+        #|$1:Username: tester
+        #|$1:URL: https://example.com/login
+      }
+      The contents of file "${PREFIX}/rootpass.$3" should \
+        equal "$(expected_file $3)"
+      The directory "${PREFIX}/.git" should not be exist
+      The result of function check_changes should be successful
+      The contents of file "${CHANGE_FILE}" should \
+        equal "Only in store: rootpass.$3"
+    End
+
+    Example 'edit'
+      EDITOR=ed
+      TERM=dumb
+      Skip if 'pass(age) needs bash' check_skip $2
+      Data
+        #|2i
+        #|New line
+        #|.
+        #|wq
+      End
+      When run script $1 edit fluff/two
+      The status should be success
+      The error should be blank
+      changes() { %text:expand
+        #|diff -r ref/fluff/two.$1 store/fluff/two.$1
+        #|3a4
+        #|> $1:New line
+      }
+      The directory "${PREFIX}/.git" should not be exist
+      The result of function check_changes should be successful
+      The contents of file "${CHANGE_FILE}" should equal "$(changes $3)"
+    End
+
+    Example 'generate'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 generate newfile
+      The status should be success
+      The output should include 'The generated password for'
+      The file "${PREFIX}/newfile.$3" should be exist
+      The lines of contents of file "${PREFIX}/newfile.$3" should equal 2
+      The line 1 of contents of file "${PREFIX}/newfile.$3" should \
+        equal "$3Recipient:myself"
+      The output should include "$(@sed -n "2s/$3://p" "${PREFIX}/newfile.$3")"
+      The directory "${PREFIX}/.git" should not be exist
+      The result of function check_changes should be successful
+      The contents of file "${CHANGE_FILE}" should \
+        equal "Only in store: newfile.$3"
+    End
+
+    Example 'rm'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 rm -f subdir/file
+      The status should be success
+      The output should include 'subdir/file'
+      The error should be blank
+      The file "${PREFIX}/subdir/file.$3" should not be exist
+      The directory "${PREFIX}/.git" should not be exist
+      The result of function check_changes should be successful
+      The contents of file "${CHANGE_FILE}" should \
+        equal "Only in ref/subdir: file.$3"
+    End
+
+    Example 'mv'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 mv subdir/file subdir/renamed
+      The status should be success
+      The error should be blank
+      The file "${PREFIX}/subdir/file.$3" should not be exist
+      file_contents() { %text:expand
+        #|${1}Recipient:myself
+        #|${1}:p4ssw0rd
+      }
+      The contents of file "${PREFIX}/subdir/renamed.$3" \
+        should equal "$(file_contents "$3")"
+      changes() { %text:expand
+        #|Only in ref/subdir: file.$1
+        #|Only in store/subdir: renamed.$1
+      }
+      The directory "${PREFIX}/.git" should not be exist
+      The result of function check_changes should be successful
+      The contents of file "${CHANGE_FILE}" should equal "$(changes $3)"
+    End
+
+    Example 'cp'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 cp subdir/file copy
+      The status should be success
+      The error should be blank
+      file_contents() { %text:expand
+        #|${1}Recipient:myself
+        #|${1}:p4ssw0rd
+      }
+      The contents of file "${PREFIX}/copy.$3" \
+        should equal "$(file_contents "$3")"
+      The directory "${PREFIX}/.git" should not be exist
+      The result of function check_changes should be successful
+      The contents of file "${CHANGE_FILE}" should \
+        equal "Only in store: copy.$3"
+    End
+
+    Example 'help'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 help
+      The status should be success
+      if ! [ $2 = passage ]; then
+        The output should include ' init '
+      fi
+      The output should include ' find '
+      The output should include ' [show] '
+      The output should include ' grep '
+      The output should include ' insert '
+      The output should include ' edit '
+      The output should include ' generate '
+      The output should include ' git '
+      The output should include ' help'
+      The output should include ' version'
+      The directory "${PREFIX}/.git" should not be exist
+      The result of function check_changes should be successful
+      The contents of file "${CHANGE_FILE}" should equal ''
+    End
+
+    Example 'version'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 version
+      The status should be success
+      The output should include "$2:"
+      The output should match pattern "*v[0-9].[0-9].[0-9]*"
+      The output should include 'password manager'
+      The output should start with '============='
+      The output should end with '============='
+      The directory "${PREFIX}/.git" should not be exist
+      The result of function check_changes should be successful
+      The contents of file "${CHANGE_FILE}" should equal ''
+    End
+  End
 End
