@@ -328,9 +328,9 @@ Describe 'Command-Line Parsing'
     End
 
     usage_text() { %text
-        #|Usage: prg copy [--reencrypt,-e | --interactive,-i | --keep,-k ]
-        #|                [--force,-f] old-path new-path
-      }
+      #|Usage: prg copy [--reencrypt,-e | --interactive,-i | --keep,-k ]
+      #|                [--force,-f] old-path new-path
+    }
 
     It 'reports a bad option'
       cat() { @cat; }
@@ -1123,6 +1123,62 @@ Describe 'Command-Line Parsing'
       The error should equal "$(result)"
     End
 
+    It 'initializes the whole store conservatively with a long option'
+      result() {
+        %text | @sed 's/\$$//'
+        #|$ check_sneaky_path $
+        #|$ do_init  recipient-1 recipient-2
+        #|DECISION=keep
+        #|OVERWRITE=yes
+      }
+      When call cmd_init --keep recipient-1 recipient-2
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'initializes the whole store conservatively with a short option'
+      result() {
+        %text | @sed 's/\$$//'
+        #|$ check_sneaky_path $
+        #|$ do_init  recipient-1 recipient-2
+        #|DECISION=keep
+        #|OVERWRITE=yes
+      }
+      When call cmd_init -k recipient-1 recipient-2
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'initializes the whole store interactively with a long option'
+      result() {
+        %text | @sed 's/\$$//'
+        #|$ check_sneaky_path $
+        #|$ do_init  recipient-1 recipient-2
+        #|DECISION=interactive
+        #|OVERWRITE=yes
+      }
+      When call cmd_init --interactive recipient-1 recipient-2
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'initializes the whole store interactively with a short option'
+      result() {
+        %text | @sed 's/\$$//'
+        #|$ check_sneaky_path $
+        #|$ do_init  recipient-1 recipient-2
+        #|DECISION=interactive
+        #|OVERWRITE=yes
+      }
+      When call cmd_init -i recipient-1 recipient-2
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
     It 'initializes a subdirectory with a collapsed long option'
       result() {
         %text
@@ -1179,6 +1235,34 @@ Describe 'Command-Line Parsing'
       The error should equal "$(result)"
     End
 
+    It 'interactively initializes a directory with collapsed short options'
+      result() {
+        %text
+        #|$ check_sneaky_path sub
+        #|$ do_init sub recipient
+        #|DECISION=interactive
+        #|OVERWRITE=yes
+      }
+      When call cmd_init -ipsub recipient
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'conservatively initializes a directory with long options'
+      result() {
+        %text
+        #|$ check_sneaky_path sub
+        #|$ do_init sub recipient
+        #|DECISION=keep
+        #|OVERWRITE=yes
+      }
+      When call cmd_init --path sub --keep recipient
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
     It 'de-initializes a subdirectory'
       result() {
         %text
@@ -1206,12 +1290,32 @@ Describe 'Command-Line Parsing'
       The error should equal "$(result)"
     End
 
+    usage_text() { %text
+      #|Usage: prg init [--interactive,-i | --keep,-k ]
+      #|                [--path=subfolder,-p subfolder] age-recipient ...
+    }
+
     It 'reports a bad option'
       cat() { @cat; }
       When run cmd_init -q arg
       The output should be blank
-      The error should equal \
-        'Usage: prg init [--path=subfolder,-p subfolder] age-recipient ...'
+      The error should equal "$(usage_text)"
+      The status should equal 1
+    End
+
+    It 'reports conflicting options (`-i` then `-k`)'
+      cat() { @cat; }
+      When run cmd_init -ik arg
+      The output should be blank
+      The error should equal "$(usage_text)"
+      The status should equal 1
+    End
+
+    It 'reports conflicting options (`-k` then `-i`)'
+      cat() { @cat; }
+      When run cmd_init --keep --interactive arg
+      The output should be blank
+      The error should equal "$(usage_text)"
       The status should equal 1
     End
 
@@ -1219,8 +1323,7 @@ Describe 'Command-Line Parsing'
       cat() { @cat; }
       When run cmd_init -p sub
       The output should be blank
-      The error should equal \
-        'Usage: prg init [--path=subfolder,-p subfolder] age-recipient ...'
+      The error should equal "$(usage_text)"
       The status should equal 1
     End
 
@@ -1228,8 +1331,7 @@ Describe 'Command-Line Parsing'
       cat() { @cat; }
       When run cmd_init -p
       The output should be blank
-      The error should equal \
-        'Usage: prg init [--path=subfolder,-p subfolder] age-recipient ...'
+      The error should equal "$(usage_text)"
       The status should equal 1
     End
 
@@ -1237,8 +1339,7 @@ Describe 'Command-Line Parsing'
       cat() { @cat; }
       When run cmd_init
       The output should be blank
-      The error should equal \
-        'Usage: prg init [--path=subfolder,-p subfolder] age-recipient ...'
+      The error should equal "$(usage_text)"
       The status should equal 1
     End
   End

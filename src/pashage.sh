@@ -1267,12 +1267,23 @@ cmd_help() {
 }
 
 cmd_init() {
+	DECISION=default
 	OVERWRITE=yes
 	PARSE_ERROR=no
 	SUBDIR=''
 
 	while [ $# -ge 1 ]; do
 		case "$1" in
+		    -i|--interactive)
+			[ "${DECISION}" = default ] || PARSE_ERROR=yes
+			DECISION=interactive
+			shift ;;
+
+		    -k|--keep)
+			[ "${DECISION}" = default ] || PARSE_ERROR=yes
+			DECISION=keep
+			shift ;;
+
 		    -p|--path)
 			if [ $# -lt 2 ]; then
 				PARSE_ERROR=yes
@@ -1289,6 +1300,15 @@ cmd_init() {
 		    --path=*)
 			SUBDIR="${1#--path=}"
 			shift ;;
+
+		    -[ik]?*)
+			REST="${1#-?}"
+			ARG="${1%"${REST}"}"
+			shift
+			set -- "${ARG}" "-${REST}" "$@"
+			unset ARG
+			unset REST
+			;;
 
 		    --)
 			shift
@@ -1607,7 +1627,8 @@ EOF
 			;;
 		    init)
 			cat <<EOF
-${F}${PROGRAM} init [--path=subfolder,-p subfolder] age-recipient ...
+${F}${PROGRAM} init [--interactive,-i | --keep,-k ]
+${I}${BLANKPG}      [--path=subfolder,-p subfolder] age-recipient ...
 EOF
 			[ "${VERBOSE}" = yes ] && cat <<EOF
 ${I}    Initialize new password storage and use the given age recipients

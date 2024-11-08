@@ -743,10 +743,8 @@ Describe 'Integrated Command Functions'
   End
 
   Describe 'cmd_init'
-    DECISION=default
-
     It 're-encrypts the whole store using a recipient ids named like a flag'
-      When run cmd_init -- -p 'new-id'
+      When call cmd_init -- -p 'new-id'
       The status should be success
       The output should equal 'Password store recipients set at store root'
       The error should be blank
@@ -766,6 +764,67 @@ Describe 'Integrated Command Functions'
         #| 4 files changed, 8 insertions(+), 4 deletions(-)
         setup_log
       }
+      The result of function check_git_log should be successful
+    End
+
+    It 'does not re-encrypt with `keep` flag'
+      When call cmd_init -k 'new-id'
+      The status should be success
+      The output should equal 'Password store recipients set at store root'
+      The error should be blank
+      The contents of file "${PREFIX}/.age-recipients" should equal 'new-id'
+      expected_log() { %text
+        #|Set age recipients at store root
+        #|
+        #| .age-recipients | 1 +
+        #| 1 file changed, 1 insertion(+)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+
+    It 'asks before re-encrypting each file with `interactive` flag'
+      Data
+        #|n
+        #|y
+        #|n
+      End
+      When call cmd_init -i 'new-id'
+      The status should be success
+      The output should equal 'Re-encrypt extra/subdir/file? [y/n]Re-encrypt stale? [y/n]Re-encrypt subdir/file? [y/n]Password store recipients set at store root'
+      The error should be blank
+      The contents of file "${PREFIX}/.age-recipients" should equal 'new-id'
+      expected_log() { %text
+        #|Set age recipients at store root
+        #|
+        #| .age-recipients | 1 +
+        #| stale.age       | 3 +--
+        #| 2 files changed, 2 insertions(+), 2 deletions(-)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+
+    usage_text() { %text
+      #|Usage: prg init [--interactive,-i | --keep,-k ]
+      #|                [--path=subfolder,-p subfolder] age-recipient ...
+    }
+
+    It 'displays usage when using incompatible options (`-i` then `-k`)'
+      PROGRAM=prg
+      When run cmd_init --interactive --keep 'new-id'
+      The status should equal 1
+      The output should be blank
+      The error should equal "$(usage_text)"
+      The result of function check_git_log should be successful
+    End
+
+    It 'displays usage when using incompatible options (`-k` then `-i`)'
+      PROGRAM=prg
+      When run cmd_init -ki 'new-id'
+      The status should equal 1
+      The output should be blank
+      The error should equal "$(usage_text)"
       The result of function check_git_log should be successful
     End
   End
