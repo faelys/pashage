@@ -882,6 +882,56 @@ Describe 'Integrated Command Functions'
     MULTILINE=no
     OVERWRITE=no
 
+    It 'inserts an entry encrypted using an explicit recipient file'
+      PASHAGE_RECIPIENTS_FILE="${PREFIX}/fluff/.age-recipients"
+      PASSAGE_RECIPIENTS_FILE="${PREFIX}/shared/.age-recipients"
+      PASHAGE_RECIPIENTS='shadowed'
+      PASSAGE_RECIPIENTS='shadowed'
+      Data 'pass'
+      When call cmd_insert -e shared/new-file
+      The status should be success
+      The output should include 'shared/new-file'
+      expected_file() { %text:expand
+        #|ageRecipient:master
+        #|ageRecipient:myself
+        #|age:pass
+      }
+      The contents of file "${PREFIX}/shared/new-file.age" should \
+        equal "$(expected_file)"
+      expected_log() { %text
+        #|Add given password for shared/new-file to store.
+        #|
+        #| shared/new-file.age | 3 +++
+        #| 1 file changed, 3 insertions(+)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+
+    It 'inserts an entry encrypted using explicit recipients'
+      PASHAGE_RECIPIENTS='force-1 force-2'
+      PASSAGE_RECIPIENTS='shadowed'
+      Data 'pass'
+      When call cmd_insert -e shared/new-file
+      The status should be success
+      The output should include 'shared/new-file'
+      expected_file() { %text:expand
+        #|ageRecipient:force-1
+        #|ageRecipient:force-2
+        #|age:pass
+      }
+      The contents of file "${PREFIX}/shared/new-file.age" should \
+        equal "$(expected_file)"
+      expected_log() { %text
+        #|Add given password for shared/new-file to store.
+        #|
+        #| shared/new-file.age | 3 +++
+        #| 1 file changed, 3 insertions(+)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+
     It 'inserts several new single-line entries'
       stty() { false; }
       Data

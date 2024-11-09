@@ -952,19 +952,73 @@ Describe 'Action Functions'
       The status should equal 1
     End
 
-    It 'uses all recipient sources simultaneously'
-      PASHAGE_RECIPIENTS_FILE='/path/to/recipients/1'
-      PASSAGE_RECIPIENTS_FILE='/path/to/recipients/2'
-      PASHAGE_RECIPIENTS='inline-recipient-1 inline-recipient-2'
-      PASSAGE_RECIPIENTS='inline-recipient-3 inline-recipient-4'
+    It 'uses PASSAGE_RECIPIENTS rather than LOCAL_RECIPIENT_FILE'
+      PASSAGE_RECIPIENTS='inline-recipient-1 inline-recipient-2'
       set_LOCAL_RECIPIENT_FILE() {
-        LOCAL_RECIPIENT_FILE='/path/to/recipients/3'
+        LOCAL_RECIPIENT_FILE='shadowed'
       }
       OVERWRITE=yes
       result() {
         %text
         #|$ mkdir -p /prefix/encrypted
-        #|$ age -e -R /path/to/recipients/1 -R /path/to/recipients/2 -r inline-recipient-1 -r inline-recipient-2 -r inline-recipient-3 -r inline-recipient-4 -R /path/to/recipients/3 -o /prefix/encrypted/file.age
+        #|$ age -e -r inline-recipient-1 -r inline-recipient-2 -o /prefix/encrypted/file.age
+      }
+
+      When call do_encrypt 'encrypted/file.age'
+      The status should be success
+      The error should equal "$(result)"
+    End
+
+    It 'uses PASHAGE_RECIPIENTS rather than PASSAGE_RECIPIENTS'
+      PASHAGE_RECIPIENTS='inline-recipient-1 inline-recipient-2'
+      PASSAGE_RECIPIENTS='shadowed'
+      set_LOCAL_RECIPIENT_FILE() {
+        LOCAL_RECIPIENT_FILE='shadowed'
+      }
+      OVERWRITE=yes
+      result() {
+        %text
+        #|$ mkdir -p /prefix/encrypted
+        #|$ age -e -r inline-recipient-1 -r inline-recipient-2 -o /prefix/encrypted/file.age
+      }
+
+      When call do_encrypt 'encrypted/file.age'
+      The status should be success
+      The error should equal "$(result)"
+    End
+
+    It 'uses PASSAGE_RECIPIENTS_FILE rather than PASHAGE_RECIPIENTS'
+      PASSAGE_RECIPIENTS_FILE='/path/to/recipients'
+      PASHAGE_RECIPIENTS='shadowed'
+      PASSAGE_RECIPIENTS='shadowed'
+      set_LOCAL_RECIPIENT_FILE() {
+        LOCAL_RECIPIENT_FILE='shadowed'
+      }
+      OVERWRITE=yes
+      result() {
+        %text
+        #|$ mkdir -p /prefix/encrypted
+        #|$ age -e -R /path/to/recipients -o /prefix/encrypted/file.age
+      }
+
+      When call do_encrypt 'encrypted/file.age'
+      The status should be success
+      The error should equal "$(result)"
+    End
+
+    It 'uses PASHAGE_RECIPIENTS_FILE rather than PASSAGE_RECIPIENTS_FILE'
+      PASHAGE_RECIPIENTS_FILE='/path/to/recipients'
+      PASSAGE_RECIPIENTS_FILE='shadowed'
+      PASHAGE_RECIPIENTS='shadowed'
+      PASSAGE_RECIPIENTS='shadowed'
+      set_LOCAL_RECIPIENT_FILE() {
+        LOCAL_RECIPIENT_FILE='shadowed'
+      }
+      OVERWRITE=yes
+      result() {
+        %text
+        #|$ mkdir -p /prefix/encrypted
+        #|$ age -e -R /path/to/recipients -o /prefix/encrypted/file.age
       }
 
       When call do_encrypt 'encrypted/file.age'

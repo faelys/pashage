@@ -1064,6 +1064,59 @@ Describe 'Pass-like command'
       The contents of file "${GITLOG}" should equal "$(expected_log $3)"
     End
 
+    It 'inserts an entry encrypted using an explicit recipient file'
+      Skip if 'pass(age) needs bash' check_skip $2
+      Skip if 'this is an age recipient test' [ -n "${3#age}" ]
+      export PASSAGE_RECIPIENTS_FILE="${PREFIX}/fluff/.age-recipients"
+      export PASSAGE_RECIPIENTS='shadowed'
+      Data 'pass'
+      When run script $1 insert -e shared/new-file
+      The status should be success
+      The output should include 'shared/new-file'
+      expected_file() { %text:expand
+        #|$1Recipient:master
+        #|$1Recipient:myself
+        #|$1:pass
+      }
+      The contents of file "${PREFIX}/shared/new-file.$3" should \
+        equal "$(expected_file $3)"
+      expected_log() { %text:expand
+        #|Add given password for shared/new-file to store.
+        #|
+        #| shared/new-file.$1 | 3 +++
+        #| 1 file changed, 3 insertions(+)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3)"
+    End
+
+    It 'inserts an entry encrypted using explicit recipients'
+      Skip if 'pass(age) needs bash' check_skip $2
+      Skip if 'this is an age recipient test' [ -n "${3#age}" ]
+      export PASSAGE_RECIPIENTS='force-1 force-2'
+      Data 'pass'
+      When run script $1 insert -e shared/new-file
+      The status should be success
+      The output should include 'shared/new-file'
+      expected_file() { %text:expand
+        #|$1Recipient:force-1
+        #|$1Recipient:force-2
+        #|$1:pass
+      }
+      The contents of file "${PREFIX}/shared/new-file.$3" should \
+        equal "$(expected_file $3)"
+      expected_log() { %text:expand
+        #|Add given password for shared/new-file to store.
+        #|
+        #| shared/new-file.$1 | 3 +++
+        #| 1 file changed, 3 insertions(+)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3)"
+    End
+
     It 'displays usage when called without argument'
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 insert

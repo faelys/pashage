@@ -566,32 +566,30 @@ do_encrypt() {
 
 	if [ -n "${PASHAGE_RECIPIENTS_FILE-}" ]; then
 		set -- "$@" -R "${PASHAGE_RECIPIENTS_FILE}"
-	fi
 
-	if [ -n "${PASSAGE_RECIPIENTS_FILE-}" ]; then
+	elif [ -n "${PASSAGE_RECIPIENTS_FILE-}" ]; then
 		set -- "$@" -R "${PASSAGE_RECIPIENTS_FILE}"
-	fi
 
-	if [ -n "${PASHAGE_RECIPIENTS-}" ]; then
+	elif [ -n "${PASHAGE_RECIPIENTS-}" ]; then
 		for ARG in ${PASHAGE_RECIPIENTS}; do
 			set -- "$@" -r "${ARG}"
 		done
 		unset ARG
-	fi
 
-	if [ -n "${PASSAGE_RECIPIENTS-}" ]; then
+	elif [ -n "${PASSAGE_RECIPIENTS-}" ]; then
 		for ARG in ${PASSAGE_RECIPIENTS}; do
 			set -- "$@" -r "${ARG}"
 		done
 		unset ARG
-	fi
 
-	set_LOCAL_RECIPIENT_FILE "${TARGET}"
-
-	if [ -n "${LOCAL_RECIPIENT_FILE}" ]; then
-		set -- "$@" -R "${LOCAL_RECIPIENT_FILE}"
 	else
-		set -- "$@" -i "${IDENTITIES_FILE}"
+		set_LOCAL_RECIPIENT_FILE "${TARGET}"
+
+		if [ -n "${LOCAL_RECIPIENT_FILE}" ]; then
+			set -- "$@" -R "${LOCAL_RECIPIENT_FILE}"
+		else
+			set -- "$@" -i "${IDENTITIES_FILE}"
+		fi
 	fi
 
 	unset LOCAL_RECIPIENT_FILE
