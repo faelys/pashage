@@ -1547,6 +1547,14 @@ Describe 'Integrated Command Functions'
       The error should equal 'Unexpected DECISION value "invalid"'
     End
 
+    It 'includes overwriting a file using do_encrypt'
+      OVERWRITE=no
+      When run do_encrypt 'y.txt'
+      The status should equal 1
+      The output should be blank
+      The error should equal 'Refusing to overwite y.txt'
+    End
+
     It 'includes invalid values of SHOW in do_show'
       SHOW='invalid'
       When run do_show
@@ -1557,6 +1565,23 @@ Describe 'Integrated Command Functions'
         #|                   --qrcode[=line-number],-q[line-number]] pass-name
       }
       The error should equal 'Unexpected SHOW value "invalid"'
+    End
+
+    It 'includes interactive yesno'
+      # Technically not unreachable, but not worse than faking a terminal
+      # for each call of `yesno` when the whole test suite is outside
+      # of terminal anyway
+
+      stty() { true; }
+      Data
+        #|x
+        #|Y
+      End
+      When call yesno 'Prompt?'
+      The status should be success
+      The error should be blank
+      The output should equal 'Prompt? [y/n]'
+      The variable ANSWER should equal 'y'
     End
   End
 End

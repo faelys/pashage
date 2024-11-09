@@ -42,6 +42,7 @@ cov2:
 	shellspec --kcov -s bash \
 	    spec/pass_spec.sh \
 	    spec/pashage_extra_spec.sh
+	grep -q '"covered":"100.0"' coverage/index.js
 
 tests:
 	shellspec
