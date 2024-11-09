@@ -1139,7 +1139,6 @@ Describe 'Action Functions'
     It 'updates the first line of an existing file'
       OVERWRITE=yes
       mktemp() { %= "$1"; }
-      tail() { @tail "$@"; }
       do_decrypt() {
         mocklog do_decrypt "$@"
         %text
@@ -1157,6 +1156,34 @@ Describe 'Action Functions'
         #|> 0123456789
         #|> line 2
         #|> line 3
+        #|$ mv ${PREFIX}/existing-XXXXXXXXX.age ${PREFIX}/existing.age
+        #|$ scm_add ${PREFIX}/existing.age
+        #|$ scm_commit Replace generated password for existing.
+        #|$ do_show existing
+        #|> 0123456789
+      }
+      When call do_generate existing 10 '[alnum:]'
+      The status should be success
+      The output should equal 'Decrypting previous secret for existing'
+      The error should equal "$(result)"
+    End
+
+    It 'updates the only line of an existing one-line file'
+      OVERWRITE=yes
+      mktemp() { %= "$1"; }
+      do_decrypt() {
+        mocklog do_decrypt "$@"
+        %text
+        #|old password
+      }
+      mv() { mocklog mv "$@"; }
+      result(){
+        %text:expand
+        #|$ scm_begin
+        #|$ mkdir -p -- ${PREFIX}
+        #|$ do_decrypt ${PREFIX}/existing.age
+        #|$ do_encrypt existing-XXXXXXXXX.age
+        #|> 0123456789
         #|$ mv ${PREFIX}/existing-XXXXXXXXX.age ${PREFIX}/existing.age
         #|$ scm_add ${PREFIX}/existing.age
         #|$ scm_commit Replace generated password for existing.
@@ -1205,6 +1232,21 @@ Describe 'Action Functions'
         ( cd "${PREFIX}" && do_grep '' "$@" )
       }
       When call start_do_grep ot
+      The status should be success
+      The output should equal "$(result)"
+    End
+
+    It 'outputs all the matching lines'
+      result(){
+        %text
+        #|(B)subdir/(G)match(N):
+        #|other
+        #|suffix
+      }
+      start_do_grep(){
+        ( cd "${PREFIX}" && do_grep '' "$@" )
+      }
+      When call start_do_grep -vea
       The status should be success
       The output should equal "$(result)"
     End
@@ -1609,7 +1651,7 @@ Describe 'Action Functions'
       mocklog do_encrypt "$@"
     }
 
-    mktemp() { %putsn "$1"; }
+    mktemp() { %putsn "${2-$1}"; }
     mv() { mocklog mv "$@"; }
     scm_add() { mocklog scm_add "$@"; }
     scm_begin() { mocklog scm_begin "$@"; }

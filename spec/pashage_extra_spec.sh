@@ -344,6 +344,17 @@ Describe 'Integrated Command Functions'
       The result of function check_git_log should be successful
     End
 
+    It 'aborts on decryption failure even without pipefail'
+      Set 'pipefail:off'
+      mock-age() { false; }
+      When run cmd_move --reencrypt stale renamed
+      The status should equal 1
+      The error should equal \
+        "Fatal(1): mock-age -d -i ${IDENTITIES_FILE} -- ${PREFIX}/stale.age"
+      The output should be blank
+      The result of function check_git_log should be successful
+    End
+
     It 'displays usage when called with incompatible reencryption arguments'
       PROGRAM=prg
       COMMAND=copy
@@ -544,6 +555,18 @@ Describe 'Integrated Command Functions'
       The file "${PREFIX}/subdir/new.gpg" should not be exist
       The result of function check_git_log should be successful
     End
+
+    It 'aborts on decryption failure even without pipefail'
+      Set 'pipefail:off'
+      mock-age() { false; }
+      tail() { @tail "$@"; }
+      When run cmd_edit stale
+      The status should equal 1
+      The error should equal \
+        "Fatal(1): mock-age -d -i ${IDENTITIES_FILE} -- ${PREFIX}/stale.age"
+      The output should be blank
+      The result of function check_git_log should be successful
+    End
   End
 
   Describe 'cmd_find'
@@ -623,6 +646,18 @@ Describe 'Integrated Command Functions'
       The result of function git_log should be successful
       The contents of file "${GITLOG}" should equal "$(setup_log)"
     End
+
+    It 'aborts on decryption failure even without pipefail'
+      Set 'pipefail:off'
+      mock-age() { false; }
+      tail() { @tail "$@"; }
+      When run cmd_generate --inplace stale
+      The status should equal 1
+      The error should equal \
+        "Fatal(1): mock-age -d -i ${IDENTITIES_FILE} -- ${PREFIX}/stale.age"
+      The output should equal 'Decrypting previous secret for stale'
+      The result of function check_git_log should be successful
+    End
   End
 
   Describe 'cmd_git'
@@ -652,7 +687,19 @@ Describe 'Integrated Command Functions'
     End
   End
 
-# Describe 'cmd_grep' is not needed (fully covered in pass_spec.sh)
+  Describe 'cmd_grep'
+    It 'aborts on decryption failure even without pipefail'
+      Set 'pipefail:off'
+      grep() { @grep "$@"; }
+      mock-age() { false; }
+      When run cmd_grep foo
+      The status should equal 1
+      The error should equal \
+        "Fatal(1): mock-age -d -i ${IDENTITIES_FILE} -- file.age"
+      The output should be blank
+      The result of function check_git_log should be successful
+    End
+  End
 
   Describe 'cmd_gitconfig'
     grep() { @grep "$@"; }
@@ -1050,6 +1097,27 @@ Describe 'Integrated Command Functions'
       }
       The error should equal "$(expected_err)"
     End
+
+    It 'aborts on age decryption failure even without pipefail'
+      Set 'pipefail:off'
+      mock-age() { false; }
+      When run cmd_list_or_show stale
+      The status should equal 1
+      The error should equal \
+        "Fatal(1): mock-age -d -i ${IDENTITIES_FILE} -- ${PREFIX}/stale.age"
+      The output should be blank
+      The result of function check_git_log should be successful
+    End
+
+    It 'aborts on gpg decryption failure even without pipefail'
+      Set 'pipefail:off'
+      GPG=false
+      When run cmd_list_or_show old
+      The status should equal 1
+      The error should equal "Fatal(1): false -d --quiet --yes --compress-algo=none --no-encrypt-to -- ${PREFIX}/old.gpg"
+      The output should be blank
+      The result of function check_git_log should be successful
+    End
   End
 
 # Describe 'cmd_move' is not needed (covered by 'cmd_copy_move')
@@ -1235,6 +1303,17 @@ Describe 'Integrated Command Functions'
       The status should equal 1
       The output should be blank
       The error should include 'sneaky'
+      The result of function check_git_log should be successful
+    End
+
+    It 'aborts on age decryption failure even without pipefail'
+      Set 'pipefail:off'
+      mock-age() { false; }
+      When run cmd_reencrypt stale
+      The status should equal 1
+      The error should equal \
+        "Fatal(1): mock-age -d -i ${IDENTITIES_FILE} -- ${PREFIX}/stale.age"
+      The output should be blank
       The result of function check_git_log should be successful
     End
   End

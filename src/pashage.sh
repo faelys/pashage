@@ -69,6 +69,12 @@ glob_exists() {
 	fi
 }
 
+# Always-successful grep filter
+#   ... grep arguments
+grep_filter() {
+	grep "$@" || true
+}
+
 # Generate random characters
 #   $1: number of characters
 #   $2: allowed character set
@@ -626,14 +632,23 @@ do_generate() {
 
 	elif [ -e "${PREFIX}/$1.age" ] && [ "${OVERWRITE}" = yes ]; then
 		printf '%s\n' "Decrypting previous secret for $1"
-		OLD_SECRET="$(do_decrypt "${PREFIX}/$1.age" | tail -n +2)"
+		OLD_SECRET_FULL="$(do_decrypt "${PREFIX}/$1.age")"
+		OLD_SECRET="${OLD_SECRET_FULL#*
+}"
 		WIP_FILE="$(mktemp "${PREFIX}/$1-XXXXXXXXX.age")"
-		do_encrypt "${WIP_FILE#"${PREFIX}"/}" <<-EOF
-			${NEW_PASS}
-			${OLD_SECRET}
-		EOF
+		if [ "${OLD_SECRET}" = "${OLD_SECRET_FULL}" ]; then
+			do_encrypt "${WIP_FILE#"${PREFIX}"/}" <<-EOF
+				${NEW_PASS}
+			EOF
+		else
+			do_encrypt "${WIP_FILE#"${PREFIX}"/}" <<-EOF
+				${NEW_PASS}
+				${OLD_SECRET}
+			EOF
+		fi
 		mv "${WIP_FILE}" "${PREFIX}/$1.age"
 		VERB="Replace"
+		unset OLD_SECRET_FULL
 		unset OLD_SECRET
 		unset WIP_FILE
 
@@ -691,14 +706,29 @@ do_grep() {
 		if [ -d "${ARG}" ]; then
 			( cd "${ARG}" && do_grep "${SUBDIR}${ARG}/" "$@" )
 		elif [ "${ARG}" = "${ARG%.age}.age" ]; then
-			FOUND="$(do_decrypt "${ARG}" | (grep "$@" || true))"
-			if [ -n "${FOUND}" ]; then
-				printf '%s%s\n%s\n' \
-				      "${BLUE_TEXT}${SUBDIR}" \
-				      "${BOLD_TEXT}${ARG%.age}${NORMAL_TEXT}:" \
-				      "${FOUND}"
-			fi
+			HEADER="${BLUE_TEXT}${SUBDIR}${BOLD_TEXT}"
+			HEADER="${HEADER}${ARG%.age}${NORMAL_TEXT}:"
+			SECRET="$(do_decrypt "${ARG}")"
+			do_grep_filter "$@" <<-EOF
+				${SECRET}
+			EOF
 		fi
+	done
+
+	unset ARG
+	unset HEADER
+}
+
+# Wrapper around grep filter to added a header when a match is found
+#   ... grep arguments
+#   HEADER header to print before matches, if any
+do_grep_filter() {
+	unset SECRET
+
+	grep_filter "$@" | while IFS= read -r LINE; do
+		[ -n "${HEADER}" ] && printf '%s\n' "${HEADER}"
+		printf '%s\n' "${LINE}"
+		HEADER=''
 	done
 }
 
@@ -790,7 +820,9 @@ do_insert() {
 			fi
 		done
 
-		printf '%s\n' "${LINE1}" | do_encrypt "$1.age"
+		do_encrypt "$1.age" <<-EOF
+			${LINE1}
+		EOF
 		unset LINE1 LINE2
 	fi
 
@@ -804,11 +836,19 @@ do_list_or_show() {
 	if [ -z "$1" ]; then
 		do_tree "${PREFIX}" "Password Store"
 	elif [ -f "${PREFIX}/$1.age" ]; then
-		do_decrypt "${PREFIX}/$1.age" | do_show "$1"
+		SECRET="$(do_decrypt "${PREFIX}/$1.age")"
+		do_show "$1" <<-EOF
+			${SECRET}
+		EOF
+		unset SECRET
 	elif [ -d "${PREFIX}/$1" ]; then
 		do_tree "${PREFIX}/$1" "$1"
 	elif [ -f "${PREFIX}/$1.gpg" ]; then
-		do_decrypt_gpg "${PREFIX}/$1.gpg" | do_show "$1"
+		SECRET="$(do_decrypt_gpg "${PREFIX}/$1.gpg")"
+		do_show "$1" <<-EOF
+			${SECRET}
+		EOF
+		unset SECRET
 	else
 		die "Error: $1 is not in the password store."
 	fi
@@ -872,9 +912,11 @@ do_reencrypt_file() {
 	fi
 
 	OVERWRITE=once
-	WIP_FILE="$(mktemp "${PREFIX}/$1-XXXXXXXXX.age")"
-	do_decrypt "${PREFIX}/$1.age" \
-	    | do_encrypt "${WIP_FILE#"${PREFIX}"/}"
+	WIP_FILE="$(mktemp -u "${PREFIX}/$1-XXXXXXXXX.age")"
+	SECRET="$(do_decrypt "${PREFIX}/$1.age")"
+	do_encrypt "${WIP_FILE#"${PREFIX}"/}" <<-EOF
+		${SECRET}
+	EOF
 	mv -f -- "${WIP_FILE}" "${PREFIX}/$1.age"
 	unset WIP_FILE
 	scm_add "$1.age"
@@ -885,6 +927,8 @@ do_reencrypt_file() {
 #   SELECTED_LINE: which line to paste or diplay as qr-code
 #   SHOW: how to show the secret
 do_show() {
+	unset SECRET
+
 	case "${SHOW}" in
 	    text)
 		cat

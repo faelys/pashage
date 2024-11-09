@@ -1554,6 +1554,27 @@ Describe 'Pass-like command'
       The contents of file "${GITLOG}" should equal "$(expected_log $3)"
     End
 
+    It 'replaces the line of an existing one-line file'
+      Skip if 'pass(age) needs bash' check_skip $2
+      When run script $1 generate -ni fluff/one 4
+      The status should be success
+      The output should include 'The generated password for'
+      The lines of contents of file "${PREFIX}/fluff/one.$3" should equal 3
+      The line 3 of contents of file "${PREFIX}/fluff/one.$3" should \
+        match pattern "$3:[0-9a-zA-z][0-9a-zA-z][0-9a-zA-z][0-9a-zA-z]"
+      The output should \
+        include "$(@sed -n "3s/$3://p" "${PREFIX}/fluff/one.$3")"
+      expected_log() { %text:expand
+        #|Replace generated password for fluff/one.
+        #|
+        #| fluff/one.$1 | 2 +-
+        #| 1 file changed, 1 insertion(+), 1 deletion(-)
+        setup_log
+      }
+      The result of function git_log should be successful
+      The contents of file "${GITLOG}" should equal "$(expected_log $3)"
+    End
+
     It 'pastes the generated password into the clipboard'
       DISPLAY=mock
       Skip if 'pass(age) needs bash' check_skip $2
