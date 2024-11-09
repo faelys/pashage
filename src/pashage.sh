@@ -847,7 +847,7 @@ do_reencrypt() {
 #   $1: absolute directory path
 #   DECISION: whether to ask before re-encryption
 do_reencrypt_dir() {
-	for ENTRY in "$1"/*; do
+	for ENTRY in "${1%/}"/*; do
 		if [ -d "${ENTRY}" ]; then
 			if ! [ -e "${ENTRY}/.age-recipients" ] \
 			    || [ "${DECISION}" = force ]

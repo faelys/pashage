@@ -1665,6 +1665,54 @@ Describe 'Action Functions'
       The error should equal "$(result)"
     End
 
+    It 'recursively re-encrypts the whole store as /'
+      result() {
+        %text:expand
+        #|$ scm_begin
+        #|$ do_decrypt ${PREFIX}/root.age
+        #|$ do_encrypt root-XXXXXXXXX.age
+        #|$ mv -f -- ${PREFIX}/root-XXXXXXXXX.age ${PREFIX}/root.age
+        #|$ scm_add root.age
+        #|$ do_decrypt ${PREFIX}/subdir/middle.age
+        #|$ do_encrypt subdir/middle-XXXXXXXXX.age
+        #|$ mv -f -- ${PREFIX}/subdir/middle-XXXXXXXXX.age ${PREFIX}/subdir/middle.age
+        #|$ scm_add subdir/middle.age
+        #|$ do_decrypt ${PREFIX}/subdir/subsub/deep.age
+        #|$ do_encrypt subdir/subsub/deep-XXXXXXXXX.age
+        #|$ mv -f -- ${PREFIX}/subdir/subsub/deep-XXXXXXXXX.age ${PREFIX}/subdir/subsub/deep.age
+        #|$ scm_add subdir/subsub/deep.age
+        #|$ scm_commit Re-encrypt /
+      }
+      When call do_reencrypt /
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'recursively re-encrypts the whole store as the empty string'
+      result() {
+        %text:expand
+        #|$ scm_begin
+        #|$ do_decrypt ${PREFIX}/root.age
+        #|$ do_encrypt root-XXXXXXXXX.age
+        #|$ mv -f -- ${PREFIX}/root-XXXXXXXXX.age ${PREFIX}/root.age
+        #|$ scm_add root.age
+        #|$ do_decrypt ${PREFIX}/subdir/middle.age
+        #|$ do_encrypt subdir/middle-XXXXXXXXX.age
+        #|$ mv -f -- ${PREFIX}/subdir/middle-XXXXXXXXX.age ${PREFIX}/subdir/middle.age
+        #|$ scm_add subdir/middle.age
+        #|$ do_decrypt ${PREFIX}/subdir/subsub/deep.age
+        #|$ do_encrypt subdir/subsub/deep-XXXXXXXXX.age
+        #|$ mv -f -- ${PREFIX}/subdir/subsub/deep-XXXXXXXXX.age ${PREFIX}/subdir/subsub/deep.age
+        #|$ scm_add subdir/subsub/deep.age
+        #|$ scm_commit Re-encrypt /
+      }
+      When call do_reencrypt ''
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
     It 'asks for confirmation before each file'
       DECISION=interactive
       YESNO_NEXT=n
