@@ -1047,8 +1047,10 @@ Describe 'Integrated Command Functions'
   Describe 'cmd_list_or_show'
     SHOW=text
 
-    It 'decrypts a GPG secret in the store'
+    It 'decrypts a GPG secret in the store using GPG'
       GPG=mock-gpg
+      gpg() { false; }
+      gpg2() { false; }
       When call cmd_list_or_show old
       The status should be success
       The error should be blank
@@ -1057,6 +1059,44 @@ Describe 'Integrated Command Functions'
         #|Username: previous-life
       }
       The output should equal "$(expected_out)"
+    End
+
+    It 'decrypts a GPG secret in the store using gpg2'
+      unset GPG
+      gpg() { false; }
+      gpg2() {
+        [ $# -eq 9 ] && [ "$6" = '--batch' ] && [ "$7" = '--use-agent' ] \
+         && mock-gpg "$1" "$2" "$3" "$4" "$5" "$8" "$9"
+      }
+      When call cmd_list_or_show old
+      The status should be success
+      The error should be blank
+      expected_out() { %text
+        #|very-old-password
+        #|Username: previous-life
+      }
+      The output should equal "$(expected_out)"
+    End
+
+    It 'decrypts a GPG secret in the store using gpg'
+      unset GPG
+      gpg() { mock-gpg "$@"; }
+      When call cmd_list_or_show old
+      The status should be success
+      The error should be blank
+      expected_out() { %text
+        #|very-old-password
+        #|Username: previous-life
+      }
+      The output should equal "$(expected_out)"
+    End
+
+    It 'fails to decrypt a GPG secret without gpg'
+      unset GPG
+      When run cmd_list_or_show old
+      The status should equal 1
+      The error should equal 'GPG does not seem available'
+      The output should be blank
     End
 
     It 'displays both list and show usage on parse error with ambiguity'
