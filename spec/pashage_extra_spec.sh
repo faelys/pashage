@@ -1428,6 +1428,112 @@ Describe 'Integrated Command Functions'
 
 # Describe 'cmd_version' is not needed (fully covered in pass_spec.sh)
 
+  Describe 'refuse to operate on dirty checkout:'
+    make_dirty() {
+      %putsn 'untracked data' >"${PREFIX}/untracked.txt"
+    }
+    BeforeEach make_dirty
+
+    git_log() {
+      @rm -f "${PREFIX}/untracked.txt"
+      @git -C "${PREFIX}" status --porcelain >&2
+      @git -C "${PREFIX}" log --format='%s' --stat >|"${GITLOG}"
+    }
+
+    # 'copy' relies on 'copy/move'
+
+    Example 'copy/move'
+      When run cmd_copy_move stale subdir/
+      The status should equal 1
+      The error should equal 'There are already pending changes.'
+      The output should be blank
+      The result of function check_git_log should be successful
+    End
+
+    Example 'delete'
+      DECISION=force
+      OVERWRITE=no
+      When run cmd_delete stale
+      The status should equal 1
+      The error should equal 'There are already pending changes.'
+      The output should equal 'Removing stale'
+      The result of function check_git_log should be successful
+    End
+
+    Example 'edit'
+      When run cmd_edit subdir/file
+      The status should equal 1
+      The error should equal 'There are already pending changes.'
+      The output should be blank
+      The result of function check_git_log should be successful
+    End
+
+    # 'find' does not change the repository
+
+    Example 'generate'
+      DECISION=default
+      OVERWRITE=no
+      When run cmd_generate new-pass
+      The status should equal 1
+      The error should equal 'There are already pending changes.'
+      The output should be blank
+      The result of function check_git_log should be successful
+    End
+
+    # 'git' does not change directly the repository
+
+    Example 'gitconfig'
+      When run cmd_gitconfig
+      The status should equal 1
+      The error should equal 'There are already pending changes.'
+      The output should be blank
+      The result of function check_git_log should be successful
+    End
+
+    # 'grep' does not change the repository
+    # 'help' does not change the repository
+
+    Example 'init'
+      When run cmd_init -p subdir/ new-id
+      The status should equal 1
+      The error should equal 'There are already pending changes.'
+      The output should be blank
+      The result of function check_git_log should be successful
+    End
+
+    Example 'init (deinit)'
+      When run cmd_init -p fluff/ ''
+      The status should equal 1
+      The error should equal 'There are already pending changes.'
+      The output should be blank
+      The result of function check_git_log should be successful
+    End
+
+    Example 'insert'
+      MULTILINE=no
+      When run cmd_insert -e fluff/four
+      The status should equal 1
+      The error should equal 'There are already pending changes.'
+      The output should be blank
+      The result of function check_git_log should be successful
+    End
+
+    # 'list_or_show' does not change the repository
+    # 'move' relies on 'copy/move'
+    # 'random' does not change the repository
+
+    Example 'reencrypt'
+      When run cmd_reencrypt stale
+      The status should equal 1
+      The error should equal 'There are already pending changes.'
+      The output should be blank
+      The result of function check_git_log should be successful
+    End
+
+    # 'usage' does not change the repository
+    # 'version' does not change the repository
+  End
+
   Describe 'unreachable defensive code'
     # This sections breaks the end-to-end scheme of this file
     # to reach full coverage, by precisely identifying unreachable lines
