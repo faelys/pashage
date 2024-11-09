@@ -818,21 +818,29 @@ do_list_or_show() {
 #   $1: entry name
 #   DECISION: whether to ask before re-encryption
 do_reencrypt() {
+	scm_begin
+
 	if [ "$1" = "${1%/}/" ]; then
 		if ! [ -d "${PREFIX}/${1%/}" ]; then
 			die "Error: $1 is not in the password store."
 		fi
 		do_reencrypt_dir "${PREFIX}/${1%/}"
+		LOC="$1"
 
 	elif [ -f "${PREFIX}/$1.age" ]; then
 		do_reencrypt_file "$1"
+		LOC="$1"
 
 	elif [ -d "${PREFIX}/$1" ]; then
 		do_reencrypt_dir "${PREFIX}/$1"
+		LOC="$1/"
 
 	else
 		die "Error: $1 is not in the password store."
 	fi
+
+	scm_commit "Re-encrypt ${LOC}"
+	unset LOC
 }
 
 # Recursively re-encrypts a directory

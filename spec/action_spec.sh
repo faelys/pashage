@@ -1612,6 +1612,8 @@ Describe 'Action Functions'
     mktemp() { %putsn "$1"; }
     mv() { mocklog mv "$@"; }
     scm_add() { mocklog scm_add "$@"; }
+    scm_begin() { mocklog scm_begin "$@"; }
+    scm_commit() { mocklog scm_commit "$@"; }
 
     setup() {
       @mkdir -p "${PREFIX}/subdir/subsub"
@@ -1630,10 +1632,12 @@ Describe 'Action Functions'
     It 're-encrypts a single file'
       result() {
         %text:expand
+        #|$ scm_begin
         #|$ do_decrypt ${PREFIX}/subdir/subsub/deep.age
         #|$ do_encrypt subdir/subsub/deep-XXXXXXXXX.age
         #|$ mv -f -- ${PREFIX}/subdir/subsub/deep-XXXXXXXXX.age ${PREFIX}/subdir/subsub/deep.age
         #|$ scm_add subdir/subsub/deep.age
+        #|$ scm_commit Re-encrypt subdir/subsub/deep
       }
       When call do_reencrypt subdir/subsub/deep
       The status should be success
@@ -1644,6 +1648,7 @@ Describe 'Action Functions'
     It 'recursively re-encrypts a directory'
       result() {
         %text:expand
+        #|$ scm_begin
         #|$ do_decrypt ${PREFIX}/subdir/middle.age
         #|$ do_encrypt subdir/middle-XXXXXXXXX.age
         #|$ mv -f -- ${PREFIX}/subdir/middle-XXXXXXXXX.age ${PREFIX}/subdir/middle.age
@@ -1652,6 +1657,7 @@ Describe 'Action Functions'
         #|$ do_encrypt subdir/subsub/deep-XXXXXXXXX.age
         #|$ mv -f -- ${PREFIX}/subdir/subsub/deep-XXXXXXXXX.age ${PREFIX}/subdir/subsub/deep.age
         #|$ scm_add subdir/subsub/deep.age
+        #|$ scm_commit Re-encrypt subdir/
       }
       When call do_reencrypt subdir/
       The status should be success
@@ -1669,12 +1675,14 @@ Describe 'Action Functions'
       }
       result() {
         %text:expand
+        #|$ scm_begin
         #|$ yesno Re-encrypt subdir/middle?
         #|$ yesno Re-encrypt subdir/subsub/deep?
         #|$ do_decrypt ${PREFIX}/subdir/subsub/deep.age
         #|$ do_encrypt subdir/subsub/deep-XXXXXXXXX.age
         #|$ mv -f -- ${PREFIX}/subdir/subsub/deep-XXXXXXXXX.age ${PREFIX}/subdir/subsub/deep.age
         #|$ scm_add subdir/subsub/deep.age
+        #|$ scm_commit Re-encrypt subdir/
       }
       When call do_reencrypt subdir
       The status should be success
@@ -1683,18 +1691,26 @@ Describe 'Action Functions'
     End
 
     It 'reports a non-existent directory'
+      result() {
+        %text
+        #|$ scm_begin
+        #|Error: non-existent/ is not in the password store.
+      }
       When run do_reencrypt non-existent/
       The output should be blank
-      The error should equal \
-        'Error: non-existent/ is not in the password store.'
+      The error should equal "$(result)"
       The status should equal 1
     End
 
     It 'reports a non-existent file'
+      result() {
+        %text
+        #|$ scm_begin
+        #|Error: non-existent is not in the password store.
+      }
       When run do_reencrypt non-existent
       The output should be blank
-      The error should equal \
-        'Error: non-existent is not in the password store.'
+      The error should equal "$(result)"
       The status should equal 1
     End
   End
