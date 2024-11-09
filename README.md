@@ -82,6 +82,8 @@ decrypt before `diff`.
 - The new `random` command leverages password generation without touching
 the password store.
 
+- The new `reencrypt` command re-encrypts secrets in-place.
+
 ## Manual
 
 TODO

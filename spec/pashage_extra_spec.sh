@@ -739,6 +739,7 @@ Describe 'Integrated Command Functions'
       The output should include ' prg gitconfig'
       The output should include ' prg move '
       The output should include ' prg random '
+      The output should include ' prg reencrypt '
     End
   End
 
@@ -1090,6 +1091,151 @@ Describe 'Integrated Command Functions'
       The status should equal 1
       The output should be blank
       The error should equal 'Usage: prg random [pass-length [character-set]]'
+    End
+  End
+
+  Describe 'cmd_reencrypt'
+    usage_text() { %text
+      #|Usage: prg reencrypt [--interactive,-i] pass-name|subfolder ...
+    }
+
+    It 'reencrypts a single file'
+      When call cmd_reencrypt stale
+      The status should be success
+      The error should be blank
+      The output should be blank
+      expected_file() { %text
+        #|ageRecipient:myself
+        #|age:0-password
+      }
+      The contents of file "${PREFIX}/stale.age" \
+        should equal "$(expected_file)"
+      expected_log() { %text
+        #|Re-encrypt stale
+        #|
+        #| stale.age | 1 -
+        #| 1 file changed, 1 deletion(-)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+
+    It 'reencrypts a single file interactively'
+      Data 'y'
+      When call cmd_reencrypt -i stale
+      The status should be success
+      The error should be blank
+      The output should equal 'Re-encrypt stale? [y/n]'
+      expected_file() { %text
+        #|ageRecipient:myself
+        #|age:0-password
+      }
+      The contents of file "${PREFIX}/stale.age" \
+        should equal "$(expected_file)"
+      expected_log() { %text
+        #|Re-encrypt stale
+        #|
+        #| stale.age | 1 -
+        #| 1 file changed, 1 deletion(-)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+
+    It 'does not reencrypt a single file when interactively refused'
+      Data 'n'
+      When call cmd_reencrypt --interactive stale
+      The status should be success
+      The error should be blank
+      The output should equal 'Re-encrypt stale? [y/n]'
+      expected_file() { %text
+        #|ageRecipient:master
+        #|ageRecipient:myself
+        #|age:0-password
+      }
+      The contents of file "${PREFIX}/stale.age" \
+        should equal "$(expected_file)"
+      The result of function check_git_log should be successful
+    End
+
+    It 'reencrypts a directory recursively'
+      When call cmd_reencrypt /
+      The status should be success
+      The error should be blank
+      The output should be blank
+      expected_file() { %text
+        #|ageRecipient:myself
+        #|age:0-password
+      }
+      The contents of file "${PREFIX}/stale.age" \
+        should equal "$(expected_file)"
+      expected_log() { %text
+        #|Re-encrypt /
+        #|
+        #| stale.age | 1 -
+        #| 1 file changed, 1 deletion(-)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+
+    It 'reencrypts a directory recursively and interactively'
+      Data
+        #|n
+        #|y
+        #|n
+      End
+      When call cmd_reencrypt -i ''
+      The status should be success
+      The error should be blank
+      The output should equal 'Re-encrypt extra/subdir/file? [y/n]Re-encrypt stale? [y/n]Re-encrypt subdir/file? [y/n]'
+      expected_file() { %text
+        #|ageRecipient:myself
+        #|age:0-password
+      }
+      The contents of file "${PREFIX}/stale.age" \
+        should equal "$(expected_file)"
+      expected_log() { %text
+        #|Re-encrypt /
+        #|
+        #| stale.age | 1 -
+        #| 1 file changed, 1 deletion(-)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+
+    It 'fails to reencrypt a file named like a flag without escape'
+      PROGRAM=prg
+      When run cmd_reencrypt -g
+      The status should equal 1
+      The error should equal "$(usage_text)"
+      The output should be blank
+      The result of function check_git_log should be successful
+    End
+
+    It 'fails to reencrypt a non-existent direcotry'
+      When run cmd_reencrypt -- -y/
+      The status should equal 1
+      The error should equal 'Error: -y/ is not in the password store.'
+      The output should be blank
+      The result of function check_git_log should be successful
+    End
+
+    It 'fails to reencrypt a non-existent file'
+      When run cmd_reencrypt -- -y
+      The status should equal 1
+      The error should equal 'Error: -y is not in the password store.'
+      The output should be blank
+      The result of function check_git_log should be successful
+    End
+
+    It 'rejects a path containing ..'
+      When run cmd_reencrypt fluff/../stale
+      The status should equal 1
+      The output should be blank
+      The error should include 'sneaky'
+      The result of function check_git_log should be successful
     End
   End
 

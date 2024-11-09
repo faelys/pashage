@@ -119,6 +119,8 @@ case "${COMMAND}" in
     ls)		shift; cmd_list_or_show "$@" ;;
     move|mv)	shift; cmd_move "$@" ;;
     random)	shift; cmd_random "$@" ;;
+    re-encrypt)	shift; cmd_reencrypt "$@" ;;
+    reencrypt)	shift; cmd_reencrypt "$@" ;;
     remove)	shift; cmd_delete "$@" ;;
     rm)		shift; cmd_delete "$@" ;;
     show)	shift; cmd_list_or_show "$@" ;;

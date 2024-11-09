@@ -121,6 +121,8 @@ Describe 'Command-Line Parsing'
   }
   do_reencrypt() {
     mocklog do_reencrypt "$@"
+    %text:expand >&2
+    #|DECISION=${DECISION}
   }
   do_reencrypt_dir() {
     mocklog do_reencrypt_dir "$@"
@@ -2052,6 +2054,89 @@ Describe 'Command-Line Parsing'
     End
   End
 
+  Describe 'cmd_reencrypt'
+    COMMAND=reencrypt
+    DECISION=default
+
+    It 're-encrypts multiple files and directories'
+      result() {
+        %text
+        #|$ check_sneaky_path file-1
+        #|$ check_sneaky_path dir/
+        #|$ check_sneaky_path sub/file-2
+        #|$ do_reencrypt file-1
+        #|DECISION=default
+        #|$ do_reencrypt dir/
+        #|DECISION=default
+        #|$ do_reencrypt sub/file-2
+        #|DECISION=default
+      }
+      When call cmd_reencrypt file-1 dir/ sub/file-2
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'interactively re-encrypts with a long option'
+      result() {
+        %text
+        #|$ check_sneaky_path arg
+        #|$ do_reencrypt arg
+        #|DECISION=interactive
+      }
+      When call cmd_reencrypt --interactive arg
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'interactively re-encrypts with a short option'
+      result() {
+        %text
+        #|$ check_sneaky_path arg
+        #|$ do_reencrypt arg
+        #|DECISION=interactive
+      }
+      When call cmd_reencrypt -i arg
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 're-encrypts a file named like a flag'
+      result() {
+        %text
+        #|$ check_sneaky_path -s
+        #|$ do_reencrypt -s
+        #|DECISION=default
+      }
+      When call cmd_reencrypt -- -s
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    usage_text() { %text
+      #|Usage: prg reencrypt [--interactive,-i] pass-name|subfolder ...
+    }
+
+    It 'reports a bad option'
+      cat() { @cat; }
+      When run cmd_reencrypt -s arg
+      The status should equal 1
+      The output should be blank
+      The error should equal "$(usage_text)"
+    End
+
+    It 'reports a lack of argument'
+      cat() { @cat; }
+      When run cmd_reencrypt
+      The status should equal 1
+      The output should be blank
+      The error should equal "$(usage_text)"
+    End
+  End
+
   Describe 'cmd_usage'
     COMMAND=usage
     CLIP_TIME='$CLIP_TIME'
@@ -2082,6 +2167,7 @@ Describe 'Command-Line Parsing'
       The output should include 'prg [list]'
       The output should include 'prg move'
       The output should include 'prg random'
+      The output should include 'prg reencrypt'
       The output should include 'prg [show]'
       The output should include 'prg version'
     End

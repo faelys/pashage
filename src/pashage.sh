@@ -1495,6 +1495,42 @@ cmd_random() {
 	random_chars "${1:-${GENERATED_LENGTH}}" "${2:-${CHARACTER_SET}}"
 }
 
+cmd_reencrypt() {
+	DECISION=default
+	OVERWRITE=yes
+	PARSE_ERROR=no
+
+	while [ $# -ge 1 ]; do
+		case "$1" in
+		    -i|--interactive)
+			DECISION=interactive
+			shift ;;
+		    --)
+			shift
+			break ;;
+		    -*)
+			PARSE_ERROR=yes
+			break ;;
+		    *)
+			break ;;
+		esac
+	done
+
+	if [ "${PARSE_ERROR}" = yes ] || [ $# -eq 0 ]; then
+		cmd_usage 'Usage: ' reencrypt >&2
+		exit 1
+	fi
+
+	unset PARSE_ERROR
+
+	check_sneaky_paths "$@"
+
+	for ARG in "$@"; do
+		do_reencrypt "${ARG}"
+	done
+	unset ARG
+}
+
 # Outputs the whole usage text
 #   $1: indentation
 #   ... commands to document
@@ -1515,8 +1551,8 @@ cmd_usage(){
 
 	if [ $# -eq 0 ]; then
 		echo 'Usage:'
-		set -- list show copy delete edit find generate \
-		    git gitconfig grep help init insert move random version
+		set -- list show copy delete edit find generate git gitconfig \
+		    grep help init insert move random reencrypt version
 		VERBOSE=yes
 	else
 		VERBOSE=no
@@ -1672,6 +1708,15 @@ EOF
 ${I}    Generate a new password of pass-length (or ${GENERATED_LENGTH:-25} if unspecified)
 ${I}    using the given character set (or ${CHARACTER_SET} if unspecified)
 ${I}    without recording it in the password store.
+EOF
+			;;
+		    reencrypt)
+			cat <<EOF
+${F}${PROGRAM} reencrypt [--interactive,-i] pass-name|subfolder ...
+EOF
+			[ "${VERBOSE}" = yes ] && cat <<EOF
+${I}    Re-encrypt in-place a secret or all the secrets in a subfolder,
+${I}    optionally asking before each one.
 EOF
 			;;
 		    version)
