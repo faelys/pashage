@@ -1207,7 +1207,7 @@ cmd_generate() {
 			fi
 			DECISION=force
 			shift ;;
-		    -i|--inplace)
+		    -i|--in-place)
 			if [ "${DECISION}" = force ]; then
 				PARSE_ERROR=yes
 				break

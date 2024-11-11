@@ -811,7 +811,7 @@ Describe 'Command-Line Parsing'
         #|SELECTED_LINE=1
         #|SHOW=text
       }
-      When call cmd_generate --inplace secret
+      When call cmd_generate --in-place secret
       The status should be success
       The output should be blank
       The error should equal "$(result)"
@@ -867,7 +867,7 @@ Describe 'Command-Line Parsing'
 
     It 'reports incompatible generation long options'
       cat() { @cat; }
-      When run cmd_generate --inplace --force secret
+      When run cmd_generate --in-place --force secret
       The output should be blank
       The error should equal "$(usage_text)"
       The status should equal 1

@@ -1728,7 +1728,7 @@ Describe 'Pass-like command'
 
     It 'displays usage when called with incompatible overwriting options'
       Skip if 'pass(age) needs bash' check_skip $2
-      When run script $1 generate --force --inplace new-secret
+      When run script $1 generate --force --in-place new-secret
       The status should equal 1
       The output should be blank
       The error should include 'Usage:'
@@ -1739,7 +1739,7 @@ Describe 'Pass-like command'
 
     It 'displays usage when called with reversed incompatible overwriting opt'
       Skip if 'pass(age) needs bash' check_skip $2
-      When run script $1 generate --inplace --force new-secret
+      When run script $1 generate --in-place --force new-secret
       The status should equal 1
       The output should be blank
       The error should include 'Usage:'

@@ -651,7 +651,7 @@ Describe 'Integrated Command Functions'
       Set 'pipefail:off'
       mock-age() { false; }
       tail() { @tail "$@"; }
-      When run cmd_generate --inplace stale
+      When run cmd_generate --in-place stale
       The status should equal 1
       The error should equal \
         "Fatal(1): mock-age -d -i ${IDENTITIES_FILE} -- ${PREFIX}/stale.age"
