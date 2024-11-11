@@ -22,7 +22,7 @@ pashage: bin/pashage-$(PLATFORM).sh
 
 .PHONY: all check clean cov1 cov2 tests validate
 
-all: bin/pashage-freebsd.sh bin/pashage-linux.sh
+all: bin/pashage-freebsd.sh bin/pashage-openbsd.sh bin/pashage-linux.sh
 
 check: bin/pashage-$(PLATFORM).sh
 	shellcheck -o all "bin/pashage-$(PLATFORM).sh"
@@ -53,6 +53,17 @@ bin/pashage-freebsd.sh: src/platform-freebsd.sh src/pashage.sh src/run.sh
 	mkdir -p bin
 	sed '1{;x;d;};/^###########$$/{;x;q;};x' src/run.sh >|"$@"
 	sed '1,/^$$/d' src/platform-freebsd.sh >>"$@"
+	echo >>"$@"
+	sed '1,/^$$/d' src/pashage.sh >>"$@"
+	echo >>"$@"
+	echo '############' >>"$@"
+	sed '1,/^############$$/d' src/run.sh >>"$@"
+	chmod a+x "$@"
+
+bin/pashage-openbsd.sh: src/platform-openbsd.sh src/pashage.sh src/run.sh
+	mkdir -p bin
+	sed '1{;x;d;};/^###########$$/{;x;q;};x' src/run.sh >|"$@"
+	sed '1,/^$$/d' src/platform-openbsd.sh >>"$@"
 	echo >>"$@"
 	sed '1,/^$$/d' src/pashage.sh >>"$@"
 	echo >>"$@"
