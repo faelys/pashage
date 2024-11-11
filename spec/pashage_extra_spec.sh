@@ -23,7 +23,11 @@
 
 Describe 'Integrated Command Functions'
   Include src/pashage.sh
-  Set 'errexit:on' 'nounset:on' 'pipefail:on'
+  if [ "${SHELLSPEC_SHELL_TYPE}" = sh ]; then
+    Set 'errexit:on' 'nounset:on'
+  else
+    Set 'errexit:on' 'nounset:on' 'pipefail:on'
+  fi
 
   GITLOG="${SHELLSPEC_WORKDIR}/git-log.txt"
 
@@ -345,12 +349,14 @@ Describe 'Integrated Command Functions'
     End
 
     It 'aborts on decryption failure even without pipefail'
-      Set 'pipefail:off'
-      mock-age() { false; }
+      if ! [ "${SHELLSPEC_SHELL_TYPE}" = sh ]; then
+        Set 'pipefail:off'
+      fi
+      AGE=false
       When run cmd_move --reencrypt stale renamed
       The status should equal 1
       The error should equal \
-        "Fatal(1): mock-age -d -i ${IDENTITIES_FILE} -- ${PREFIX}/stale.age"
+        "Fatal(1): false -d -i ${IDENTITIES_FILE} -- ${PREFIX}/stale.age"
       The output should be blank
       The result of function check_git_log should be successful
     End
@@ -557,13 +563,15 @@ Describe 'Integrated Command Functions'
     End
 
     It 'aborts on decryption failure even without pipefail'
-      Set 'pipefail:off'
-      mock-age() { false; }
+      if ! [ "${SHELLSPEC_SHELL_TYPE}" = sh ]; then
+        Set 'pipefail:off'
+      fi
+      AGE=false
       tail() { @tail "$@"; }
       When run cmd_edit stale
       The status should equal 1
       The error should equal \
-        "Fatal(1): mock-age -d -i ${IDENTITIES_FILE} -- ${PREFIX}/stale.age"
+        "Fatal(1): false -d -i ${IDENTITIES_FILE} -- ${PREFIX}/stale.age"
       The output should be blank
       The result of function check_git_log should be successful
     End
@@ -648,13 +656,15 @@ Describe 'Integrated Command Functions'
     End
 
     It 'aborts on decryption failure even without pipefail'
-      Set 'pipefail:off'
-      mock-age() { false; }
+      if ! [ "${SHELLSPEC_SHELL_TYPE}" = sh ]; then
+        Set 'pipefail:off'
+      fi
+      AGE=false
       tail() { @tail "$@"; }
       When run cmd_generate --in-place stale
       The status should equal 1
       The error should equal \
-        "Fatal(1): mock-age -d -i ${IDENTITIES_FILE} -- ${PREFIX}/stale.age"
+        "Fatal(1): false -d -i ${IDENTITIES_FILE} -- ${PREFIX}/stale.age"
       The output should equal 'Decrypting previous secret for stale'
       The result of function check_git_log should be successful
     End
@@ -689,13 +699,15 @@ Describe 'Integrated Command Functions'
 
   Describe 'cmd_grep'
     It 'aborts on decryption failure even without pipefail'
-      Set 'pipefail:off'
+      if ! [ "${SHELLSPEC_SHELL_TYPE}" = sh ]; then
+        Set 'pipefail:off'
+      fi
       grep() { @grep "$@"; }
-      mock-age() { false; }
+      AGE=false
       When run cmd_grep foo
       The status should equal 1
       The error should equal \
-        "Fatal(1): mock-age -d -i ${IDENTITIES_FILE} -- file.age"
+        "Fatal(1): false -d -i ${IDENTITIES_FILE} -- file.age"
       The output should be blank
       The result of function check_git_log should be successful
     End
@@ -1189,18 +1201,22 @@ Describe 'Integrated Command Functions'
     End
 
     It 'aborts on age decryption failure even without pipefail'
-      Set 'pipefail:off'
-      mock-age() { false; }
+      if ! [ "${SHELLSPEC_SHELL_TYPE}" = sh ]; then
+        Set 'pipefail:off'
+      fi
+      AGE=false
       When run cmd_list_or_show stale
       The status should equal 1
       The error should equal \
-        "Fatal(1): mock-age -d -i ${IDENTITIES_FILE} -- ${PREFIX}/stale.age"
+        "Fatal(1): false -d -i ${IDENTITIES_FILE} -- ${PREFIX}/stale.age"
       The output should be blank
       The result of function check_git_log should be successful
     End
 
     It 'aborts on gpg decryption failure even without pipefail'
-      Set 'pipefail:off'
+      if ! [ "${SHELLSPEC_SHELL_TYPE}" = sh ]; then
+        Set 'pipefail:off'
+      fi
       GPG=false
       When run cmd_list_or_show old
       The status should equal 1
@@ -1397,12 +1413,14 @@ Describe 'Integrated Command Functions'
     End
 
     It 'aborts on age decryption failure even without pipefail'
-      Set 'pipefail:off'
-      mock-age() { false; }
+      if ! [ "${SHELLSPEC_SHELL_TYPE}" = sh ]; then
+        Set 'pipefail:off'
+      fi
+      AGE=false
       When run cmd_reencrypt stale
       The status should equal 1
       The error should equal \
-        "Fatal(1): mock-age -d -i ${IDENTITIES_FILE} -- ${PREFIX}/stale.age"
+        "Fatal(1): false -d -i ${IDENTITIES_FILE} -- ${PREFIX}/stale.age"
       The output should be blank
       The result of function check_git_log should be successful
     End

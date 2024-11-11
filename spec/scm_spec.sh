@@ -20,7 +20,11 @@
 
 Describe 'Integrated SCM Functions'
   Include src/pashage.sh
-  Set 'errexit:on' 'nounset:on' 'pipefail:on'
+  if [ "${SHELLSPEC_SHELL_TYPE}" = sh ]; then
+    Set 'errexit:on' 'nounset:on'
+  else
+    Set 'errexit:on' 'nounset:on' 'pipefail:on'
+  fi
   PREFIX="${SHELLSPEC_WORKDIR}/repo"
 
   git() { @git "$@"; }
@@ -259,7 +263,11 @@ End
 
 Describe 'Integrated SCM Functions without SCM'
   Include src/pashage.sh
-  Set 'errexit:on' 'nounset:on' 'pipefail:on'
+  if [ "${SHELLSPEC_SHELL_TYPE}" = sh ]; then
+    Set 'errexit:on' 'nounset:on'
+  else
+    Set 'errexit:on' 'nounset:on' 'pipefail:on'
+  fi
   PREFIX="${SHELLSPEC_WORKDIR}/repo"
 
   setup() {

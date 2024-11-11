@@ -21,7 +21,11 @@
 
 Describe 'Internal Helper Functions'
   Include src/pashage.sh
-  Set 'errexit:on' 'nounset:on' 'pipefail:on'
+  if [ "${SHELLSPEC_SHELL_TYPE}" = sh ]; then
+    Set 'errexit:on' 'nounset:on'
+  else
+    Set 'errexit:on' 'nounset:on' 'pipefail:on'
+  fi
 
   Describe 'check_sneaky_path'
     It 'accept an empty path'

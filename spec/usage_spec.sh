@@ -21,7 +21,11 @@
 
 Describe 'Command-Line Parsing'
   Include src/pashage.sh
-  Set 'errexit:on' 'nounset:on' 'pipefail:on'
+  if [ "${SHELLSPEC_SHELL_TYPE}" = sh ]; then
+    Set 'errexit:on' 'nounset:on'
+  else
+    Set 'errexit:on' 'nounset:on' 'pipefail:on'
+  fi
 
   PREFIX=/prefix
   PROGRAM=prg

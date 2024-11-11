@@ -20,7 +20,11 @@
 
 Describe 'Action Functions'
   Include src/pashage.sh
-  Set 'errexit:on' 'nounset:on' 'pipefail:on'
+  if [ "${SHELLSPEC_SHELL_TYPE}" = sh ]; then
+    Set 'errexit:on' 'nounset:on'
+  else
+    Set 'errexit:on' 'nounset:on' 'pipefail:on'
+  fi
 
   Describe 'do_copy_move'
     DECISION=default
