@@ -45,6 +45,11 @@ by the GPL, so to be on the safe side I'm using GPL v2+ too.
 - Not using a terminal does not imply `--force`, instead `pashage` asks for
 a confirming `y` on a standard input line.
 
+- When copying a secret to the clipboard, the script keeps running while
+waiting for the automatic clearing. This provides a user-facing cue that
+the secret may still be the clipboard and allows to clear the clipboard
+earlier.
+
 - The commands `copy`, `edit`, `insert`, `list`, `move`, and `show`
 accept multiple arguments to operate on many secrets at once.
 
