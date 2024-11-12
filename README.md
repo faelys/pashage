@@ -89,6 +89,21 @@ the password store.
 
 - The new `reencrypt` command re-encrypts secrets in-place.
 
+## Roadmap
+
+The following features are currently under consideration:
+
+- completion for various shells
+- better logic for recursivity in re-encryption
+- rewriting of git history to purge old cyphertexts
+- partial display of secrets on standard output
+- successive clipboard copy of several lines from a single decryption
+(e.g. username then password)
+- optional interactive confirmation between generation and encryption
+(e.g. for iterative attempts against stupid password rules)
+- OTP support
+- maybe extension support?
+
 ## Manual
 
 **pashage** is a _password manager_, which means it manages a database of
