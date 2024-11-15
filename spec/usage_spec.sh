@@ -626,7 +626,8 @@ Describe 'Command-Line Parsing'
 
     usage_text() { %text
       #|Usage: prg generate [--no-symbols,-n] [--clip,-c | --qrcode,-q]
-      #|                    [--in-place,-i | --force,-f] pass-name [pass-length]
+      #|                    [--in-place,-i | --force,-f]
+      #|                    pass-name [pass-length [character-set]]
     }
 
     It 'generates a new entry with default length'
@@ -656,6 +657,22 @@ Describe 'Command-Line Parsing'
         #|SHOW=text
       }
       When call cmd_generate secret 12
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'generates a new entry with explicit length and character set'
+      result() {
+        %text
+        #|$ check_sneaky_path secret
+        #|$ do_generate secret 12 [A-Z]
+        #|DECISION=default
+        #|OVERWRITE=no
+        #|SELECTED_LINE=1
+        #|SHOW=text
+      }
+      When call cmd_generate secret 12 '[A-Z]'
       The status should be success
       The output should be blank
       The error should equal "$(result)"

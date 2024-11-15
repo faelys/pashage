@@ -616,6 +616,26 @@ Describe 'Integrated Command Functions'
     OVERWRITE=no
     SHOW=text
 
+    It 'uses the character set given explicitly instead of environment'
+      CHARACTER_SET='[0-9]'
+      CHARACTER_SET_NO_SYMBOLS='[0-9]'
+      When call cmd_generate new 5 '[:upper:]'
+      The status should be success
+      The error should be blank
+      The lines of output should equal 2
+      The line 1 of output should \
+        equal '(B)The generated password for (U)new(!U) is:(N)'
+      The line 2 of output should match pattern '[A-Z][A-Z][A-Z][A-Z][A-Z]'
+      expected_log() { %text
+        #|Add generated password for new.
+        #|
+        #| new.age | 2 ++
+        #| 1 file changed, 2 insertions(+)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+
     It 'overwrites after asking for confirmation'
       Data 'y'
       When call cmd_generate subdir/file 10

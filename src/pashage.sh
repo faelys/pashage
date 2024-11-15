@@ -1243,7 +1243,7 @@ cmd_generate() {
 		esac
 	done
 
-	if [ "${PARSE_ERROR}" = yes ] || [ $# -eq 0 ] || [ $# -gt 2 ] \
+	if [ "${PARSE_ERROR}" = yes ] || [ $# -eq 0 ] || [ $# -gt 3 ] \
 	    || [ "${DECISION}-${OVERWRITE}" = force-yes ]
 	then
 		cmd_usage 'Usage: ' generate >&2
@@ -1259,7 +1259,7 @@ cmd_generate() {
 	[ "${LENGTH}" -gt 0 ] \
 	    || die "Error: pass-length must be greater than zero."
 
-	do_generate "$1" "${LENGTH}" "${CHARSET}"
+	do_generate "$1" "${LENGTH}" "${3:-${CHARSET}}"
 
 	unset CHARSET
 	unset LENGTH
@@ -1666,7 +1666,8 @@ EOF
 		    generate)
 			cat <<EOF
 ${F}${PROGRAM} generate [--no-symbols,-n] [--clip,-c | --qrcode,-q]
-${I}${BLANKPG}          [--in-place,-i | --force,-f] pass-name [pass-length]
+${I}${BLANKPG}          [--in-place,-i | --force,-f]
+${I}${BLANKPG}          pass-name [pass-length [character-set]]
 EOF
 			[ "${VERBOSE}" = yes ] && cat <<EOF
 ${I}    Generate a new password of pass-length (or ${GENERATED_LENGTH:-25} if unspecified)
