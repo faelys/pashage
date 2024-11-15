@@ -611,7 +611,7 @@ do_encrypt() {
 #   $2: new password length
 #   $3: new password charset
 #   DECISION: whether to ask before overwrite
-#   OVERWRITE: whether to re-use existing secret data
+#   MULTILINE: whether to re-use existing secret data
 do_generate() {
 	NEW_PASS="$(random_chars "$2" "$3")"
 	NEW_PASS_LEN="$(strlen "${NEW_PASS}")"
@@ -628,12 +628,13 @@ do_generate() {
 	if [ -d "${PREFIX}/$1.age" ]; then
 		die "Cannot replace directory $1.age"
 
-	elif [ -e "${PREFIX}/$1.age" ] && [ "${OVERWRITE}" = yes ]; then
+	elif [ -e "${PREFIX}/$1.age" ] && [ "${MULTILINE}" = yes ]; then
 		printf '%s\n' "Decrypting previous secret for $1"
 		OLD_SECRET_FULL="$(do_decrypt "${PREFIX}/$1.age")"
 		OLD_SECRET="${OLD_SECRET_FULL#*
 }"
 		WIP_FILE="$(mktemp "${PREFIX}/$1-XXXXXXXXX.age")"
+		OVERWRITE=once
 		if [ "${OLD_SECRET}" = "${OLD_SECRET_FULL}" ]; then
 			do_encrypt "${WIP_FILE#"${PREFIX}"/}" <<-EOF
 				${NEW_PASS}
@@ -1201,7 +1202,7 @@ cmd_generate() {
 			SHOW=clip
 			shift ;;
 		    -f|--force)
-			if [ "${OVERWRITE}" = yes ]; then
+			if [ "${MULTILINE}" = yes ]; then
 				PARSE_ERROR=yes
 				break
 			fi
@@ -1212,7 +1213,7 @@ cmd_generate() {
 				PARSE_ERROR=yes
 				break
 			fi
-			OVERWRITE=yes
+			MULTILINE=yes
 			shift ;;
 		    -n|--no-symbols)
 			CHARSET="${CHARACTER_SET_NO_SYMBOLS}"
@@ -1244,7 +1245,7 @@ cmd_generate() {
 	done
 
 	if [ "${PARSE_ERROR}" = yes ] || [ $# -eq 0 ] || [ $# -gt 3 ] \
-	    || [ "${DECISION}-${OVERWRITE}" = force-yes ]
+	    || [ "${DECISION}-${MULTILINE}" = force-yes ]
 	then
 		cmd_usage 'Usage: ' generate >&2
 		exit 1

@@ -613,7 +613,7 @@ Describe 'Integrated Command Functions'
 
   Describe 'cmd_generate'
     DECISION=default
-    OVERWRITE=no
+    MULTILINE=no
     SHOW=text
 
     It 'uses the character set given explicitly instead of environment'
@@ -1510,7 +1510,7 @@ Describe 'Integrated Command Functions'
 
     Example 'generate'
       DECISION=default
-      OVERWRITE=no
+      MULTILINE=no
       When run cmd_generate new-pass
       The status should equal 1
       The error should equal 'There are already pending changes.'

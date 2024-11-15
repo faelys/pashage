@@ -1130,7 +1130,7 @@ Describe 'Action Functions'
     End
 
     It 'overwrites an existing file when forced'
-      OVERWRITE=no
+      MULTILINE=no
       DECISION=force
       result(){
         %text:expand
@@ -1150,7 +1150,7 @@ Describe 'Action Functions'
     End
 
     It 'overwrites an existing file after confirmation'
-      OVERWRITE=no
+      MULTILINE=no
       DECISION=default
       yesno() {
         mocklog yesno "$@";
@@ -1176,7 +1176,7 @@ Describe 'Action Functions'
     End
 
     It 'does not overwrite an existing file without confirmation'
-      OVERWRITE=no
+      MULTILINE=no
       DECISION=default
       yesno() {
         mocklog yesno "$@";
@@ -1195,7 +1195,7 @@ Describe 'Action Functions'
     End
 
     It 'updates the first line of an existing file'
-      OVERWRITE=yes
+      MULTILINE=yes
       mktemp() { %= "$1"; }
       do_decrypt() {
         mocklog do_decrypt "$@"
@@ -1227,7 +1227,7 @@ Describe 'Action Functions'
     End
 
     It 'updates the only line of an existing one-line file'
-      OVERWRITE=yes
+      MULTILINE=yes
       mktemp() { %= "$1"; }
       do_decrypt() {
         mocklog do_decrypt "$@"
