@@ -610,6 +610,7 @@ do_encrypt() {
 #   $1: secret name
 #   $2: new password length
 #   $3: new password charset
+#   DECISION: when interactive, show-ask-commit instead of commit-show
 #   MULTILINE: whether to re-use existing secret data
 #   OVERWRITE: whether to overwrite without confirmation
 do_generate() {
@@ -622,6 +623,20 @@ do_generate() {
 	fi
 	unset NEW_PASS_LEN
 
+	if [ "${DECISION}" = interactive ]; then
+		do_generate_show "$@"
+		yesno "Save generated password for $1?"
+		[ "${ANSWER}" = y ] && do_generate_commit "$@"
+	else
+		do_generate_commit "$@"
+		[ "${ANSWER-y}" = y ] && do_generate_show "$@"
+	fi
+
+	unset NEW_PASS
+}
+
+# SCM-committing part of do_generate
+do_generate_commit() {
 	scm_begin
 	mkdir -p -- "$(dirname "${PREFIX}/$1.age")"
 
@@ -670,7 +685,10 @@ do_generate() {
 	scm_commit "${VERB} generated password for $1."
 
 	unset VERB
+}
 
+# Showing part of do_generate
+do_generate_show() {
 	if [ "${SHOW}" = text ]; then
 		printf '%sThe generated password for %s%s%s is:%s\n' \
 		    "${BOLD_TEXT}" \
@@ -683,8 +701,6 @@ do_generate() {
 	do_show "$1" <<-EOF
 		${NEW_PASS}
 	EOF
-
-	unset NEW_PASS
 }
 
 # Recursively grep decrypted secrets in current directory
@@ -1222,7 +1238,10 @@ cmd_generate() {
 			fi
 			SHOW=qrcode
 			shift ;;
-		    -[cfinq]?*)
+		    -t|--try)
+			DECISION=interactive
+			shift ;;
+		    -[cfinqt]?*)
 			REST="${1#-?}"
 			ARG="${1%"${REST}"}"
 			shift
@@ -1664,7 +1683,7 @@ EOF
 		    generate)
 			cat <<EOF
 ${F}${PROGRAM} generate [--no-symbols,-n] [--clip,-c | --qrcode,-q]
-${I}${BLANKPG}          [--in-place,-i | --force,-f]
+${I}${BLANKPG}          [--in-place,-i | --force,-f] [--try,-t]
 ${I}${BLANKPG}          pass-name [pass-length [character-set]]
 EOF
 			[ "${VERBOSE}" = yes ] && cat <<EOF
@@ -1675,6 +1694,7 @@ ${I}    or display it as a QR-code.
 ${I}    Prompt before overwriting existing password unless forced.
 ${I}    Optionally replace only the first line of an existing file
 ${I}    with a new password.
+${I}    Optionally prompt for confirmation between generation and saving.
 EOF
 			;;
 		    git)

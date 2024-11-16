@@ -96,6 +96,7 @@ Describe 'Command-Line Parsing'
   do_generate() {
     mocklog do_generate "$@"
     %text:expand >&2
+    #|DECISION=${DECISION}
     #|MULTILINE=${MULTILINE}
     #|OVERWRITE=${OVERWRITE}
     #|SELECTED_LINE=${SELECTED_LINE}
@@ -626,7 +627,7 @@ Describe 'Command-Line Parsing'
 
     usage_text() { %text
       #|Usage: prg generate [--no-symbols,-n] [--clip,-c | --qrcode,-q]
-      #|                    [--in-place,-i | --force,-f]
+      #|                    [--in-place,-i | --force,-f] [--try,-t]
       #|                    pass-name [pass-length [character-set]]
     }
 
@@ -635,6 +636,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
+        #|DECISION=default
         #|MULTILINE=no
         #|OVERWRITE=no
         #|SELECTED_LINE=1
@@ -651,6 +653,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 12 [:punct:][:alnum:]
+        #|DECISION=default
         #|MULTILINE=no
         #|OVERWRITE=no
         #|SELECTED_LINE=1
@@ -667,6 +670,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 12 [A-Z]
+        #|DECISION=default
         #|MULTILINE=no
         #|OVERWRITE=no
         #|SELECTED_LINE=1
@@ -683,6 +687,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path -f
         #|$ do_generate -f 25 [:punct:][:alnum:]
+        #|DECISION=default
         #|MULTILINE=no
         #|OVERWRITE=no
         #|SELECTED_LINE=1
@@ -699,6 +704,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
+        #|DECISION=default
         #|MULTILINE=no
         #|OVERWRITE=no
         #|SELECTED_LINE=1
@@ -715,6 +721,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
+        #|DECISION=default
         #|MULTILINE=no
         #|OVERWRITE=no
         #|SELECTED_LINE=1
@@ -731,6 +738,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
+        #|DECISION=default
         #|MULTILINE=no
         #|OVERWRITE=no
         #|SELECTED_LINE=1
@@ -747,6 +755,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
+        #|DECISION=default
         #|MULTILINE=no
         #|OVERWRITE=no
         #|SELECTED_LINE=1
@@ -763,6 +772,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:alnum:]
+        #|DECISION=default
         #|MULTILINE=no
         #|OVERWRITE=no
         #|SELECTED_LINE=1
@@ -779,6 +789,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:alnum:]
+        #|DECISION=default
         #|MULTILINE=no
         #|OVERWRITE=no
         #|SELECTED_LINE=1
@@ -795,6 +806,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:alnum:]
+        #|DECISION=default
         #|MULTILINE=no
         #|OVERWRITE=no
         #|SELECTED_LINE=1
@@ -811,6 +823,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:alnum:]
+        #|DECISION=default
         #|MULTILINE=no
         #|OVERWRITE=no
         #|SELECTED_LINE=1
@@ -827,6 +840,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
+        #|DECISION=default
         #|MULTILINE=yes
         #|OVERWRITE=no
         #|SELECTED_LINE=1
@@ -843,6 +857,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
+        #|DECISION=default
         #|MULTILINE=yes
         #|OVERWRITE=no
         #|SELECTED_LINE=1
@@ -859,6 +874,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
+        #|DECISION=default
         #|MULTILINE=no
         #|OVERWRITE=yes
         #|SELECTED_LINE=1
@@ -875,12 +891,47 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
+        #|DECISION=default
         #|MULTILINE=no
         #|OVERWRITE=yes
         #|SELECTED_LINE=1
         #|SHOW=text
       }
       When call cmd_generate -f secret
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'asks for confirmation before saving the generated password (long)'
+      result() {
+        %text
+        #|$ check_sneaky_path secret
+        #|$ do_generate secret 25 [:punct:][:alnum:]
+        #|DECISION=interactive
+        #|MULTILINE=no
+        #|OVERWRITE=no
+        #|SELECTED_LINE=1
+        #|SHOW=text
+      }
+      When call cmd_generate --try secret
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'asks for confirmation before saving the generated password (short)'
+      result() {
+        %text
+        #|$ check_sneaky_path secret
+        #|$ do_generate secret 25 [:punct:][:alnum:]
+        #|DECISION=interactive
+        #|MULTILINE=no
+        #|OVERWRITE=no
+        #|SELECTED_LINE=1
+        #|SHOW=text
+      }
+      When call cmd_generate -t secret
       The status should be success
       The output should be blank
       The error should equal "$(result)"

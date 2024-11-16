@@ -81,6 +81,10 @@ passwords.
 - The `generate` command has a new command-line argument to specify
 explicitly the character set.
 
+- The `generate` command optionally asks for confirmation before storing
+the generated secret (e.g. for iterative attempts against stupid password
+rules)
+
 - The `init` command has new flags to control re-encryption (never or
 ask for each file).
 
@@ -102,8 +106,6 @@ The following features are currently under consideration:
 - partial display of secrets on standard output
 - successive clipboard copy of several lines from a single decryption
 (e.g. username then password)
-- optional interactive confirmation between generation and encryption
-(e.g. for iterative attempts against stupid password rules)
 - OTP support
 - maybe extension support?
 
@@ -274,7 +276,8 @@ Environment:
 
 ```
 pashage generate [--no-symbols,-n] [--clip,-c | --qrcode,-q]
-                 [--in-place,-i | --force,-f] pass-name [pass-length]
+                 [--in-place,-i | --force,-f] [--try,-t]
+                 pass-name [pass-length [character-set]]
 ```
 
 This subcommand generates a new secret from `/dev/urandom`, stores it in
@@ -291,6 +294,8 @@ Flags:
   characters
 - `-q` or `--qrcode`: display the secret as a QR-code instead of using the
   standard output
+- `-t` or `--try`: display the secret and ask for confirmation before
+  storing it into the database
 
 Environment:
 - `CLICOLOR`: when set to a non-empty value, use ANSI escape sequences to
@@ -305,10 +310,10 @@ Environment:
   when `PASHAGE_DIR` is unset
 - `PASSAGE_IDENTITIES_FILE`: _identity_ file to use instead of
   `~/.passage/identities` when `PASHAGE_IDENTITIES_FILE` is unset
-- `PASSWORD_STORE_CHARACTER_SET_NO_SYMBOLS`: character set to use with
-  `tr(1)` when `-n` is specified, instead of `[:alnum:]`
-- `PASSWORD_STORE_CHARACTER_SET`: character set to use with `tr(1)` when
-  `-n` is not specified, instead of `[:punct:][:alnum:]`
+- `PASSWORD_STORE_CHARACTER_SET_NO_SYMBOLS`: default character set to use
+  with `tr(1)` when `-n` is specified, instead of `[:alnum:]`
+- `PASSWORD_STORE_CHARACTER_SET`: default character set to use with `tr(1)`
+  when `-n` is not specified, instead of `[:punct:][:alnum:]`
 - `PASSWORD_STORE_CLIP_TIME`: number of second before clearing the
   clipboard when `-c` is used, instead of 45
 - `PASSWORD_STORE_DIR`: database directory to use instead of

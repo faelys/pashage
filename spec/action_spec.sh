@@ -1032,6 +1032,7 @@ Describe 'Action Functions'
   End
 
   Describe 'do_generate'
+    DECISION=default
     PREFIX="${SHELLSPEC_WORKDIR}/prefix"
     SHOW=none
 
@@ -1251,6 +1252,48 @@ Describe 'Action Functions'
       When call do_generate existing 10 '[alnum:]'
       The status should be success
       The output should equal 'Decrypting previous secret for existing'
+      The error should equal "$(result)"
+    End
+
+    It 'saves the password after showing it and getting confirmation'
+      DECISION=interactive
+      yesno() {
+        mocklog yesno "$@"
+        ANSWER=y
+      }
+      result(){
+        %text:expand
+        #|$ do_show sub/new
+        #|> 0123456789
+        #|$ yesno Save generated password for sub/new?
+        #|$ scm_begin
+        #|$ mkdir -p -- ${PREFIX}/sub
+        #|$ do_encrypt sub/new.age
+        #|> 0123456789
+        #|$ scm_add ${PREFIX}/sub/new.age
+        #|$ scm_commit Add generated password for sub/new.
+      }
+      When call do_generate sub/new 10 '[alnum:]'
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'does not save the password after showing it and getting cancellation'
+      DECISION=interactive
+      yesno() {
+        mocklog yesno "$@"
+        ANSWER=n
+      }
+      result(){
+        %text:expand
+        #|$ do_show sub/new
+        #|> 0123456789
+        #|$ yesno Save generated password for sub/new?
+      }
+      When call do_generate sub/new 10 '[alnum:]'
+      The status should be success
+      The output should be blank
       The error should equal "$(result)"
     End
   End
