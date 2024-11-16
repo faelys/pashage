@@ -672,8 +672,7 @@ Describe 'Integrated Command Functions'
       The status should equal 1
       The output should be blank
       The error should equal 'Cannot replace directory new-secret.age'
-      The result of function git_log should be successful
-      The contents of file "${GITLOG}" should equal "$(setup_log)"
+      The result of function check_git_log should be successful
     End
 
     It 'aborts on decryption failure even without pipefail'
