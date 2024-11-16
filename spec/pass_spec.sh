@@ -725,7 +725,7 @@ Describe 'Pass-like command'
     End
 
     It 'displays the password as a QR-code'
-      DISPLAY=mock
+      export DISPLAY=mock
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 -q fluff/one
       The status should be success
@@ -742,7 +742,7 @@ Describe 'Pass-like command'
     End
 
     It 'displays the given long-option line as a QR-code'
-      DISPLAY=mock
+      export DISPLAY=mock
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 --qrcode=2 fluff/three
       The status should be success
@@ -759,7 +759,7 @@ Describe 'Pass-like command'
     End
 
     It 'displays the given short-option line as a QR-code'
-      DISPLAY=mock
+      export DISPLAY=mock
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 -q2 fluff/three
       The status should be success
@@ -776,7 +776,7 @@ Describe 'Pass-like command'
     End
 
     It 'pastes into the clipboard'
-      DISPLAY=mock
+      export DISPLAY=mock
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 show -c fluff/three
       The status should be success
@@ -791,7 +791,7 @@ Describe 'Pass-like command'
     End
 
     It 'pastes a selected long-option line into the clipboard'
-      DISPLAY=mock
+      export DISPLAY=mock
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 show --clip=2 fluff/three
       The status should be success
@@ -806,7 +806,7 @@ Describe 'Pass-like command'
     End
 
     It 'pastes a selected short-option line into the clipboard'
-      DISPLAY=mock
+      export DISPLAY=mock
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 show -c2 fluff/three
       The status should be success
@@ -1629,7 +1629,7 @@ Describe 'Pass-like command'
     End
 
     It 'pastes the generated password into the clipboard'
-      DISPLAY=mock
+      export DISPLAY=mock
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 generate -nc subdir/new
       The status should be success
@@ -1651,7 +1651,7 @@ Describe 'Pass-like command'
     End
 
     It 'displays the generated password as a QR-code'
-      DISPLAY=mock
+      export DISPLAY=mock
       Skip if 'pass(age) needs bash' check_skip $2
       When run script $1 generate -qn new
       The status should be success
