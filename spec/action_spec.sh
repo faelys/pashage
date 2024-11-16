@@ -1100,7 +1100,7 @@ Describe 'Action Functions'
         #|$ do_show sub/new
         #|> 0123456789
       }
-      When call do_generate sub/new 10 '[alnum:]'
+      When call do_generate sub/new 10 '[:alnum:]'
       The status should be success
       The output should be blank
       The error should equal "$(result)"
@@ -1123,7 +1123,7 @@ Describe 'Action Functions'
         #|$ do_show sub/new
         #|> 0123456789
       }
-      When call do_generate sub/new 10 '[alnum:]'
+      When call do_generate sub/new 10 '[:alnum:]'
       The status should be success
       The output should equal \
         '(B)The generated password for (U)sub/new(!U) is:(N)'
@@ -1144,7 +1144,7 @@ Describe 'Action Functions'
         #|$ do_show existing
         #|> 0123456789
       }
-      When call do_generate existing 10 '[alnum:]'
+      When call do_generate existing 10 '[:alnum:]'
       The status should be success
       The output should be blank
       The error should equal "$(result)"
@@ -1169,7 +1169,7 @@ Describe 'Action Functions'
         #|$ do_show existing
         #|> 0123456789
       }
-      When call do_generate existing 10 '[alnum:]'
+      When call do_generate existing 10 '[:alnum:]'
       The status should be success
       The output should be blank
       The error should equal "$(result)"
@@ -1189,7 +1189,7 @@ Describe 'Action Functions'
         #|$ mkdir -p -- ${PREFIX}
         #|$ yesno An entry already exists for existing. Overwrite it?
       }
-      When call do_generate existing 10 '[alnum:]'
+      When call do_generate existing 10 '[:alnum:]'
       The status should be success
       The output should be blank
       The error should equal "$(result)"
@@ -1221,7 +1221,7 @@ Describe 'Action Functions'
         #|$ do_show existing
         #|> 0123456789
       }
-      When call do_generate existing 10 '[alnum:]'
+      When call do_generate existing 10 '[:alnum:]'
       The status should be success
       The output should equal 'Decrypting previous secret for existing'
       The error should equal "$(result)"
@@ -1249,7 +1249,7 @@ Describe 'Action Functions'
         #|$ do_show existing
         #|> 0123456789
       }
-      When call do_generate existing 10 '[alnum:]'
+      When call do_generate existing 10 '[:alnum:]'
       The status should be success
       The output should equal 'Decrypting previous secret for existing'
       The error should equal "$(result)"
@@ -1273,7 +1273,7 @@ Describe 'Action Functions'
         #|$ scm_add ${PREFIX}/sub/new.age
         #|$ scm_commit Add generated password for sub/new.
       }
-      When call do_generate sub/new 10 '[alnum:]'
+      When call do_generate sub/new 10 '[:alnum:]'
       The status should be success
       The output should be blank
       The error should equal "$(result)"
@@ -1291,7 +1291,7 @@ Describe 'Action Functions'
         #|> 0123456789
         #|$ yesno Save generated password for sub/new?
       }
-      When call do_generate sub/new 10 '[alnum:]'
+      When call do_generate sub/new 10 '[:alnum:]'
       The status should be success
       The output should be blank
       The error should equal "$(result)"
