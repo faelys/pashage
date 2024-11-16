@@ -16,6 +16,9 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+NL='
+'
+
 #############################
 # INTERNAL HELPER FUNCTIONS #
 #############################
@@ -646,8 +649,7 @@ do_generate_commit() {
 	elif [ -e "${PREFIX}/$1.age" ] && [ "${MULTILINE}" = yes ]; then
 		printf '%s\n' "Decrypting previous secret for $1"
 		OLD_SECRET_FULL="$(do_decrypt "${PREFIX}/$1.age")"
-		OLD_SECRET="${OLD_SECRET_FULL#*
-}"
+		OLD_SECRET="${OLD_SECRET_FULL#*"${NL}"}"
 		WIP_FILE="$(mktemp "${PREFIX}/$1-XXXXXXXXX.age")"
 		OVERWRITE=once
 		if [ "${OLD_SECRET}" = "${OLD_SECRET_FULL}" ]; then
