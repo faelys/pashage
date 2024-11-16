@@ -1131,7 +1131,7 @@ Describe 'Action Functions'
 
     It 'overwrites an existing file when forced'
       MULTILINE=no
-      DECISION=force
+      OVERWRITE=yes
       result(){
         %text:expand
         #|$ scm_begin
@@ -1151,7 +1151,7 @@ Describe 'Action Functions'
 
     It 'overwrites an existing file after confirmation'
       MULTILINE=no
-      DECISION=default
+      OVERWRITE=no
       yesno() {
         mocklog yesno "$@";
         ANSWER=y
@@ -1177,7 +1177,7 @@ Describe 'Action Functions'
 
     It 'does not overwrite an existing file without confirmation'
       MULTILINE=no
-      DECISION=default
+      OVERWRITE=no
       yesno() {
         mocklog yesno "$@";
         ANSWER=n

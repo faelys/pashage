@@ -610,8 +610,8 @@ do_encrypt() {
 #   $1: secret name
 #   $2: new password length
 #   $3: new password charset
-#   DECISION: whether to ask before overwrite
 #   MULTILINE: whether to re-use existing secret data
+#   OVERWRITE: whether to overwrite without confirmation
 do_generate() {
 	NEW_PASS="$(random_chars "$2" "$3")"
 	NEW_PASS_LEN="$(strlen "${NEW_PASS}")"
@@ -652,13 +652,10 @@ do_generate() {
 		unset WIP_FILE
 
 	else
-		if [ -e "${PREFIX}/$1.age" ]; then
-			if ! [ "${DECISION}" = force ]; then
-				yesno "An entry already exists for $1. Overwrite it?"
-				[ "${ANSWER}" = y ] || return 0
-				unset ANSWER
-			fi
-
+		if [ -e "${PREFIX}/$1.age" ] && ! [ "${OVERWRITE}" = yes ]; then
+			yesno "An entry already exists for $1. Overwrite it?"
+			[ "${ANSWER}" = y ] || return 0
+			unset ANSWER
 			OVERWRITE=once
 		fi
 
@@ -1206,10 +1203,10 @@ cmd_generate() {
 				PARSE_ERROR=yes
 				break
 			fi
-			DECISION=force
+			OVERWRITE=yes
 			shift ;;
 		    -i|--in-place)
-			if [ "${DECISION}" = force ]; then
+			if [ "${OVERWRITE}" = yes ]; then
 				PARSE_ERROR=yes
 				break
 			fi
@@ -1245,7 +1242,7 @@ cmd_generate() {
 	done
 
 	if [ "${PARSE_ERROR}" = yes ] || [ $# -eq 0 ] || [ $# -gt 3 ] \
-	    || [ "${DECISION}-${MULTILINE}" = force-yes ]
+	    || [ "${OVERWRITE}-${MULTILINE}" = yes-yes ]
 	then
 		cmd_usage 'Usage: ' generate >&2
 		exit 1

@@ -96,8 +96,8 @@ Describe 'Command-Line Parsing'
   do_generate() {
     mocklog do_generate "$@"
     %text:expand >&2
-    #|DECISION=${DECISION}
     #|MULTILINE=${MULTILINE}
+    #|OVERWRITE=${OVERWRITE}
     #|SELECTED_LINE=${SELECTED_LINE}
     #|SHOW=${SHOW}
   }
@@ -635,8 +635,8 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
-        #|DECISION=default
         #|MULTILINE=no
+        #|OVERWRITE=no
         #|SELECTED_LINE=1
         #|SHOW=text
       }
@@ -651,8 +651,8 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 12 [:punct:][:alnum:]
-        #|DECISION=default
         #|MULTILINE=no
+        #|OVERWRITE=no
         #|SELECTED_LINE=1
         #|SHOW=text
       }
@@ -667,8 +667,8 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 12 [A-Z]
-        #|DECISION=default
         #|MULTILINE=no
+        #|OVERWRITE=no
         #|SELECTED_LINE=1
         #|SHOW=text
       }
@@ -683,8 +683,8 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path -f
         #|$ do_generate -f 25 [:punct:][:alnum:]
-        #|DECISION=default
         #|MULTILINE=no
+        #|OVERWRITE=no
         #|SELECTED_LINE=1
         #|SHOW=text
       }
@@ -699,8 +699,8 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
-        #|DECISION=default
         #|MULTILINE=no
+        #|OVERWRITE=no
         #|SELECTED_LINE=1
         #|SHOW=clip
       }
@@ -715,8 +715,8 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
-        #|DECISION=default
         #|MULTILINE=no
+        #|OVERWRITE=no
         #|SELECTED_LINE=1
         #|SHOW=clip
       }
@@ -731,8 +731,8 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
-        #|DECISION=default
         #|MULTILINE=no
+        #|OVERWRITE=no
         #|SELECTED_LINE=1
         #|SHOW=qrcode
       }
@@ -747,8 +747,8 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
-        #|DECISION=default
         #|MULTILINE=no
+        #|OVERWRITE=no
         #|SELECTED_LINE=1
         #|SHOW=qrcode
       }
@@ -763,8 +763,8 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:alnum:]
-        #|DECISION=default
         #|MULTILINE=no
+        #|OVERWRITE=no
         #|SELECTED_LINE=1
         #|SHOW=clip
       }
@@ -779,8 +779,8 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:alnum:]
-        #|DECISION=default
         #|MULTILINE=no
+        #|OVERWRITE=no
         #|SELECTED_LINE=1
         #|SHOW=clip
       }
@@ -795,8 +795,8 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:alnum:]
-        #|DECISION=default
         #|MULTILINE=no
+        #|OVERWRITE=no
         #|SELECTED_LINE=1
         #|SHOW=qrcode
       }
@@ -811,8 +811,8 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:alnum:]
-        #|DECISION=default
         #|MULTILINE=no
+        #|OVERWRITE=no
         #|SELECTED_LINE=1
         #|SHOW=qrcode
       }
@@ -827,8 +827,8 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
-        #|DECISION=default
         #|MULTILINE=yes
+        #|OVERWRITE=no
         #|SELECTED_LINE=1
         #|SHOW=text
       }
@@ -843,8 +843,8 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
-        #|DECISION=default
         #|MULTILINE=yes
+        #|OVERWRITE=no
         #|SELECTED_LINE=1
         #|SHOW=text
       }
@@ -859,8 +859,8 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
-        #|DECISION=force
         #|MULTILINE=no
+        #|OVERWRITE=yes
         #|SELECTED_LINE=1
         #|SHOW=text
       }
@@ -875,8 +875,8 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path secret
         #|$ do_generate secret 25 [:punct:][:alnum:]
-        #|DECISION=force
         #|MULTILINE=no
+        #|OVERWRITE=yes
         #|SELECTED_LINE=1
         #|SHOW=text
       }
