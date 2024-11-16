@@ -32,12 +32,6 @@ Describe 'Command-Line Parsing'
 
   CHARACTER_SET='[:punct:][:alnum:]'
   CHARACTER_SET_NO_SYMBOLS='[:alnum:]'
-  DECISION=default
-  ECHO=no
-  MULTILINE=no
-  OVERWRITE=no
-  SELECTED_LINE=1
-  SHOW=text
 
   # mocks
   platform_tmpdir() {
@@ -400,7 +394,6 @@ Describe 'Command-Line Parsing'
 
   Describe 'cmd_delete'
     COMMAND=delete
-    RECURSIVE=no
 
     It 'removes a file forcefully with a long option'
       result() {
@@ -1645,8 +1638,6 @@ Describe 'Command-Line Parsing'
 
   Describe 'cmd_list_or_show'
     COMMAND=
-    SELECTED_LINE=1
-    SHOW=text
 
     It 'lists the whole store'
       result() {
@@ -2128,7 +2119,6 @@ Describe 'Command-Line Parsing'
 
   Describe 'cmd_reencrypt'
     COMMAND=reencrypt
-    DECISION=default
 
     It 're-encrypts multiple files and directories'
       result() {

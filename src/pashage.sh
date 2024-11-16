@@ -614,8 +614,8 @@ do_encrypt() {
 #   $2: new password length
 #   $3: new password charset
 #   DECISION: when interactive, show-ask-commit instead of commit-show
-#   MULTILINE: whether to re-use existing secret data
 #   OVERWRITE: whether to overwrite without confirmation
+#   MULTILINE: whether to re-use existing secret data
 do_generate() {
 	NEW_PASS="$(random_chars "$2" "$3")"
 	NEW_PASS_LEN="$(strlen "${NEW_PASS}")"
@@ -780,8 +780,8 @@ do_init() {
 # Insert a new secret from standard input
 #   $1: entry name
 #   ECHO: whether interactive echo is kept
-#   OVERWRITE: whether to overwrite without confirmation
 #   MULTILINE: whether whole standard input is used
+#   OVERWRITE: whether to overwrite without confirmation
 do_insert() {
 	if [ -e "${PREFIX}/$1.age" ] && [ "${OVERWRITE}" = no ]; then
 		yesno "An entry already exists for $1. Overwrite it?"
@@ -1065,7 +1065,10 @@ cmd_copy() {
 }
 
 cmd_copy_move() {
+	DECISION=default
+	OVERWRITE=no
 	PARSE_ERROR=no
+
 	while [ $# -ge 1 ]; do
 		case "$1" in
 		    -f|--force)
@@ -1136,8 +1139,10 @@ cmd_copy_move() {
 }
 
 cmd_delete() {
+	DECISION=default
 	PARSE_ERROR=no
 	RECURSIVE=no
+
 	while [ $# -ge 1 ]; do
 		case "$1" in
 		    -f|--force)
@@ -1203,9 +1208,13 @@ cmd_find() {
 }
 
 cmd_generate() {
-	PARSE_ERROR=no
 	CHARSET="${CHARACTER_SET}"
-	VERB="Add"
+	DECISION=default
+	MULTILINE=no
+	OVERWRITE=no
+	PARSE_ERROR=no
+	SELECTED_LINE=1
+	SHOW=text
 
 	while [ $# -ge 1 ]; do
 		case "$1" in
@@ -1410,7 +1419,11 @@ cmd_init() {
 }
 
 cmd_insert() {
+	ECHO=no
+	MULTILINE=no
+	OVERWRITE=no
 	PARSE_ERROR=no
+
 	while [ $# -ge 1 ]; do
 		case "$1" in
 		    -e|--echo)
@@ -1460,6 +1473,7 @@ cmd_insert() {
 
 cmd_list_or_show() {
 	PARSE_ERROR=no
+	SELECTED_LINE=1
 	USE_CLIP=no
 	USE_QRCODE=no
 

@@ -189,9 +189,6 @@ Describe 'Integrated Command Functions'
 # Describe 'cmd_copy' is not needed (covered by 'cmd_copy_move')
 
   Describe 'cmd_copy_move'
-    DECISION=default
-    OVERWRITE=no
-
     It 'processes several files and directories into a directory'
       When call cmd_move extra stale subdir
       The status should be success
@@ -421,8 +418,6 @@ Describe 'Integrated Command Functions'
   End
 
   Describe 'cmd_delete'
-    DECISION=default
-
     It 'deletes multiple files at once, prompting before each one'
       Data
         #|y
@@ -612,11 +607,6 @@ Describe 'Integrated Command Functions'
   End
 
   Describe 'cmd_generate'
-    DECISION=default
-    MULTILINE=no
-    OVERWRITE=no
-    SHOW=text
-
     It 'uses the character set given explicitly instead of environment'
       CHARACTER_SET='[0-9]'
       CHARACTER_SET_NO_SYMBOLS='[0-9]'
@@ -946,10 +936,6 @@ Describe 'Integrated Command Functions'
   End
 
   Describe 'cmd_insert'
-    ECHO=no
-    MULTILINE=no
-    OVERWRITE=no
-
     It 'inserts an entry encrypted using an explicit recipient file'
       PASHAGE_RECIPIENTS_FILE="${PREFIX}/fluff/.age-recipients"
       PASSAGE_RECIPIENTS_FILE="${PREFIX}/shared/.age-recipients"
@@ -1163,8 +1149,6 @@ Describe 'Integrated Command Functions'
   End
 
   Describe 'cmd_list_or_show'
-    SHOW=text
-
     It 'decrypts a GPG secret in the store using GPG'
       GPG=mock-gpg
       gpg() { false; }
@@ -1525,8 +1509,6 @@ Describe 'Integrated Command Functions'
     End
 
     Example 'delete'
-      DECISION=force
-      OVERWRITE=no
       When run cmd_delete stale
       The status should equal 1
       The error should equal 'There are already pending changes.'
@@ -1545,9 +1527,6 @@ Describe 'Integrated Command Functions'
     # 'find' does not change the repository
 
     Example 'generate'
-      DECISION=default
-      MULTILINE=no
-      OVERWRITE=no
       When run cmd_generate new-pass
       The status should equal 1
       The error should equal 'There are already pending changes.'
@@ -1585,7 +1564,6 @@ Describe 'Integrated Command Functions'
     End
 
     Example 'insert'
-      MULTILINE=no
       When run cmd_insert -e fluff/four
       The status should equal 1
       The error should equal 'There are already pending changes.'

@@ -75,14 +75,6 @@ unset GIT_OBJECT_DIRECTORY
 unset GIT_COMMON_DIR
 export GIT_CEILING_DIRECTORIES="${PREFIX}/.."
 
-### Default state
-DECISION=default #default|force|keep|interactive
-ECHO=no
-MULTILINE=no
-OVERWRITE=no
-SELECTED_LINE=1
-SHOW=text
-
 ###########
 # IMPORTS #
 ###########
