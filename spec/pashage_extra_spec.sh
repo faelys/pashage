@@ -1509,7 +1509,7 @@ Describe 'Integrated Command Functions'
     End
 
     Example 'delete'
-      When run cmd_delete stale
+      When run cmd_delete -f stale
       The status should equal 1
       The error should equal 'There are already pending changes.'
       The output should equal 'Removing stale'
@@ -1517,6 +1517,7 @@ Describe 'Integrated Command Functions'
     End
 
     Example 'edit'
+      VISUAL='false'
       When run cmd_edit subdir/file
       The status should equal 1
       The error should equal 'There are already pending changes.'
