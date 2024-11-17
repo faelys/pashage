@@ -1313,7 +1313,7 @@ Describe 'Action Functions'
         #|> 0123456789
       }
       The status should be success
-      The output should be blank
+      The output should equal 'Enter extra secrets then Ctrl+D when finished:'
       The error should equal "$(result)"
     End
 
@@ -1344,7 +1344,7 @@ Describe 'Action Functions'
         #|> 0123456789
       }
       The status should be success
-      The output should be blank
+      The output should equal 'Enter extra secrets then Ctrl+D when finished:'
       The error should equal "$(result)"
     End
 
@@ -1387,6 +1387,11 @@ Describe 'Action Functions'
         ANSWER=y
       }
       When call do_generate existing 10 '[:alnum:]'
+      o_result(){
+        %text
+        #|Decrypting previous secret for existing
+        #|Enter extra secrets then Ctrl+D when finished:
+      }
       result(){
         %text:expand
         #|$ scm_begin
@@ -1404,7 +1409,7 @@ Describe 'Action Functions'
         #|> 0123456789
       }
       The status should be success
-      The output should equal 'Decrypting previous secret for existing'
+      The output should equal "$(o_result)"
       The error should equal "$(result)"
     End
   End

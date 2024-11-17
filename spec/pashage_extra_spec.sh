@@ -720,10 +720,12 @@ Describe 'Integrated Command Functions'
       When call cmd_generate --multiline new 15
       The status should be success
       The error should be blank
-      The lines of output should equal 2
+      The lines of output should equal 3
       The line 1 of output should \
+        equal 'Enter extra secrets then Ctrl+D when finished:'
+      The line 2 of output should \
         equal '(B)The generated password for (U)new(!U) is:(N)'
-      The line 2 of output should match pattern '???????????????'
+      The line 3 of output should match pattern '???????????????'
       The lines of contents of file "${PREFIX}/new.age" should equal 3
       The line 3 of contents of file "${PREFIX}/new.age" should \
         equal 'age:extra comment line'
@@ -745,10 +747,12 @@ Describe 'Integrated Command Functions'
       When call cmd_generate --multiline --force fluff/three 5
       The status should be success
       The error should be blank
-      The lines of output should equal 2
+      The lines of output should equal 3
       The line 1 of output should \
+        equal 'Enter extra secrets then Ctrl+D when finished:'
+      The line 2 of output should \
         equal '(B)The generated password for (U)fluff/three(!U) is:(N)'
-      The line 2 of output should match pattern '?????'
+      The line 3 of output should match pattern '?????'
       The lines of contents of file "${PREFIX}/fluff/three.age" should equal 5
       The line 4 of contents of file "${PREFIX}/fluff/three.age" should \
         equal 'age:Extra: line'
@@ -772,12 +776,14 @@ Describe 'Integrated Command Functions'
       When call cmd_generate --multiline --in-place fluff/three 5
       The status should be success
       The error should be blank
-      The lines of output should equal 3
+      The lines of output should equal 4
       The line 1 of output should \
         equal 'Decrypting previous secret for fluff/three'
       The line 2 of output should \
+        equal 'Enter extra secrets then Ctrl+D when finished:'
+      The line 3 of output should \
         equal '(B)The generated password for (U)fluff/three(!U) is:(N)'
-      The line 3 of output should match pattern '?????'
+      The line 4 of output should match pattern '?????'
       The lines of contents of file "${PREFIX}/fluff/three.age" should equal 7
       The line 4 of contents of file "${PREFIX}/fluff/three.age" should \
         equal 'age:Username: 3Jane'

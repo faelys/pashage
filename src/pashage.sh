@@ -673,6 +673,7 @@ do_generate_commit() {
 	fi
 
 	if [ "${MULTILINE}" = yes ]; then
+		echo 'Enter extra secrets then Ctrl+D when finished:'
 		while IFS='' read -r LINE; do
 			EXTRA="${EXTRA}${EXTRA:+${NL}}${LINE}"
 		done
