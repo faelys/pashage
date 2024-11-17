@@ -614,8 +614,8 @@ do_encrypt() {
 #   $2: new password length
 #   $3: new password charset
 #   DECISION: when interactive, show-ask-commit instead of commit-show
-#   OVERWRITE: whether to overwrite without confirmation
-#   MULTILINE: whether to re-use existing secret data
+#   OVERWRITE: whether to overwrite with confirmation ("no"), without
+#              confirmation ("yes"), or with existing secret data ("reuse")
 #   SELECTED_LINE: which line to paste or diplay as qr-code
 #   SHOW: how to show the secret
 do_generate() {
@@ -648,7 +648,7 @@ do_generate_commit() {
 	if [ -d "${PREFIX}/$1.age" ]; then
 		die "Cannot replace directory $1.age"
 
-	elif [ -e "${PREFIX}/$1.age" ] && [ "${MULTILINE}" = yes ]; then
+	elif [ -e "${PREFIX}/$1.age" ] && [ "${OVERWRITE}" = reuse ]; then
 		printf '%s\n' "Decrypting previous secret for $1"
 		OLD_SECRET_FULL="$(do_decrypt "${PREFIX}/$1.age")"
 		OLD_SECRET="${OLD_SECRET_FULL#*"${NL}"}"
@@ -1228,18 +1228,18 @@ cmd_generate() {
 			SHOW=clip
 			shift ;;
 		    -f|--force)
-			if [ "${MULTILINE}" = yes ]; then
+			if ! [ "${OVERWRITE}" = no ]; then
 				PARSE_ERROR=yes
 				break
 			fi
 			OVERWRITE=yes
 			shift ;;
 		    -i|--in-place)
-			if [ "${OVERWRITE}" = yes ]; then
+			if ! [ "${OVERWRITE}" = no ]; then
 				PARSE_ERROR=yes
 				break
 			fi
-			MULTILINE=yes
+			OVERWRITE=reuse
 			shift ;;
 		    -n|--no-symbols)
 			CHARSET="${CHARACTER_SET_NO_SYMBOLS}"
@@ -1273,9 +1273,7 @@ cmd_generate() {
 		esac
 	done
 
-	if [ "${PARSE_ERROR}" = yes ] || [ $# -eq 0 ] || [ $# -gt 3 ] \
-	    || [ "${OVERWRITE}-${MULTILINE}" = yes-yes ]
-	then
+	if [ "${PARSE_ERROR}" = yes ] || [ $# -eq 0 ] || [ $# -gt 3 ]; then
 		cmd_usage 'Usage: ' generate >&2
 		exit 1
 	fi

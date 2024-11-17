@@ -1196,7 +1196,8 @@ Describe 'Action Functions'
     End
 
     It 'updates the first line of an existing file'
-      MULTILINE=yes
+      MULTILINE=no
+      OVERWRITE=reuse
       mktemp() { %= "$1"; }
       do_decrypt() {
         mocklog do_decrypt "$@"
@@ -1228,7 +1229,8 @@ Describe 'Action Functions'
     End
 
     It 'updates the only line of an existing one-line file'
-      MULTILINE=yes
+      MULTILINE=no
+      OVERWRITE=reuse
       mktemp() { %= "$1"; }
       do_decrypt() {
         mocklog do_decrypt "$@"
