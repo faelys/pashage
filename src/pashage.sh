@@ -616,6 +616,8 @@ do_encrypt() {
 #   DECISION: when interactive, show-ask-commit instead of commit-show
 #   OVERWRITE: whether to overwrite without confirmation
 #   MULTILINE: whether to re-use existing secret data
+#   SELECTED_LINE: which line to paste or diplay as qr-code
+#   SHOW: how to show the secret
 do_generate() {
 	NEW_PASS="$(random_chars "$2" "$3")"
 	NEW_PASS_LEN="$(strlen "${NEW_PASS}")"
