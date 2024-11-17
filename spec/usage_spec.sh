@@ -620,8 +620,8 @@ Describe 'Command-Line Parsing'
 
     usage_text() { %text
       #|Usage: prg generate [--no-symbols,-n] [--clip,-c | --qrcode,-q]
-      #|                    [--in-place,-i | --force,-f] [--try,-t]
-      #|                    pass-name [pass-length [character-set]]
+      #|                    [--in-place,-i | --force,-f] [--multiline,-m]
+      #|                    [--try,-t] pass-name [pass-length [character-set]]
     }
 
     It 'generates a new entry with default length'
@@ -925,6 +925,40 @@ Describe 'Command-Line Parsing'
         #|SHOW=text
       }
       When call cmd_generate -t secret
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'accepts extra lines after the generated secret (long)'
+      result() {
+        %text
+        #|$ check_sneaky_path secret
+        #|$ do_generate secret 25 [:punct:][:alnum:]
+        #|DECISION=default
+        #|MULTILINE=yes
+        #|OVERWRITE=no
+        #|SELECTED_LINE=1
+        #|SHOW=text
+      }
+      When call cmd_generate --multiline secret
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'accepts extra lines after the generated secret (short)'
+      result() {
+        %text
+        #|$ check_sneaky_path secret
+        #|$ do_generate secret 25 [:punct:][:alnum:]
+        #|DECISION=default
+        #|MULTILINE=yes
+        #|OVERWRITE=no
+        #|SELECTED_LINE=1
+        #|SHOW=text
+      }
+      When call cmd_generate -m secret
       The status should be success
       The output should be blank
       The error should equal "$(result)"

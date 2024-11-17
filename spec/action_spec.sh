@@ -1033,6 +1033,7 @@ Describe 'Action Functions'
 
   Describe 'do_generate'
     DECISION=default
+    MULTILINE=no
     PREFIX="${SHELLSPEC_WORKDIR}/prefix"
     SHOW=none
 
@@ -1198,7 +1199,6 @@ Describe 'Action Functions'
     It 'updates the first line of an existing file'
       MULTILINE=no
       OVERWRITE=reuse
-      mktemp() { %= "$1"; }
       do_decrypt() {
         mocklog do_decrypt "$@"
         %text
@@ -1212,11 +1212,10 @@ Describe 'Action Functions'
         #|$ scm_begin
         #|$ mkdir -p -- ${PREFIX}
         #|$ do_decrypt ${PREFIX}/existing.age
-        #|$ do_encrypt existing-XXXXXXXXX.age
+        #|$ do_encrypt existing.age
         #|> 0123456789
         #|> line 2
         #|> line 3
-        #|$ mv ${PREFIX}/existing-XXXXXXXXX.age ${PREFIX}/existing.age
         #|$ scm_add ${PREFIX}/existing.age
         #|$ scm_commit Replace generated password for existing.
         #|$ do_show existing
@@ -1231,7 +1230,6 @@ Describe 'Action Functions'
     It 'updates the only line of an existing one-line file'
       MULTILINE=no
       OVERWRITE=reuse
-      mktemp() { %= "$1"; }
       do_decrypt() {
         mocklog do_decrypt "$@"
         %text
@@ -1243,9 +1241,8 @@ Describe 'Action Functions'
         #|$ scm_begin
         #|$ mkdir -p -- ${PREFIX}
         #|$ do_decrypt ${PREFIX}/existing.age
-        #|$ do_encrypt existing-XXXXXXXXX.age
+        #|$ do_encrypt existing.age
         #|> 0123456789
-        #|$ mv ${PREFIX}/existing-XXXXXXXXX.age ${PREFIX}/existing.age
         #|$ scm_add ${PREFIX}/existing.age
         #|$ scm_commit Replace generated password for existing.
         #|$ do_show existing
@@ -1296,6 +1293,118 @@ Describe 'Action Functions'
       When call do_generate sub/new 10 '[:alnum:]'
       The status should be success
       The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'accepts an extra line after the generated secret'
+      MULTILINE=yes
+      Data 'comment line'
+      When call do_generate sub/new 10 '[:alnum:]'
+      result(){
+        %text:expand
+        #|$ scm_begin
+        #|$ mkdir -p -- ${PREFIX}/sub
+        #|$ do_encrypt sub/new.age
+        #|> 0123456789
+        #|> comment line
+        #|$ scm_add ${PREFIX}/sub/new.age
+        #|$ scm_commit Add generated password for sub/new.
+        #|$ do_show sub/new
+        #|> 0123456789
+      }
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'accepts several lines after the generated secret'
+      MULTILINE=yes
+      OVERWRITE=no
+      Data
+        #|comment line
+        #|end of secret
+      End
+      yesno() {
+        mocklog yesno "$@"
+        ANSWER=y
+      }
+      When call do_generate existing 10 '[:alnum:]'
+      result(){
+        %text:expand
+        #|$ scm_begin
+        #|$ mkdir -p -- ${PREFIX}
+        #|$ yesno An entry already exists for existing. Overwrite it?
+        #|$ do_encrypt existing.age
+        #|> 0123456789
+        #|> comment line
+        #|> end of secret
+        #|$ scm_add ${PREFIX}/existing.age
+        #|$ scm_commit Add generated password for existing.
+        #|$ do_show existing
+        #|> 0123456789
+      }
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'does not asks for extra lines after refusing to overwrite'
+      MULTILINE=yes
+      OVERWRITE=no
+      Data 'n'
+      yesno() {
+        mocklog yesno "$@"
+        ANSWER=n
+      }
+      When call do_generate existing 10 '[:alnum:]'
+      result(){
+        %text:expand
+        #|$ scm_begin
+        #|$ mkdir -p -- ${PREFIX}
+        #|$ yesno An entry already exists for existing. Overwrite it?
+      }
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'inserts extra lines after the in-place secrets'
+      MULTILINE=yes
+      OVERWRITE=reuse
+      do_decrypt() {
+        mocklog do_decrypt "$@"
+        %text:expand
+        #|old password
+        #|old annotation
+        #|end of $*
+      }
+      Data
+        #|comment line
+        #|end of secret
+      End
+      yesno() {
+        mocklog yesno "$@"
+        ANSWER=y
+      }
+      When call do_generate existing 10 '[:alnum:]'
+      result(){
+        %text:expand
+        #|$ scm_begin
+        #|$ mkdir -p -- ${PREFIX}
+        #|$ do_decrypt ${PREFIX}/existing.age
+        #|$ do_encrypt existing.age
+        #|> 0123456789
+        #|> old annotation
+        #|> end of ${PREFIX}/existing.age
+        #|> comment line
+        #|> end of secret
+        #|$ scm_add ${PREFIX}/existing.age
+        #|$ scm_commit Replace generated password for existing.
+        #|$ do_show existing
+        #|> 0123456789
+      }
+      The status should be success
+      The output should equal 'Decrypting previous secret for existing'
       The error should equal "$(result)"
     End
   End

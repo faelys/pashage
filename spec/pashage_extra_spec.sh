@@ -714,6 +714,88 @@ Describe 'Integrated Command Functions'
         equal 'Save generated password for new? [y/n]'
       The result of function check_git_log should be successful
     End
+
+    It 'accepts an extra line after the generated secret'
+      Data 'extra comment line'
+      When call cmd_generate --multiline new 15
+      The status should be success
+      The error should be blank
+      The lines of output should equal 2
+      The line 1 of output should \
+        equal '(B)The generated password for (U)new(!U) is:(N)'
+      The line 2 of output should match pattern '???????????????'
+      The lines of contents of file "${PREFIX}/new.age" should equal 3
+      The line 3 of contents of file "${PREFIX}/new.age" should \
+        equal 'age:extra comment line'
+      expected_log() { %text
+        #|Add generated password for new.
+        #|
+        #| new.age | 3 +++
+        #| 1 file changed, 3 insertions(+)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+
+    It 'accepts extra lines after the generated secret when overwriting'
+      Data
+        #|Extra: line
+        #|Extra: end of input
+      End
+      When call cmd_generate --multiline --force fluff/three 5
+      The status should be success
+      The error should be blank
+      The lines of output should equal 2
+      The line 1 of output should \
+        equal '(B)The generated password for (U)fluff/three(!U) is:(N)'
+      The line 2 of output should match pattern '?????'
+      The lines of contents of file "${PREFIX}/fluff/three.age" should equal 5
+      The line 4 of contents of file "${PREFIX}/fluff/three.age" should \
+        equal 'age:Extra: line'
+      The line 5 of contents of file "${PREFIX}/fluff/three.age" should \
+        equal 'age:Extra: end of input'
+      expected_log() { %text
+        #|Add generated password for fluff/three.
+        #|
+        #| fluff/three.age | 6 +++---
+        #| 1 file changed, 3 insertions(+), 3 deletions(-)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+
+    It 'accepts extra lines after the generated secret after in-place data'
+      Data
+        #|Extra: line
+        #|Extra: end of input
+      End
+      When call cmd_generate --multiline --in-place fluff/three 5
+      The status should be success
+      The error should be blank
+      The lines of output should equal 3
+      The line 1 of output should \
+        equal 'Decrypting previous secret for fluff/three'
+      The line 2 of output should \
+        equal '(B)The generated password for (U)fluff/three(!U) is:(N)'
+      The line 3 of output should match pattern '?????'
+      The lines of contents of file "${PREFIX}/fluff/three.age" should equal 7
+      The line 4 of contents of file "${PREFIX}/fluff/three.age" should \
+        equal 'age:Username: 3Jane'
+      The line 5 of contents of file "${PREFIX}/fluff/three.age" should \
+        equal 'age:URL: https://example.com/login'
+      The line 6 of contents of file "${PREFIX}/fluff/three.age" should \
+        equal 'age:Extra: line'
+      The line 7 of contents of file "${PREFIX}/fluff/three.age" should \
+        equal 'age:Extra: end of input'
+      expected_log() { %text
+        #|Replace generated password for fluff/three.
+        #|
+        #| fluff/three.age | 4 +++-
+        #| 1 file changed, 3 insertions(+), 1 deletion(-)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
   End
 
   Describe 'cmd_git'

@@ -644,6 +644,7 @@ do_generate() {
 do_generate_commit() {
 	scm_begin
 	mkdir -p -- "$(dirname "${PREFIX}/$1.age")"
+	EXTRA=
 
 	if [ -d "${PREFIX}/$1.age" ]; then
 		die "Cannot replace directory $1.age"
@@ -652,23 +653,13 @@ do_generate_commit() {
 		printf '%s\n' "Decrypting previous secret for $1"
 		OLD_SECRET_FULL="$(do_decrypt "${PREFIX}/$1.age")"
 		OLD_SECRET="${OLD_SECRET_FULL#*"${NL}"}"
-		WIP_FILE="$(mktemp "${PREFIX}/$1-XXXXXXXXX.age")"
-		OVERWRITE=once
-		if [ "${OLD_SECRET}" = "${OLD_SECRET_FULL}" ]; then
-			do_encrypt "${WIP_FILE#"${PREFIX}"/}" <<-EOF
-				${NEW_PASS}
-			EOF
-		else
-			do_encrypt "${WIP_FILE#"${PREFIX}"/}" <<-EOF
-				${NEW_PASS}
-				${OLD_SECRET}
-			EOF
+		if ! [ "${OLD_SECRET}" = "${OLD_SECRET_FULL}" ]; then
+			EXTRA="${OLD_SECRET}"
 		fi
-		mv "${WIP_FILE}" "${PREFIX}/$1.age"
-		VERB="Replace"
-		unset OLD_SECRET_FULL
 		unset OLD_SECRET
-		unset WIP_FILE
+		unset OLD_SECRET_FULL
+		OVERWRITE=once
+		VERB="Replace"
 
 	else
 		if [ -e "${PREFIX}/$1.age" ] && ! [ "${OVERWRITE}" = yes ]; then
@@ -678,12 +669,20 @@ do_generate_commit() {
 			OVERWRITE=once
 		fi
 
-		do_encrypt "$1.age" <<-EOF
-			${NEW_PASS}
-		EOF
-
 		VERB="Add"
 	fi
+
+	if [ "${MULTILINE}" = yes ]; then
+		while IFS='' read -r LINE; do
+			EXTRA="${EXTRA}${EXTRA:+${NL}}${LINE}"
+		done
+	fi
+
+	do_encrypt "$1.age" <<-EOF
+		${NEW_PASS}${EXTRA:+${NL}}${EXTRA}
+	EOF
+
+	unset EXTRA
 
 	scm_add "${PREFIX}/$1.age"
 	scm_commit "${VERB} generated password for $1."
@@ -1241,6 +1240,9 @@ cmd_generate() {
 			fi
 			OVERWRITE=reuse
 			shift ;;
+		    -m|--multiline)
+			MULTILINE=yes
+			shift ;;
 		    -n|--no-symbols)
 			CHARSET="${CHARACTER_SET_NO_SYMBOLS}"
 			shift ;;
@@ -1254,7 +1256,7 @@ cmd_generate() {
 		    -t|--try)
 			DECISION=interactive
 			shift ;;
-		    -[cfinqt]?*)
+		    -[cfimnqt]?*)
 			REST="${1#-?}"
 			ARG="${1%"${REST}"}"
 			shift
@@ -1699,8 +1701,8 @@ EOF
 		    generate)
 			cat <<EOF
 ${F}${PROGRAM} generate [--no-symbols,-n] [--clip,-c | --qrcode,-q]
-${I}${BLANKPG}          [--in-place,-i | --force,-f] [--try,-t]
-${I}${BLANKPG}          pass-name [pass-length [character-set]]
+${I}${BLANKPG}          [--in-place,-i | --force,-f] [--multiline,-m]
+${I}${BLANKPG}          [--try,-t] pass-name [pass-length [character-set]]
 EOF
 			[ "${VERBOSE}" = yes ] && cat <<EOF
 ${I}    Generate a new password of pass-length (or ${GENERATED_LENGTH:-25} if unspecified)

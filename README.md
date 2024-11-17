@@ -83,7 +83,10 @@ explicitly the character set.
 
 - The `generate` command optionally asks for confirmation before storing
 the generated secret (e.g. for iterative attempts against stupid password
-rules)
+rules).
+
+- The `generate` command optionally asks for extra lines to append after
+the generated secret (e.g. for username, login page, or others comments).
 
 - The `init` command has new flags to control re-encryption (never or
 ask for each file).
@@ -276,8 +279,8 @@ Environment:
 
 ```
 pashage generate [--no-symbols,-n] [--clip,-c | --qrcode,-q]
-                 [--in-place,-i | --force,-f] [--try,-t]
-                 pass-name [pass-length [character-set]]
+                 [--in-place,-i | --force,-f] [--multiline,-m]
+                 [--try,-t] pass-name [pass-length [character-set]]
 ```
 
 This subcommand generates a new secret from `/dev/urandom`, stores it in
@@ -290,6 +293,8 @@ Flags:
 - `-f` or `--force`: replace existing secrets without asking
 - `-i` or `--in-place`: when the secret already exists, replace only its
   first line and re-use the following lines
+- `-m` or `--multiline`: read lines from standard input append after the
+  generated data into the secret file
 - `-n` or `--no-symbols`: generate a secret using only alphanumeric
   characters
 - `-q` or `--qrcode`: display the secret as a QR-code instead of using the
