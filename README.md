@@ -103,14 +103,17 @@ the password store.
 
 The following features are currently under consideration:
 
-- completion for various shells
-- better logic for recursivity in re-encryption
-- rewriting of git history to purge old cyphertexts
-- partial display of secrets on standard output
-- successive clipboard copy of several lines from a single decryption
+- v1.0.0:
+    + completion for various shells
+    + better logic for recursivity in re-encryption
+- v1.1.0:
+    + partial display of secrets on standard output
+    + successive clipboard copy of several lines from a single decryption
 (e.g. username then password)
-- OTP support
-- maybe extension support?
+- maybe/later:
+    + rewriting of git history to purge old cyphertexts
+    + OTP support
+    + extension support
 
 ## Manual
 
