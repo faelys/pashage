@@ -280,6 +280,8 @@ Environment:
 
 ### generate
 
+Syntax:
+
 ```
 pashage generate [--no-symbols,-n] [--clip,-c | --qrcode,-q]
                  [--in-place,-i | --force,-f] [--multiline,-m]

@@ -1,0 +1,466 @@
+.Dd December 6, 2024
+.Dt PASHAGE 1
+.Os
+.Sh NAME
+.Nm pashage
+.Nd simple and portable password store for the Unix shell
+.Sh SYNOPSIS
+.Nm
+.Op Ar COMMAND
+.Op Ar OPTIONS
+.Op Ar ARGS
+.Sh DESCRIPTION
+.Nm
+is a
+.Em password manager ,
+which means it manages a database of encrypted secrets, including encrypting
+externally-provided new secrets, generating and encrypting random strings, and
+decrypting and displaying stored secrets.
+.Pp
+It aims to be simple and composable, but its reliance on Unix philosophy
+and customs might make steep learning curve for users outside of this
+culture.
+.Pp
+The
+.Nm
+utility provides commands for query and management of the password store.
+When no command is specified,
+.Cm list
+or
+.Cm show
+is implicitly assumed.
+.Pp
+The database is optionally versioned using
+.Xr git 1
+to help with history audit and synchronization.
+It should be noted that this prevents re-encryption from erasing old
+cyphertext, leaving the secret vulnerable to compromised encryption keys.
+.Pp
+The cryptography is done by
+.Xr age 1
+external command.
+It decrypts using the
+.Em identity
+file given in the environment, and crypts using a list of
+.Em recipients
+per subfolder, defaulting to the parent
+.Em recipient
+list or the
+.Em identity .
+.Sh COMMANDS
+.Ss copy
+.Nm
+.Cm copy
+.Op Fl e,--reencrypt | Fl i,--interactive | Fl k,--keep
+.Op Fl f,--force
+.Ar old-path ... new-path
+.Pp
+This subcommand copies secrets and recursively copies subfolders,
+using the same positional argument scheme as
+.Xr cp 1 .
+By default it asks before overwriting an existing secret and it re-encrypts
+the secret when the destination has a different
+.Em recipient
+list.
+.Pp
+The options are as follows:
+.Bl -tag -compact -width \-i,--interactive
+.It Fl e,--reencrypt
+always re-encrypt secrets
+.It Fl f,--force
+overwrite existing secrets without asking
+.It Fl i,--interactive
+asks whether to re-encrypt or not for each secret
+.It Fl k,--keep
+never re-encrypt secrets
+.El
+.Ss delete
+.Nm
+.Cm delete
+.Op Fl r,--recursive
+.Op Fl f,--force
+.Ar pass-name
+.Ar ...
+.Pp
+This subcommand deletes secrets from the database.
+By default it skips subfolders and asks for confirmation for each secret.
+The options are as follows:
+.Bl -tag -compact -width \-r,--recursive
+.It Fl f,--force
+delete without asking for confirmation
+.It Fl r,--recursive
+recursively delete all secrets in given subfolders
+.El
+.Ss edit
+.Nm
+.Cm edit
+.Ar pass-name
+.Ar ...
+.Pp
+This subcommand starts an interactive editor to update the secrets.
+.Ss find
+.Nm
+.Cm find
+.Op Ar GREP_OPTIONS
+.Ar regex
+.Pp
+This subcommand lists as a tree the secrets whose name match the given
+regular expression, using the corresponding
+.Xr grep 1
+options.
+.Ss generate
+.Nm
+.Cm generate
+.Op Fl n,--no-symbols
+.Op Fl c,--clip | Fl q,--qrcode
+.Op Fl i,--in-place | Fl f,--force
+.Op Fl m,--multiline
+.Op Fl t,--try
+.Ar pass-name
+.Op Ar pass-length Op Ar character-set
+.Pp
+This subcommand generates a new secret from
+.Pa /dev/urandom ,
+stores it in the database, and by default displays it on the standard output
+and asks
+for confirmation before overwriting an existing secret.
+.Pp
+The options are as follows:
+.Bl -tag -compact -width \-n,--no-symbols
+.It Fl c,--clip
+paste the secret into the clipboard instead of using the standard output
+.It Fl f,--force
+replace existing secrets without asking
+.It Fl i,--in-place
+when the secret already exists, replace only its first line and re-use the
+following lines
+.It Fl m,--multiline
+read lines from standard input append after the generated data into the secret
+file
+.It Fl n,--no-symbols
+generate a secret using only alphanumeric characters
+.It Fl q,--qrcode
+display the secret as a QR-code instead of using the standard output
+.It Fl t,--try
+display the secret and ask for confirmation before storing it into the database
+.El
+.Ss git
+.Nm
+.Cm git git-command-args ...
+.Pp
+This subcommand invokes
+.Xr git 1
+in the database repository.
+Only
+.Cm git init
+and
+.Cm git clone
+are accepted when there is no underlying repository.
+.Ss gitconfig
+.Nm
+.Cm gitconfig
+.Pp
+This subcommand configures the underlying repository to automatically
+decrypt secrets to display differences.
+.Ss grep
+.Nm
+.Cm grep
+.Op Ar GREP_OPTIONS
+.Ar search-regex
+.Pp
+This subcommand successively decrypts all the secrets in the store and
+filter them through
+.Xr grep 1
+using the given options, and outputs all the matching lines and the
+corresponding secret.
+.Ss help
+.Nm
+.Cm help
+.Pp
+This subcommand displays on the standard output the version and help text,
+including all subcommands and flags and a brief description.
+.Ss init
+.Nm
+.Cm init
+.Op Fl i,--interactive | Fl k,--keep
+.Op Fl p,--path Ar subfolder
+.Ar age-recipient
+.Ar ...
+.Pp
+This subcommand initializes an age
+.Em recipient
+list, by default of the root of the password store, and re-encrypts all the
+affected secrets.
+When the
+.Ar age-recipient
+list is a single empty string, the
+.Em recipient
+list is instead removed, falling back to a parent
+.Em recipient
+list or ultimately to the age
+.Em identity .
+.Pp
+The options are as follows:
+.Bl -tag -compact -width \-i,--interactive
+.It Fl i,--interactive
+ask for each secret whether to re-encrypt it or not
+.It Fl k,--keep
+do not re-encrypt any secret
+.It Fl p,--path
+operate on the
+.Em recipient
+list in the given subfolder instead of the root of the password store
+.El
+.Ss insert
+.Nm
+.Cm insert
+.Op Fl e,--echo | Fl m,--multiline
+.Op Fl f,--force
+.Ar pass-name
+.Ar ...
+.Pp
+This subcommand adds new secrets in the database, using the provided data
+from the standard input.
+By default asks before overwriting an existing secret, and it reads a single
+secret line after turning off the console echo, and reads it a second time for
+confirmation.
+.Pp
+The options are as follows:
+.Bl -tag -compact -width \-m,--multiline
+.It Fl e,--echo
+read a single line once without manipulating the standard input
+.It Fl m,--multiline
+an arbitrary amount of lines from the standard input, without trying to
+manipulate the console, until the end of input or a blank line is entered
+.It Fl f,--force
+overwrite an existing secret without asking
+.El
+.Ss list
+.Nm
+.Op Cm list
+.Op Ar subfolder ...
+.Pp
+This subcommand displays the given subfolders as a tree, or the whole store
+when no subfolder is specified.
+.Pp
+Note that when a secret is given instead of a subfolder, the
+.Cm show
+command will be used instead, without any warning or error.
+.Ss move
+.Nm
+.Cm move
+.Op Fl e,--reencrypt | Fl i,--interactive | Fl k,--keep
+.Op Fl f,--force
+.Ar old-path ... new-path
+.Pp
+This subcommand moves or renames secrets and subfolders recursively,
+using the same positional argument scheme as
+.Xr mv 1 .
+By default it asks before overwriting an existing secret and it re-encrypts
+the secret when the destination has a different
+.Em recipient
+list.
+.Pp
+The options are as follows:
+.Bl -tag -compact -width \-i,--interactive
+.It Fl e,--reencrypt
+always re-encrypt secrets
+.It Fl f,--force
+overwrite existing secrets without asking
+.It Fl i,--interactive
+asks whether to re-encrypt or not for each secret
+.It Fl k,--keep
+never re-encrypt secrets
+.El
+.Ss random
+.Nm
+.Cm random
+.Op Ar pass-length Op Ar character-set
+.Pp
+This subcommand generates a new secret, like the
+.Cm generate
+subcommand, then directly displays on the standard output without storing it.
+.Ss reencrypt
+.Nm
+.Cm reencrypt
+.Op Fl i,--interactive
+.Ar pass-name|subfolder
+.Ar ...
+.Pp
+This subcommand re-encrypts in place the given secrets, and all the secrets
+recursively in the given subfolders.
+.Pp
+The options are as follows:
+.Bl -tag -compact -width \-i,--interactive
+.It Fl i,--interactive
+asks whether to re-encrypt or not for each secret
+.El
+.Ss show
+.Nm
+.Op Cm show
+.Oo
+.Fl c,--clip Op Ar line-number |
+.Fl q,--qrcode Ar line-number
+.Oc
+.Ar pass-name
+.Ar ...
+.Pp
+This subcommand decrypts the given secrets and by default displays the
+whole text on the standard output.
+.Pp
+Note that when a subfolder is given instead of a secret, the
+.Cm list
+command will be used instead, without any warning or error.
+.Pp
+The options are as follows:
+.Bl -tag -compact -width \-q,--qrcode
+.It Fl c,--clip
+paste the given line (by default the first line) of the secret into the
+clipboard instead of using the standard output
+.It Fl q,--qrcode
+display the given line (by default the first line) of the secret as a QR-code
+instead of using the standard output
+.El
+.Ss version
+.Nm
+.Cm version
+.Pp
+This subcommand displays on the standard output the version and author
+list.
+.Sh ENVIRONMENT
+The following environment variables affect the execution of
+.Nm :
+.\" The largest symbol is actually PASSWORD_STORE_CHARACTER_SET_NO_SYMBOLS
+.\" but that compresses the second columns way too much.
+.Bl -tag -width XXXXXXXX
+.It Ev CLICOLOR
+when set to a non-empty value, use ANSI escape sequences to color the output
+.It Ev EDITOR
+editor command to use instead of
+.Xr vi 1
+when
+.Ev VISUAL
+is not set
+.It Ev LC_CTYPE
+when it contains
+.Qq UTF ,
+the tree is displayed using Unicode graphic characters instead of ASCII
+.It Ev PASHAGE_AGE
+external command to use instead of
+.Xr age 1
+.It Ev PASHAGE_DIR
+database directory to use instead of
+.Pa ~/.passage/store
+.It Ev PASHAGE_IDENTITIES_FILE
+.Em identity
+file to use instead of
+.Pa ~/.passage/identities
+.It Ev PASSAGE_AGE
+external command to use instead of
+.Xr age 1
+when
+.Ev PASHAGE_AGE
+is unset
+.It Ev PASSAGE_DIR
+database directory to use instead of
+.Pa ~/.passage/store
+when
+.Ev PASHAGE_DIR
+is unset
+.It Ev PASSAGE_IDENTITIES_FILE
+.Em identity
+file to use instead of
+.Pa ~/.passage/identities
+when
+.Ev PASHAGE_IDENTITIES_FILE
+is unset
+.It Ev PASSWORD_STORE_CHARACTER_SET_NO_SYMBOLS
+default character set to use with
+.Xr tr 1
+when
+.Fl n
+is specified, instead of
+.Qq [:alnum:]
+.It Ev PASSWORD_STORE_CHARACTER_SET
+character set to use with
+.Xr tr 1
+when no character set requirement is specified for the
+.Cm generate
+or
+.Cm random
+commands, instead of
+.Qq [:punct:][:alnum:]
+.It Ev PASSWORD_STORE_CLIP_TIME
+number of second before clearing the clipboard when
+.Fl c
+is used, instead of 45
+.It Ev PASSWORD_STORE_DIR
+database directory to use instead of
+.Pa ~/.passage/store
+when both
+.Ev PASHAGE_DIR
+and
+.Ev PASSAGE_DIR
+are unset
+.It Ev PASSWORD_STORE_GENERATED_LENGTH
+number of characters in the generated secret when not explicitly given,
+instead of 25
+.It Ev PASSWORD_STORE_X_SELECTION
+selection to use when
+.Fl c
+and
+.Xr xclip 1
+are used, instead of
+.Qq clipboard
+.It Ev TMPDIR
+temporary directory for the decrypted file to use instead of
+.Pa /tmp
+when
+.Pa /dev/shm
+is not available
+.It Ev VISUAL
+editor command to use instead of
+.Xr vi 1
+.El
+.Sh FILES
+Most paths used by
+.Nm
+can be configured through environment variables.
+Here are the defaults:
+.Bl -tag -width XXXXXXXX
+.It Pa ~/.passage/identities
+.Xr age 1
+.Em identities
+to use for decryption
+.It Pa ~/.passage/store/
+Root directory of the password store
+.It Pa /dev/shm/
+Temporary directory
+.Pq when available
+.It Pa /dev/urandom
+Source of entropy
+.It Pa /tmp
+Temporary directory
+.Po
+when
+.Pa /dev/sdm
+is not available
+.Pc
+.El
+.Sh SEE ALSO
+.Xr age 1
+.Xr git 1
+.Xr tr 1
+.Xr vi 1
+.Xr xclip 1
+.Sh AUTHORS
+.Nm
+was written by
+.An Natasha Kerensikova ,
+based on earlier work by:
+.An Jason A. Donenfeld
+.Pq password-store
+.An Filippo Valsorda
+.Pq passage
+.An Dylan Araps
+.Pq pash
