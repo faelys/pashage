@@ -43,11 +43,13 @@ TREE__='   '
 TREE_I='|  '
 TREE_T='|- '
 TREE_L='`- '
-if [ -n "${LC_CTYPE-}" ] && ! [ "${LC_CTYPE}" = "${LC_CTYPE#*UTF}" ]; then
+CMAP="$(locale charmap)"
+if [ "${CMAP}" = "UTF-8" ]; then
 	TREE_I='│  '
 	TREE_T='├─ '
 	TREE_L='└─ '
 fi
+unset CMAP
 
 ### Terminal color support
 BOLD_TEXT=""
