@@ -49,9 +49,9 @@ platform_clip() {
 
 # Copy standard input into clipboard
 platform_clip_copy() {
-	if [ -n "${WAYLAND_DISPLAY-}" ] && type wl-copy >/dev/null; then
+	if [ -n "${WAYLAND_DISPLAY-}" ] && type wl-copy >/dev/null 2>&1; then
 		checked wl-copy 2>/deb/null
-	elif [ -n "${DISPLAY-}" ] && type xclip >/dev/null; then
+	elif [ -n "${DISPLAY-}" ] && type xclip >/dev/null 2>&1; then
 		checked xclip -selection "${X_SELECTION}"
 	else
 		die "Error: No X11 or Wayland display detected"
@@ -60,9 +60,9 @@ platform_clip_copy() {
 
 # Paste clipboard into standard output, ignoring failures
 platform_clip_paste() {
-	if [ -n "${WAYLAND_DISPLAY-}" ] && type wl-paste >/dev/null; then
+	if [ -n "${WAYLAND_DISPLAY-}" ] && type wl-paste >/dev/null 2>&1; then
 		wl-paste -n 2>/deb/null || true
-	elif [ -n "${DISPLAY-}" ] && type xclip >/dev/null; then
+	elif [ -n "${DISPLAY-}" ] && type xclip >/dev/null 2>&1; then
 		xclip -o -selection "${X_SELECTION}" || true
 	else
 		die "Error: No X11 or Wayland display detected"
@@ -72,20 +72,20 @@ platform_clip_paste() {
 # Display standard input as a QR-code
 #   $1: title
 platform_qrcode() {
-	type qrencode >/dev/null || die "qrencode is not available"
+	type qrencode >/dev/null 2>&1 || die "qrencode is not available"
 
 	if [ -n "${DISPLAY-}" ] || [ -n "${WAYLAND_DISPLAY-}" ]; then
-		if type feh >/dev/null; then
+		if type feh >/dev/null 2>&1; then
 			checked qrencode --size 10 -o - \
 			    | checked feh -x --title "pashage: $1" \
 			                  -g +200+200 -
 			return 0
-		elif type gm >/dev/null; then
+		elif type gm >/dev/null 2>&1; then
 			checked qrencode --size 10 -o - \
 			    | checked gm display --title "pashage: $1" \
 			                  -g +200+200 -
 			return 0
-		elif type display >/dev/null; then
+		elif type display >/dev/null 2>&1; then
 			checked qrencode --size 10 -o - \
 			    | checked display --title "pashage: $1" \
 			                  -g +200+200 -
@@ -123,7 +123,7 @@ platform_tmpdir_rm() {
 # Remove a presumed disk-based tmpdir
 platform_tmpdir_shred() {
 	[ -z "${SECURE_TMPDIR-}" ] && return 0
-	if type shred >/dev/null; then
+	if type shred >/dev/null 2>&1; then
 		find -f "${SECURE_TMPDIR}" -- -type f -exec shred '{}' +
 	fi
 	rm -rf -- "${SECURE_TMPDIR}"
