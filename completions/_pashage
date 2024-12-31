@@ -1,0 +1,136 @@
+#compdef _pashage pashage
+#autoload
+
+# pashage - age-backed POSIX password manager
+# Copyright (C) 2024  Natasha Kerensikova
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+
+function _pashage_prefix {
+	local prefix
+	prefix="${PASHAGE_DIR:-${PASSAGE_DIR:-${PASSWORD_STORE_DIR:-${HOME}/.passage/store}}}"
+	printf '%s' "${prefix%/}"
+}
+
+function _pashage_dirs {
+	local prefix="$(_pashage_prefix)"
+	local -a _secret_dirs
+	for item in "$prefix"/**/*(/); do
+		_secret_dirs=($_secret_dirs "${item#"$prefix/"}/")
+	done
+	_multi_parts / _secret_dirs
+}
+
+function _pashage_entries {
+	local prefix="$(_pashage_prefix)"
+	local -a _secret_entries
+	for item in "$prefix"/**/*.age(:r); do
+		_secret_entries=($_secret_entries "${item#"$prefix/"}")
+	done
+	_multi_parts / _secret_entries
+}
+
+function _pashage_entries_and_dirs {
+	local prefix="$(_pashage_prefix)"
+	local -a _secrets
+	for item in "$prefix"/**/*(/); do
+		_secrets=($_secrets "${item#"$prefix/"}/")
+	done
+	for item in "$prefix"/**/*.age(:r); do
+		_secrets=($_secrets "${item#"$prefix/"}")
+	done
+	_multi_parts / _secrets
+}
+
+# $prefx/**/*.age(:r)
+
+function _pashage {
+	local curcontext="$curcontext"
+	local state state_descr line
+	typeset -A opt_args
+
+	_arguments -C \
+	    "1: :(copy cp delete edit find generate git gitconfig grep help init insert list ls move mv random reencrypt remove rm show version)" \
+	    "*::arg:->args"
+
+	case $line[1] in
+	   (copy|cp|move|mv)
+		_arguments -s -w -S \
+		    '(-e --reencrypt -i --interactive -k --keep)'{-e,--reencrypt}'[force reencryption]' \
+		    '(-e --reencrypt -i --interactive -k --keep)'{-i,--interactive}'[ask before reencryption]' \
+		    '(-e --reencrypt -i --interactive -k --keep)'{-k,--keep}'[without reencryption]' \
+		    '(-f --force)'{-f,--force}'[force overwriting]'
+		_pashage_entries_and_dirs
+		;;
+	   (edit)
+		_pashage_entries
+		;;
+	   (find)
+		;;
+	   (generate)
+		_arguments -s -w -S \
+		    '(-c --clip -q --qrcode)'{-c,--clip}'[copy password to clipboard]' \
+		    '(-c --clip -q --qrcode)'{-q,--qrcode}'[display password as QR-code]' \
+		    '(-f --force -i --in-place)'{-f,--force}'[overwrite existing entry]' \
+		    '(-f --force -i --in-place)'{-i,--in-place}'[replace first line]' \
+		    '(-m --multiline)'{-m,--multiline}'[enter extra lines after password]' \
+		    '(-n --no-symbols)'{-m,--multiline}'[don'\''t include symbols in password]' \
+		    '(-t --try)'{-t,--try}'[ask confirmation before saving entry]'
+		_pashage_entries_and_dirs
+		;;
+	   (git)
+		;;
+	   (gitconfig)
+		;;
+	   (grep)
+		;;
+	   (help|version)
+		_message "No arguments"
+		;;
+	   (init)
+		_arguments -s -w -S \
+		    '(-i --interactive -k --keep)'{-i,--interactive}'[reencrypt interactively]' \
+		    '(-i --interactive -k --keep)'{-k,--keep}'[do not reencrypt]' \
+		    '(-p --path)'{-p-,--path=-}'[subdirectory]:dir:'
+		;;
+	   (insert)
+		_arguments -s -w -S \
+		    '(-e --echo -m --multiline)'{-e,--echo}'[echo password to conole]' \
+		    '(-e --echo -m --multiline)'{-m,--multiline}'[insert multiple lines]' \
+		    '(-f --force)'{-f,--force}'[overwrite without asking]'
+		;;
+	   (ls|list)
+		_pashage_dirs
+		;;
+	   (random)
+		;;
+	   (reencrypt)
+		;;
+	   (remove|rm|delete)
+		_arguments -s -w -S \
+		    '(-f --force)'{-f,--force}'[delete without asking]' \
+		    '(-r --recursive)'{-r,--recursive}'[delete directories]'
+		_pashage_entries_and_dirs
+		;;
+	   (show)
+		_arguments -s -w -S \
+		    '(-c --clip -q --qrcode)'{-c-,--clip=-}'[clipboard a line]:line:' \
+		    '(-c --clip -q --qrcode)'{-q-,--qrcode=-}'[display a line as QR-code]:line:'
+		_pashage_entries
+		;;
+	esac
+}
+
+# vim ft=zsh
