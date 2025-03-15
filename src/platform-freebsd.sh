@@ -50,7 +50,7 @@ platform_clip() {
 # Copy standard input into clipboard
 platform_clip_copy() {
 	if [ -n "${WAYLAND_DISPLAY-}" ] && type wl-copy >/dev/null 2>&1; then
-		checked wl-copy 2>/deb/null
+		checked wl-copy 2>/dev/null
 	elif [ -n "${DISPLAY-}" ] && type xclip >/dev/null 2>&1; then
 		checked xclip -selection "${X_SELECTION}"
 	else
@@ -61,7 +61,7 @@ platform_clip_copy() {
 # Paste clipboard into standard output, ignoring failures
 platform_clip_paste() {
 	if [ -n "${WAYLAND_DISPLAY-}" ] && type wl-paste >/dev/null 2>&1; then
-		wl-paste -n 2>/deb/null || true
+		wl-paste -n 2>/dev/null || true
 	elif [ -n "${DISPLAY-}" ] && type xclip >/dev/null 2>&1; then
 		xclip -o -selection "${X_SELECTION}" || true
 	else
