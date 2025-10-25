@@ -1,5 +1,5 @@
 # pashage - age-backed POSIX password manager
-# Copyright (C) 2024  Natasha Kerensikova
+# Copyright (C) 2024-2025  Natasha Kerensikova
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -1153,11 +1153,11 @@ Describe 'Pass-like command'
   End
 
   Describe 'edit'
-    EDITOR=ed
-    TERM=dumb
+    export EDITOR=ed
+    export TERM=dumb
 
     It 'creates a file using EDITOR'
-      EDITOR='ed -c'
+      export EDITOR='ed -c'
       Skip if 'pass(age) needs bash' check_skip $2
       Data
         #|a
@@ -1188,7 +1188,7 @@ Describe 'Pass-like command'
     End
 
     It 'creates a file in a new directory'
-      EDITOR='ed -c'
+      export EDITOR='ed -c'
       Skip if 'pass(age) needs bash' check_skip $2
       Data
         #|a
@@ -1218,7 +1218,7 @@ Describe 'Pass-like command'
     End
 
     It 'creates a file named like a flag'
-      EDITOR='ed -c'
+      export EDITOR='ed -c'
       Skip if 'pass(age) needs bash' check_skip $2
       Data
         #|a
@@ -1247,7 +1247,7 @@ Describe 'Pass-like command'
     End
 
     It 'creates a file named like a directory'
-      EDITOR='ed -c'
+      export EDITOR='ed -c'
       Skip if 'pass(age) needs bash' check_skip $2
       Data
         #|a
@@ -1276,7 +1276,7 @@ Describe 'Pass-like command'
     End
 
     It 'creates a secret file named like an unencrypted file'
-      EDITOR='ed -c'
+      export EDITOR='ed -c'
       Skip if 'pass(age) needs bash' check_skip $2
       Data
         #|a
@@ -1431,7 +1431,7 @@ Describe 'Pass-like command'
 
     It 'rejects a path containing ..'
       Skip if 'pass(age) needs bash' check_skip $2
-      EDITOR=true
+      export EDITOR=true
       When run script $1 edit subdir/../stale
       The status should equal 1
       The output should be blank
@@ -3109,8 +3109,8 @@ Describe 'Pass-like command'
     End
 
     Example 'edit'
-      EDITOR=ed
-      TERM=dumb
+      export EDITOR=ed
+      export TERM=dumb
       Skip if 'pass(age) needs bash' check_skip $2
       Data
         #|2i
