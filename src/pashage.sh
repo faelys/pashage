@@ -82,8 +82,9 @@ grep_filter() {
 #   $1: number of characters
 #   $2: allowed character set
 random_chars() {
-	LC_ALL=C tr -dc -- "$2" </dev/urandom | dd ibs=1 obs=1 count="$1" \
-	    2>/dev/null || true
+	( export LC_ALL=C; \
+	  tr -dc -- "$2" </dev/urandom | dd ibs=1 obs=1 count="$1" \
+	    2>/dev/null || true )
 }
 
 # Find the deepest recipient file above the given path
