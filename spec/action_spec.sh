@@ -858,9 +858,9 @@ Describe 'Action Functions'
       The error should equal "$(result)"
     End
 
-    It 'reports EDITOR exit code'
+    It 'reports EDIT_CMD exit code'
       exit42() { mocklog editor "$@"; return 42; }
-      EDITOR=exit42
+      EDIT_CMD=exit42
       result() {
         %text:expand
         #|$ mktemp -u ${SECURE_TMPDIR}/XXXXXX
