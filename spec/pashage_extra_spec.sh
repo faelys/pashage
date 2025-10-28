@@ -1,5 +1,5 @@
 # pashage - age-backed POSIX password manager
-# Copyright (C) 2024  Natasha Kerensikova
+# Copyright (C) 2024-2025  Natasha Kerensikova
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -1237,6 +1237,36 @@ Describe 'Integrated Command Functions'
   End
 
   Describe 'cmd_list_or_show'
+    It 'displays the whole store as a raw list'
+      Pending 'not implemented yet'
+      When call cmd_list_or_show --raw
+      The status should be success
+      The error should be blank
+      expected_out() { %text
+        #|extra/subdir/file
+        #|fluff/one
+        #|fluff/three
+        #|fluff/two
+        #|old
+        #|stale
+        #|subdir/file
+      }
+      The output should equal "$(expected_out)"
+    End
+
+    It 'displays a subdirectory as a raw list'
+      Pending 'not implemented yet'
+      When call cmd_list_or_show -r fluff
+      The status should be success
+      The error should be blank
+      expected_out() { %text
+        #|fluff/one
+        #|fluff/three
+        #|fluff/two
+      }
+      The output should equal "$(expected_out)"
+    End
+
     It 'decrypts a GPG secret in the store using GPG'
       GPG=mock-gpg
       gpg() { false; }
@@ -1296,7 +1326,7 @@ Describe 'Integrated Command Functions'
       The status should equal 1
       The output should be blank
       expected_err() { %text
-        #|Usage: prg [list] [subfolder]
+        #|Usage: prg [list] [--raw,-r] [subfolder]
         #|       prg [show] [--clip[=line-number],-c[line-number] |
         #|                   --qrcode[=line-number],-q[line-number]] pass-name
       }
@@ -1310,7 +1340,7 @@ Describe 'Integrated Command Functions'
       The status should equal 1
       The output should be blank
       expected_err() { %text
-        #|Usage: prg [list] [subfolder]
+        #|Usage: prg [list] [--raw,-r] [subfolder]
       }
       The error should equal "$(expected_err)"
     End

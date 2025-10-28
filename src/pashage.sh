@@ -1,6 +1,6 @@
 #!/bin/sh
 # pashage - age-backed POSIX password manager
-# Copyright (C) 2024  Natasha Kerensikova
+# Copyright (C) 2024-2025  Natasha Kerensikova
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -850,6 +850,7 @@ do_insert() {
 # Display a single directory or entry
 #   $1: entry name
 do_list_or_show() {
+	: TODO use "${LIST_VIEW-}"
 	if [ -z "$1" ]; then
 		do_tree "${PREFIX}" "Password Store"
 	elif [ -f "${PREFIX}/$1.age" ]; then
@@ -1476,6 +1477,7 @@ cmd_insert() {
 }
 
 cmd_list_or_show() {
+	LIST_VIEW=no
 	PARSE_ERROR=no
 	SELECTED_LINE=1
 	USE_CLIP=no
@@ -1504,6 +1506,9 @@ cmd_list_or_show() {
 		    --qrcode=*)
 			SELECTED_LINE="${1#--qrcode=}"
 			USE_QRCODE=yes
+			shift ;;
+		    -r|--raw)
+			LIST_VIEW=yes
 			shift ;;
 		    --)
 			shift
@@ -1649,10 +1654,10 @@ cmd_usage(){
 		case "${ARG}" in
 		    list)
 			cat <<EOF
-${F}${PROGRAM} [list] [subfolder]
+${F}${PROGRAM} [list] [--raw,-r] [subfolder]
 EOF
 			[ "${VERBOSE}" = yes ] && cat <<EOF
-${I}    List passwords.
+${I}    List passwords as a tree or as a raw list.
 EOF
 			;;
 		    show)

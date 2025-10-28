@@ -1,5 +1,5 @@
 # pashage - age-backed POSIX password manager
-# Copyright (C) 2024  Natasha Kerensikova
+# Copyright (C) 2024-2025  Natasha Kerensikova
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -115,6 +115,7 @@ Describe 'Command-Line Parsing'
   do_list_or_show() {
     mocklog do_list_or_show "$@"
     %text:expand >&2
+    #|LIST_VIEW=${LIST_VIEW}
     #|SELECTED_LINE=${SELECTED_LINE}
     #|SHOW=${SHOW}
   }
@@ -1673,10 +1674,25 @@ Describe 'Command-Line Parsing'
   Describe 'cmd_list_or_show'
     COMMAND=
 
-    It 'lists the whole store'
+    It 'lists the whole store as a list'
       result() {
         %text | @sed 's/\$$//'
         #|$ do_list_or_show $
+        #|LIST_VIEW=yes
+        #|SELECTED_LINE=1
+        #|SHOW=text
+      }
+      When call cmd_list_or_show -r
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'lists the whole store as a tree'
+      result() {
+        %text | @sed 's/\$$//'
+        #|$ do_list_or_show $
+        #|LIST_VIEW=no
         #|SELECTED_LINE=1
         #|SHOW=text
       }
@@ -1693,12 +1709,15 @@ Describe 'Command-Line Parsing'
         #|$ check_sneaky_path arg2
         #|$ check_sneaky_path arg3
         #|$ do_list_or_show arg1
+        #|LIST_VIEW=no
         #|SELECTED_LINE=1
         #|SHOW=text
         #|$ do_list_or_show arg2
+        #|LIST_VIEW=no
         #|SELECTED_LINE=1
         #|SHOW=text
         #|$ do_list_or_show arg3
+        #|LIST_VIEW=no
         #|SELECTED_LINE=1
         #|SHOW=text
       }
@@ -1713,6 +1732,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path -c
         #|$ do_list_or_show -c
+        #|LIST_VIEW=no
         #|SELECTED_LINE=1
         #|SHOW=text
       }
@@ -1727,6 +1747,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path arg
         #|$ do_list_or_show arg
+        #|LIST_VIEW=no
         #|SELECTED_LINE=1
         #|SHOW=clip
       }
@@ -1741,6 +1762,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path arg
         #|$ do_list_or_show arg
+        #|LIST_VIEW=no
         #|SELECTED_LINE=1
         #|SHOW=clip
       }
@@ -1755,6 +1777,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path arg
         #|$ do_list_or_show arg
+        #|LIST_VIEW=no
         #|SELECTED_LINE=2
         #|SHOW=clip
       }
@@ -1769,6 +1792,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path arg
         #|$ do_list_or_show arg
+        #|LIST_VIEW=no
         #|SELECTED_LINE=2
         #|SHOW=clip
       }
@@ -1783,6 +1807,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path arg
         #|$ do_list_or_show arg
+        #|LIST_VIEW=no
         #|SELECTED_LINE=1
         #|SHOW=qrcode
       }
@@ -1797,6 +1822,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path arg
         #|$ do_list_or_show arg
+        #|LIST_VIEW=no
         #|SELECTED_LINE=1
         #|SHOW=qrcode
       }
@@ -1811,6 +1837,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path arg
         #|$ do_list_or_show arg
+        #|LIST_VIEW=no
         #|SELECTED_LINE=3
         #|SHOW=qrcode
       }
@@ -1825,6 +1852,7 @@ Describe 'Command-Line Parsing'
         %text
         #|$ check_sneaky_path arg
         #|$ do_list_or_show arg
+        #|LIST_VIEW=no
         #|SELECTED_LINE=3
         #|SHOW=qrcode
       }
@@ -1834,10 +1862,40 @@ Describe 'Command-Line Parsing'
       The error should equal "$(result)"
     End
 
+    It 'shows an entry as a raw list (shot option)'
+      result() {
+        %text
+        #|$ check_sneaky_path arg
+        #|$ do_list_or_show arg
+        #|LIST_VIEW=yes
+        #|SELECTED_LINE=1
+        #|SHOW=text
+      }
+      When call cmd_list_or_show -r arg
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'shows an entry as a raw list (long option)'
+      result() {
+        %text
+        #|$ check_sneaky_path arg
+        #|$ do_list_or_show arg
+        #|LIST_VIEW=yes
+        #|SELECTED_LINE=1
+        #|SHOW=text
+      }
+      When call cmd_list_or_show --raw arg
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
     It 'reports incompatible show options'
       cat() { @cat; }
       result() { %text
-        #|Usage: prg [list] [subfolder]
+        #|Usage: prg [list] [--raw,-r] [subfolder]
         #|       prg [show] [--clip[=line-number],-c[line-number] |
         #|                   --qrcode[=line-number],-q[line-number]] pass-name
       }
@@ -1850,7 +1908,7 @@ Describe 'Command-Line Parsing'
     It 'reports a bad option for both commands'
       cat() { @cat; }
       result() { %text
-        #|Usage: prg [list] [subfolder]
+        #|Usage: prg [list] [--raw,-r] [subfolder]
         #|       prg [show] [--clip[=line-number],-c[line-number] |
         #|                   --qrcode[=line-number],-q[line-number]] pass-name
       }
@@ -1864,7 +1922,7 @@ Describe 'Command-Line Parsing'
       COMMAND=list
       cat() { @cat; }
       result() { %text
-        #|Usage: prg [list] [subfolder]
+        #|Usage: prg [list] [--raw,-r] [subfolder]
       }
       When run cmd_list_or_show -f arg
       The output should be blank
