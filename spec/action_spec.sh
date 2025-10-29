@@ -1,5 +1,5 @@
 # pashage - age-backed POSIX password manager
-# Copyright (C) 2024  Natasha Kerensikova
+# Copyright (C) 2024-2025  Natasha Kerensikova
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -1774,6 +1774,15 @@ Describe 'Action Functions'
     End
   End
 
+  Describe 'do_list'
+    It 'is not implemented yet'
+      When call do_list "${PREFIX}" 'Base/'
+      The status should be success
+      The output should be blank
+      The error should equal 'TODO: not implemented yet'
+    End
+  End
+
   Describe 'do_list_or_show'
     PREFIX="${SHELLSPEC_WORKDIR}/prefix"
 
@@ -1786,6 +1795,8 @@ Describe 'Action Functions'
       mocklog do_decrypt_gpg "$@"
       %putsn data
     }
+
+    do_list() { mocklog do_list "$@"; }
 
     do_show() {
       @cat >/dev/null
@@ -1809,7 +1820,16 @@ Describe 'Action Functions'
     BeforeEach setup
     AfterEach cleanup
 
-    It 'lists the whole store'
+    It 'lists the whole store as a list'
+      LIST_VIEW=yes
+      When call do_list_or_show ''
+      The status should be success
+      The output should be blank
+      The error should equal "$ do_list ${PREFIX} "
+    End
+
+    It 'lists the whole store as a tree'
+      LIST_VIEW=no
       When call do_list_or_show ''
       The status should be success
       The output should be blank
@@ -1838,7 +1858,16 @@ Describe 'Action Functions'
       The error should equal "$(result)"
     End
 
-    It 'lists a subdirectory'
+    It 'lists a subdirectory as a list'
+      LIST_VIEW=yes
+      When call do_list_or_show 'subdir'
+      The status should be success
+      The output should be blank
+      The error should equal "$ do_list ${PREFIX}/subdir subdir/"
+    End
+
+    It 'lists a subdirectory as a tree'
+      LIST_VIEW=no
       When call do_list_or_show 'subdir'
       The status should be success
       The output should be blank

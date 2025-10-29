@@ -847,12 +847,24 @@ do_insert() {
 	scm_commit "Add given password for $1 to store."
 }
 
+# Display the entry list rooted at the given relative directory
+#   $1: root directory
+#   $2: path prefix
+#  ...: (optional) grep arguments to filter
+do_list() {
+	echo "TODO: not implemented yet" >&2
+}
+
 # Display a single directory or entry
 #   $1: entry name
+#   LIST_VIEW: whether directories are displayed as a list rather then a tree
 do_list_or_show() {
-	: TODO use "${LIST_VIEW-}"
 	if [ -z "$1" ]; then
-		do_tree "${PREFIX}" "Password Store"
+		if [ "${LIST_VIEW-no}" = "yes" ]; then
+			do_list "${PREFIX}" ""
+		else
+			do_tree "${PREFIX}" "Password Store"
+		fi
 	elif [ -f "${PREFIX}/$1.age" ]; then
 		SECRET="$(do_decrypt "${PREFIX}/$1.age")"
 		do_show "$1" <<-EOF
@@ -860,7 +872,11 @@ do_list_or_show() {
 		EOF
 		unset SECRET
 	elif [ -d "${PREFIX}/$1" ]; then
-		do_tree "${PREFIX}/$1" "$1"
+		if [ "${LIST_VIEW-no}" = "yes" ]; then
+			do_list "${PREFIX}/$1" "${1%/}/"
+		else
+			do_tree "${PREFIX}/$1" "$1"
+		fi
 	elif [ -f "${PREFIX}/$1.gpg" ]; then
 		SECRET="$(do_decrypt_gpg "${PREFIX}/$1.gpg")"
 		do_show "$1" <<-EOF
