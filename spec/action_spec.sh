@@ -1775,11 +1775,58 @@ Describe 'Action Functions'
   End
 
   Describe 'do_list'
-    It 'is not implemented yet'
+    PREFIX="${SHELLSPEC_WORKDIR}/prefix"
+
+    grep() { @grep "$@"; }
+
+    setup() {
+      @mkdir -p "${PREFIX}/subdir/subsub" "${PREFIX}/empty" "${PREFIX}/other"
+      %putsn data >"${PREFIX}/root.age"
+      %putsn data >"${PREFIX}/subdir/hidden"
+      %putsn data >"${PREFIX}/subdir/subsub/old.gpg"
+      %putsn data >"${PREFIX}/other/lower.age"
+    }
+
+    cleanup() {
+      @rm -rf "${PREFIX}"
+    }
+
+    BeforeEach setup
+    AfterEach cleanup
+
+    It 'displays everything without a pattern'
+      result() {
+        %text
+        #|Base/other/lower
+        #|Base/root
+        #|Base/subdir/subsub/old
+      }
       When call do_list "${PREFIX}" 'Base/'
       The status should be success
-      The output should be blank
-      The error should equal 'TODO: not implemented yet'
+      The output should equal "$(result)"
+    End
+
+    It 'displays only matching files'
+      result() {
+        %text
+        #|Base/other/lower
+        #|Base/subdir/subsub/old
+      }
+      When call do_list "${PREFIX}" 'Base/' -i L
+      The status should be success
+      The output should equal "$(result)"
+    End
+
+    It 'does not display matching directories'
+      When call do_list "${PREFIX}" 'Base/' t
+      The status should be success
+      The output should equal 'Base/root'
+    End
+
+    It 'might not display anything'
+      When call do_list "${PREFIX}" 'Base/' z
+      The status should be success
+      The output should equal ''
     End
   End
 

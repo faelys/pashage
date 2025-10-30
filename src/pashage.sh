@@ -852,7 +852,54 @@ do_insert() {
 #   $2: path prefix
 #  ...: (optional) grep arguments to filter
 do_list() {
-	echo "TODO: not implemented yet" >&2
+	( cd "$1" && shift && do_list_cwd "$@" )
+}
+
+# Display an entry list
+#   $1: path prefix
+#  ...: (optional) grep arguments to filter
+do_list_cwd() {
+	LIST_PREFIX="$1"
+	shift
+
+	for ENTRY in *; do
+		[ -e "${ENTRY}" ] || continue
+		do_list_item "${ENTRY}" "${LIST_PREFIX}" "$@"
+	done
+	unset ENTRY
+
+	unset LIST_PREFIX
+}
+
+# Display an entry in a list
+#   $1: item name
+#   $2: full item path
+#  ...: (optional) grep arguments to filter
+do_list_item() {
+	ITEM_NAME="$1"
+	ITEM_PATH="$2"
+	shift 2
+
+	if [ -d "${ITEM_NAME}" ]; then
+		do_list "${ITEM_NAME}" \
+		    "${ITEM_PATH}${ITEM_NAME}/" \
+		    "$@"
+	elif [ "${ITEM_NAME%.age}.age" = "${ITEM_NAME}" ]; then
+		if [ $# -eq 0 ] \
+		    || printf '%s\n' "${ITEM_NAME%.age}" | grep -q "$@"
+		then
+			printf '%s%s\n' "${ITEM_PATH}" "${ITEM_NAME%.age}"
+		fi
+	elif [ "${ITEM_NAME%.gpg}.gpg" = "${ITEM_NAME}" ]; then
+		if [ $# -eq 0 ] \
+		    || printf '%s\n' "${ITEM_NAME%.age}" | grep -q "$@"
+		then
+			printf '%s%s\n' "${ITEM_PATH}" "${ITEM_NAME%.gpg}"
+		fi
+	fi
+
+	unset ITEM_NAME
+	unset ITEM_PATH
 }
 
 # Display a single directory or entry

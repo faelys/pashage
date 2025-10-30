@@ -1238,7 +1238,6 @@ Describe 'Integrated Command Functions'
 
   Describe 'cmd_list_or_show'
     It 'displays the whole store as a raw list'
-      Pending 'not implemented yet'
       When call cmd_list_or_show --raw
       The status should be success
       The error should be blank
@@ -1255,7 +1254,6 @@ Describe 'Integrated Command Functions'
     End
 
     It 'displays a subdirectory as a raw list'
-      Pending 'not implemented yet'
       When call cmd_list_or_show -r fluff
       The status should be success
       The error should be blank
