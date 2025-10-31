@@ -91,6 +91,9 @@ the generated secret (e.g. for username, login page, or others comments).
 - The `init` command has new flags to control re-encryption (never or
 ask for each file).
 
+- The `list` command has a new flag to output a machine-readable list of
+entries (e.g. for completion or wrappers).
+
 - The new `gitconfig` command configures an existing store repository to
 decrypt before `diff`.
 
@@ -487,14 +490,17 @@ Environment:
 Syntax:
 
 ```
-pashage [list] [subfolder ...]
+pashage [list] [--raw,-r] [subfolder ...]
 ```
 
-This subcommand displays the given subfolders as a tree, or the whole store
-when no subfolder is specified.
+This subcommand displays the given subfolders as a tree or a raw list,
+or the whole store when no subfolder is specified.
 
 Note that when a secret is given instead of a subfolder, the _show_ command
 will be used instead, without any warning or error.
+
+Flags:
+- `-r` or `--raw`: display the results as a raw list of secrets
 
 Environment:
 - `CLICOLOR`: when set to a non-empty value, use ANSI escape sequences to

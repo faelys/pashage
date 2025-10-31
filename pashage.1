@@ -1,4 +1,4 @@
-.Dd December 6, 2024
+.Dd October 31, 2025
 .Dt PASHAGE 1
 .Os
 .Sh NAME
@@ -238,14 +238,21 @@ overwrite an existing secret without asking
 .Ss list
 .Nm
 .Op Cm list
+.Op r,--raw
 .Op Ar subfolder ...
 .Pp
-This subcommand displays the given subfolders as a tree, or the whole store
-when no subfolder is specified.
+This subcommand displays the given subfolders as a tree or as a raw list, or
+the whole store when no subfolder is specified.
 .Pp
 Note that when a secret is given instead of a subfolder, the
 .Cm show
 command will be used instead, without any warning or error.
+.Pp
+The options are as follows:
+.Bl -tag -compact -width \-i,--interactive
+.It Fl r,--raw
+display the results as a raw list of secrets.
+.El
 .Ss move
 .Nm
 .Cm move
