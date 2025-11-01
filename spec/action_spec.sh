@@ -1797,11 +1797,11 @@ Describe 'Action Functions'
     It 'displays everything without a pattern'
       result() {
         %text
-        #|Base/other/lower
-        #|Base/root
-        #|Base/subdir/subsub/old
+        #|other/lower
+        #|root
+        #|subdir/subsub/old
       }
-      When call do_list "${PREFIX}" 'Base/'
+      When call do_list ''
       The status should be success
       The output should equal "$(result)"
     End
@@ -1809,22 +1809,22 @@ Describe 'Action Functions'
     It 'displays only matching files'
       result() {
         %text
-        #|Base/other/lower
-        #|Base/subdir/subsub/old
+        #|other/lower
+        #|subdir/subsub/old
       }
-      When call do_list "${PREFIX}" 'Base/' -i L
+      When call do_list '' -i L
       The status should be success
       The output should equal "$(result)"
     End
 
     It 'does not display matching directories'
-      When call do_list "${PREFIX}" 'Base/' t
+      When call do_list '' t
       The status should be success
-      The output should equal 'Base/root'
+      The output should equal 'root'
     End
 
     It 'might not display anything'
-      When call do_list "${PREFIX}" 'Base/' z
+      When call do_list '' z
       The status should be success
       The output should equal ''
     End
@@ -1872,7 +1872,7 @@ Describe 'Action Functions'
       When call do_list_or_show ''
       The status should be success
       The output should be blank
-      The error should equal "$ do_list ${PREFIX} "
+      The error should equal "$ do_list "
     End
 
     It 'lists the whole store as a tree'
@@ -1910,7 +1910,7 @@ Describe 'Action Functions'
       When call do_list_or_show 'subdir'
       The status should be success
       The output should be blank
-      The error should equal "$ do_list ${PREFIX}/subdir subdir/"
+      The error should equal "$ do_list subdir"
     End
 
     It 'lists a subdirectory as a tree'

@@ -848,58 +848,38 @@ do_insert() {
 }
 
 # Display the entry list rooted at the given relative directory
-#   $1: root directory
-#   $2: path prefix
+#   $1: path relative to prefix
 #  ...: (optional) grep arguments to filter
+# Note that this function is recrusive and cannot use variables to hold state.
 do_list() {
-	( cd "$1" && shift && do_list_cwd "$@" )
-}
-
-# Display an entry list
-#   $1: path prefix
-#  ...: (optional) grep arguments to filter
-do_list_cwd() {
-	LIST_PREFIX="$1"
-	shift
-
-	for ENTRY in *; do
-		[ -e "${ENTRY}" ] || continue
-		do_list_item "${ENTRY}" "${LIST_PREFIX}" "$@"
+	for FULL_ENTRY in "${PREFIX}/$1${1:+/}"*; do
+		ENTRY="${FULL_ENTRY#"${PREFIX}/"}"
+		ITEM_NAME="${ENTRY##*/}"
+		if [ -d "${FULL_ENTRY}" ]; then
+			shift
+			set -- "${ENTRY}" "$@"
+			do_list "$@"
+		elif [ "${ENTRY%.age}.age" = "${ENTRY}" ]; then
+			shift
+			set -- "-q" "$@"
+			if [ $# -le 1 ] \
+			    || printf '%s\n' "${ITEM_NAME%.age}" | grep "$@"
+			then
+				printf '%s\n' "${ENTRY%.age}"
+			fi
+		elif [ "${ENTRY%.gpg}.gpg" = "${ENTRY}" ]; then
+			shift
+			set -- "-q" "$@"
+			if [ $# -le 1 ] \
+			    || printf '%s\n' "${ITEM_NAME%.gpg}" | grep "$@"
+			then
+				printf '%s\n' "${ENTRY%.gpg}"
+			fi
+		fi
+		unset ENTRY
+		unset ITEM_NAME
 	done
-	unset ENTRY
-
-	unset LIST_PREFIX
-}
-
-# Display an entry in a list
-#   $1: item name
-#   $2: full item path
-#  ...: (optional) grep arguments to filter
-do_list_item() {
-	ITEM_NAME="$1"
-	ITEM_PATH="$2"
-	shift 2
-
-	if [ -d "${ITEM_NAME}" ]; then
-		do_list "${ITEM_NAME}" \
-		    "${ITEM_PATH}${ITEM_NAME}/" \
-		    "$@"
-	elif [ "${ITEM_NAME%.age}.age" = "${ITEM_NAME}" ]; then
-		if [ $# -eq 0 ] \
-		    || printf '%s\n' "${ITEM_NAME%.age}" | grep -q "$@"
-		then
-			printf '%s%s\n' "${ITEM_PATH}" "${ITEM_NAME%.age}"
-		fi
-	elif [ "${ITEM_NAME%.gpg}.gpg" = "${ITEM_NAME}" ]; then
-		if [ $# -eq 0 ] \
-		    || printf '%s\n' "${ITEM_NAME%.age}" | grep -q "$@"
-		then
-			printf '%s%s\n' "${ITEM_PATH}" "${ITEM_NAME%.gpg}"
-		fi
-	fi
-
-	unset ITEM_NAME
-	unset ITEM_PATH
+	unset FULL_ENTRY
 }
 
 # Display a single directory or entry
@@ -908,7 +888,7 @@ do_list_item() {
 do_list_or_show() {
 	if [ -z "$1" ]; then
 		if [ "${LIST_VIEW-no}" = "yes" ]; then
-			do_list "${PREFIX}" ""
+			do_list ''
 		else
 			do_tree "${PREFIX}" "Password Store"
 		fi
@@ -920,7 +900,7 @@ do_list_or_show() {
 		unset SECRET
 	elif [ -d "${PREFIX}/$1" ]; then
 		if [ "${LIST_VIEW-no}" = "yes" ]; then
-			do_list "${PREFIX}/$1" "${1%/}/"
+			do_list "${1%/}"
 		else
 			do_tree "${PREFIX}/$1" "$1"
 		fi
