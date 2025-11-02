@@ -78,6 +78,9 @@ passwords.
 - The commands `copy` and `move` have new flags to control re-encryption
 (always, never, ask for each file).
 
+- The `find` and `list` commands have a new flag to output a
+machine-readable list of entries (e.g. for completion or wrappers).
+
 - The `generate` command has a new command-line argument to specify
 explicitly the character set.
 
@@ -90,9 +93,6 @@ the generated secret (e.g. for username, login page, or others comments).
 
 - The `init` command has new flags to control re-encryption (never or
 ask for each file).
-
-- The `list` command has a new flag to output a machine-readable list of
-entries (e.g. for completion or wrappers).
 
 - The new `gitconfig` command configures an existing store repository to
 decrypt before `diff`.
@@ -264,11 +264,15 @@ Environment:
 Syntax:
 
 ```
-pashage find [GREP_OPTIONS] regex
+pashage find [--raw,-r] [GREP_OPTIONS] regex
 ```
 
 This subcommand lists as a tree the secrets whose name match the given
 regular expression, using the corresponding `grep(1)` options.
+
+Flags:
+- `-r` or `--raw`: display the results as a raw list of secrets,
+  rather than a tree
 
 Environment:
 - `CLICOLOR`: when set to a non-empty value, use ANSI escape sequences to

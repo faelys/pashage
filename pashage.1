@@ -1,4 +1,4 @@
-.Dd October 31, 2025
+.Dd November 2, 2025
 .Dt PASHAGE 1
 .Os
 .Sh NAME
@@ -101,6 +101,7 @@ This subcommand starts an interactive editor to update the secrets.
 .Ss find
 .Nm
 .Cm find
+.Op Fl r,--raw
 .Op Ar GREP_OPTIONS
 .Ar regex
 .Pp
@@ -108,6 +109,12 @@ This subcommand lists as a tree the secrets whose name match the given
 regular expression, using the corresponding
 .Xr grep 1
 options.
+.Pp
+The options are as follows:
+.Bl -tag -compact -width \-i,--interactive
+.It Fl r,--raw
+display the results as a raw list of secrets, rather than a tree
+.El
 .Ss generate
 .Nm
 .Cm generate

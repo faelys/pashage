@@ -604,6 +604,18 @@ Describe 'Integrated Command Functions'
       The error should be blank
       The result of function check_git_log should be successful
     End
+
+    It 'can output a raw list of secrets'
+      expected_output() { %text
+        #|extra/subdir/file
+        #|subdir/file
+      }
+      When call cmd_find -r -E -i 'F|I'
+      The status should be success
+      The output should equal "$(expected_output)"
+      The error should be blank
+      The result of function check_git_log should be successful
+    End
   End
 
   Describe 'cmd_generate'

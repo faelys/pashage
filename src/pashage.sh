@@ -1245,13 +1245,26 @@ cmd_edit() {
 }
 
 cmd_find() {
+	LIST_VIEW=no
+	case "${1-}" in
+	    -r|--raw)
+		LIST_VIEW=yes
+		shift ;;
+	    *)
+		;;
+	esac
+
 	if [ $# -eq 0 ]; then
 		cmd_usage 'Usage: ' find >&2
 		exit 1
 	fi
 
-	printf 'Search pattern: %s\n' "$*"
-	do_tree "${PREFIX}" '' "$@"
+	if [ "${LIST_VIEW}" = yes ]; then
+		do_list '' "$@"
+	else
+		printf 'Search pattern: %s\n' "$*"
+		do_tree "${PREFIX}" '' "$@"
+	fi
 }
 
 cmd_generate() {
@@ -1742,7 +1755,7 @@ EOF
 			;;
 		    find)
 			cat <<EOF
-${F}${PROGRAM} find [GREP_OPTIONS] regex
+${F}${PROGRAM} find [--raw,-r] [GREP_OPTIONS] regex
 EOF
 			[ "${VERBOSE}" = yes ] && cat <<EOF
 ${I}    List passwords that match the given regex.

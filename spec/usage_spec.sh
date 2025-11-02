@@ -112,6 +112,9 @@ Describe 'Command-Line Parsing'
     #|MULTILINE=${MULTILINE}
     #|OVERWRITE=${OVERWRITE}
   }
+  do_list() {
+    mocklog do_list "$@"
+  }
   do_list_or_show() {
     mocklog do_list_or_show "$@"
     %text:expand >&2
@@ -606,11 +609,26 @@ Describe 'Command-Line Parsing'
       The error should equal '$ do_tree /prefix  -i pattern'
     End
 
+    It 'interprets the raw list flag'
+      When call cmd_find -r pattern
+      The status should be success
+      The output should be blank
+      The error should equal '$ do_list  pattern'
+    End
+
     It 'reports a lack of argument'
       cat() { @cat; }
       When run cmd_find
       The output should be blank
-      The error should equal 'Usage: prg find [GREP_OPTIONS] regex'
+      The error should equal 'Usage: prg find [--raw,-r] [GREP_OPTIONS] regex'
+      The status should equal 1
+    End
+
+    It 'reports a lack of argument for grep'
+      cat() { @cat; }
+      When run cmd_find -r
+      The output should be blank
+      The error should equal 'Usage: prg find [--raw,-r] [GREP_OPTIONS] regex'
       The status should equal 1
     End
   End
