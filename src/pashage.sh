@@ -873,7 +873,12 @@ do_list() {
 			if [ $# -le 1 ] \
 			    || printf '%s\n' "${ITEM_NAME%.gpg}" | grep "$@"
 			then
-				printf '%s\n' "${ENTRY%.gpg}"
+				if ! [ -d "${FULL_ENTRY%.gpg}" ] \
+				    && ! [ -f "${FULL_ENTRY%.gpg}.age" ]
+				then
+					ENTRY="${ENTRY%.gpg}"
+				fi
+				printf '%s\n' "${ENTRY}"
 			fi
 		fi
 		unset ENTRY

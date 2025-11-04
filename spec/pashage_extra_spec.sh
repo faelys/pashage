@@ -61,6 +61,7 @@ Describe 'Integrated Command Functions'
   setup_log() { %text
     #|Initial setup
     #|
+    #| extra/subdir.gpg       | 3 +++
     #| extra/subdir/file.age  | 2 ++
     #| fluff/.age-recipients  | 2 ++
     #| fluff/one.age          | 3 +++
@@ -69,14 +70,16 @@ Describe 'Integrated Command Functions'
     #| old.gpg                | 3 +++
     #| shared/.age-recipients | 2 ++
     #| stale.age              | 3 +++
+    #| stale.gpg              | 3 +++
     #| subdir/file.age        | 2 ++
     #| y.txt                  | 3 +++
-    #| 10 files changed, 29 insertions(+)
+    #| 12 files changed, 35 insertions(+)
   }
 
   setup_log_bin() { %text
     #|Initial setup
     #|
+    #| extra/subdir.gpg       |   3 +++
     #| extra/subdir/file.age  | Bin 0 -> 33 bytes
     #| fluff/.age-recipients  |   2 ++
     #| fluff/one.age          | Bin 0 -> 55 bytes
@@ -85,9 +88,10 @@ Describe 'Integrated Command Functions'
     #| old.gpg                |   3 +++
     #| shared/.age-recipients |   2 ++
     #| stale.age              | Bin 0 -> 55 bytes
+    #| stale.gpg              |   3 +++
     #| subdir/file.age        | Bin 0 -> 33 bytes
     #| y.txt                  |   3 +++
-    #| 10 files changed, 10 insertions(+)
+    #| 12 files changed, 16 insertions(+)
   }
 
   expected_log() { setup_log; } # Default log to override as needed
@@ -146,6 +150,14 @@ Describe 'Integrated Command Functions'
     #|gpgRecipient:myOldSelf
     #|gpg:very-old-password
     #|gpg:Username: previous-life
+    %text >"${PREFIX}/stale.gpg"
+    #|gpgRecipient:myOldSelf
+    #|gpg:old-password
+    #|gpg:Username: previous-life
+    %text >"${PREFIX}/extra/subdir.gpg"
+    #|gpgRecipient:myOldSelf
+    #|gpg:old-password
+    #|gpg:Username: previous-life
     %text >"${PREFIX}/y.txt"
     #|# Title
     #|Line of text
@@ -201,8 +213,9 @@ Describe 'Integrated Command Functions'
         #| 1 file changed, 0 insertions(+), 0 deletions(-)
         #|Move extra/ to subdir/extra/
         #|
+        #| {extra => subdir/extra}/subdir.gpg      | 0
         #| {extra => subdir/extra}/subdir/file.age | 0
-        #| 1 file changed, 0 insertions(+), 0 deletions(-)
+        #| 2 files changed, 0 insertions(+), 0 deletions(-)
         setup_log
       }
       The result of function check_git_log should be successful
@@ -430,6 +443,7 @@ Describe 'Integrated Command Functions'
       The error should be blank
       The file "${PREFIX}/fluff/two.age" should not be exist
       The file "${PREFIX}/stale.age" should not be exist
+      The file "${PREFIX}/stale.gpg" should be exist
       The file "${PREFIX}/subdir/file.age" should be exist
       expected_log() { %text
         #|Remove fluff/two from store.
@@ -593,8 +607,9 @@ Describe 'Integrated Command Functions'
       expected_output() { %text
         #|Search pattern: -E -i F|I
         #||- (B)extra(N)
-        #||  `- (B)subdir(N)
-        #||     `- file
+        #||  |- (B)subdir(N)
+        #||  |  `- file
+        #||  `- (R)subdir(N)
         #|`- (B)subdir(N)
         #|   `- file
       }
@@ -608,6 +623,7 @@ Describe 'Integrated Command Functions'
     It 'can output a raw list of secrets'
       expected_output() { %text
         #|extra/subdir/file
+        #|extra/subdir.gpg
         #|subdir/file
       }
       When call cmd_find -r -E -i 'F|I'
@@ -1255,11 +1271,13 @@ Describe 'Integrated Command Functions'
       The error should be blank
       expected_out() { %text
         #|extra/subdir/file
+        #|extra/subdir.gpg
         #|fluff/one
         #|fluff/three
         #|fluff/two
         #|old
         #|stale
+        #|stale.gpg
         #|subdir/file
       }
       The output should equal "$(expected_out)"

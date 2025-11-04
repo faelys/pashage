@@ -1785,6 +1785,8 @@ Describe 'Action Functions'
       %putsn data >"${PREFIX}/subdir/hidden"
       %putsn data >"${PREFIX}/subdir/subsub/old.gpg"
       %putsn data >"${PREFIX}/other/lower.age"
+      %putsn data >"${PREFIX}/other/lower.gpg"
+      %putsn data >"${PREFIX}/subdir.gpg"
     }
 
     cleanup() {
@@ -1798,8 +1800,10 @@ Describe 'Action Functions'
       result() {
         %text
         #|other/lower
+        #|other/lower.gpg
         #|root
         #|subdir/subsub/old
+        #|subdir.gpg
       }
       When call do_list ''
       The status should be success
@@ -1810,6 +1814,7 @@ Describe 'Action Functions'
       result() {
         %text
         #|other/lower
+        #|other/lower.gpg
         #|subdir/subsub/old
       }
       When call do_list '' -i L
