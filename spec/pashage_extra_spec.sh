@@ -632,6 +632,14 @@ Describe 'Integrated Command Functions'
       The error should be blank
       The result of function check_git_log should be successful
     End
+
+    It 'does not consider file extension when matching'
+      When call cmd_find g
+      The status should be success
+      The output should equal 'Search pattern: g'
+      The error should be blank
+      The result of function check_git_log should be successful
+    End
   End
 
   Describe 'cmd_generate'

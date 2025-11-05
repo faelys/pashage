@@ -2228,6 +2228,12 @@ Describe 'Action Functions'
       The output should equal "$(result)"
     End
 
+    It 'does not consider file extension when matching'
+      When call do_tree "${PREFIX}" 'Title' g
+      The status should be success
+      The output should equal ''
+    End
+
     It 'might not display anything'
       When call do_tree "${PREFIX}" 'Title' z
       The status should be success

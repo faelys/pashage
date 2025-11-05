@@ -1081,7 +1081,7 @@ do_tree_item() {
 		fi
 	elif [ "${ITEM_NAME%.gpg}.gpg" = "${ITEM_NAME}" ]; then
 		if [ $# -eq 0 ] \
-		    || printf '%s\n' "${ITEM_NAME%.age}" | grep -q "$@"
+		    || printf '%s\n' "${ITEM_NAME%.gpg}" | grep -q "$@"
 		then
 			printf '%s\n' \
 			     "${RED_TEXT}${ITEM_NAME%.gpg}${NORMAL_TEXT}"
