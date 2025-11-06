@@ -66,6 +66,9 @@ the terminal is not dumb.
 - The `find` command search-pattern is a regular expression rather than
 a glob.
 
+- The `find` command matches against the secret names without
+extension (`.age` or `.gpg`).
+
 - The `init` command is redesigned to accommodate `age` backend.
 I didn't really understand the original `init` command, so I'm not sure
 how different it is; but now it installs `.age-recipients` and re-encrypts.
