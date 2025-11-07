@@ -850,6 +850,8 @@ do_insert() {
 # Display the entry list rooted at the given relative directory
 #   $1: path relative to prefix
 #  ...: (optional) grep arguments to filter
+#   BEGIN_GPG_NAME: (optional) marker before gpg secret name
+#   END_GPG_NAME: (optional) marker after gpg secret name
 # Note that this function is recrusive and cannot use variables to hold state.
 do_list() {
 	for FULL_ENTRY in "${PREFIX}/$1${1:+/}"*; do
@@ -873,12 +875,18 @@ do_list() {
 			if [ $# -le 1 ] \
 			    || printf '%s\n' "${ITEM_NAME%.gpg}" | grep "$@"
 			then
+				if ! [ "${ENTRY}" = "${ITEM_NAME}" ]; then
+					printf '%s' "${ENTRY%/*}/"
+				fi
 				if ! [ -d "${FULL_ENTRY%.gpg}" ] \
 				    && ! [ -f "${FULL_ENTRY%.gpg}.age" ]
 				then
-					ENTRY="${ENTRY%.gpg}"
+					ITEM_NAME="${ITEM_NAME%.gpg}"
 				fi
-				printf '%s\n' "${ENTRY}"
+				printf '%s%s%s\n' \
+				    "${BEGIN_GPG_NAME-}" \
+				    "${ITEM_NAME}" \
+				    "${END_GPG_NAME-}"
 			fi
 		fi
 		unset ENTRY

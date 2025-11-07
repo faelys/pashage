@@ -1833,6 +1833,22 @@ Describe 'Action Functions'
       The status should be success
       The output should equal ''
     End
+
+    It 'marks GPG names'
+      result() {
+        %text
+        #|other/lower
+        #|other/[lower.gpg]
+        #|root
+        #|subdir/subsub/[old]
+        #|[subdir.gpg]
+      }
+      BEGIN_GPG_NAME='['
+      END_GPG_NAME=']'
+      When call do_list ''
+      The status should be success
+      The output should equal "$(result)"
+    End
   End
 
   Describe 'do_list_or_show'
