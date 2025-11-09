@@ -1810,6 +1810,22 @@ Describe 'Action Functions'
       The output should equal "$(result)"
     End
 
+    It 'displays everything, including empty directories'
+      result() {
+        %text
+        #|empty/
+        #|other/lower
+        #|other/lower.gpg
+        #|root
+        #|subdir/subsub/old
+        #|subdir.gpg
+      }
+      LIST_EMPTY=yes
+      When call do_list ''
+      The status should be success
+      The output should equal "$(result)"
+    End
+
     It 'displays only matching files'
       result() {
         %text

@@ -852,7 +852,10 @@ do_insert() {
 #  ...: (optional) grep arguments to filter
 #   BEGIN_GPG_NAME: (optional) marker before gpg secret name
 #   END_GPG_NAME: (optional) marker after gpg secret name
-# Note that this function is recrusive and cannot use variables to hold state.
+#   HAS_ITEMS: (output) set to `yes` when something has been printed
+#   LIST_EMPTY: include empty directories in output when set to `yes`
+# Note that this function is recrusive and cannot use variables to hold state
+# (except for HAS_ITEMS which is carefully designed with this constraint).
 do_list() {
 	for FULL_ENTRY in "${PREFIX}/$1${1:+/}"*; do
 		ENTRY="${FULL_ENTRY#"${PREFIX}/"}"
@@ -860,7 +863,12 @@ do_list() {
 		if [ -d "${FULL_ENTRY}" ]; then
 			shift
 			set -- "${ENTRY}" "$@"
+			HAS_ITEMS=no
 			do_list "$@"
+			if [ "${LIST_EMPTY-}${HAS_ITEMS}" = 'yesno' ]; then
+				printf '%s/\n' "$1"
+			fi
+			HAS_ITEMS=yes
 		elif [ "${ENTRY%.age}.age" = "${ENTRY}" ]; then
 			shift
 			set -- "-q" "$@"
@@ -868,6 +876,7 @@ do_list() {
 			    || printf '%s\n' "${ITEM_NAME%.age}" | grep "$@"
 			then
 				printf '%s\n' "${ENTRY%.age}"
+				HAS_ITEMS=yes
 			fi
 		elif [ "${ENTRY%.gpg}.gpg" = "${ENTRY}" ]; then
 			shift
@@ -887,6 +896,7 @@ do_list() {
 				    "${BEGIN_GPG_NAME-}" \
 				    "${ITEM_NAME}" \
 				    "${END_GPG_NAME-}"
+				HAS_ITEMS=yes
 			fi
 		fi
 		unset ENTRY
