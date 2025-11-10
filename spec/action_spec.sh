@@ -1916,8 +1916,8 @@ Describe 'Action Functions'
       LIST_VIEW=no
       When call do_list_or_show ''
       The status should be success
-      The output should be blank
-      The error should equal "$ do_tree ${PREFIX} Password Store"
+      The output should equal 'Password Store'
+      The error should equal '$ do_tree '
     End
 
     It 'shows a decrypted age file'
@@ -1954,8 +1954,8 @@ Describe 'Action Functions'
       LIST_VIEW=no
       When call do_list_or_show 'subdir'
       The status should be success
-      The output should be blank
-      The error should equal "$ do_tree ${PREFIX}/subdir subdir"
+      The output should equal 'subdir'
+      The error should equal '$ do_tree subdir'
     End
 
     It 'does not show a non-encrypted file'
@@ -2207,6 +2207,7 @@ Describe 'Action Functions'
       %putsn data >"${PREFIX}/root.age"
       %putsn data >"${PREFIX}/subdir/hidden"
       %putsn data >"${PREFIX}/subdir/subsub/old.gpg"
+      %putsn data >"${PREFIX}/other/upper.age"
       %putsn data >"${PREFIX}/other/lower.age"
     }
 
@@ -2220,16 +2221,16 @@ Describe 'Action Functions'
     It 'displays everything without a pattern'
       result() {
         %text
-        #|Title
         #|T_(B)empty(N)
         #|T_(B)other(N)
-        #|I_L_lower
+        #|I_T_lower
+        #|I_L_upper
         #|T_root
         #|L_(B)subdir(N)
         #|__L_(B)subsub(N)
         #|____L_(R)old(N)
       }
-      When call do_tree "${PREFIX}" 'Title'
+      When call do_tree ''
       The status should be success
       The output should equal "$(result)"
     End
@@ -2237,45 +2238,47 @@ Describe 'Action Functions'
     It 'displays matching files and their non-matching parents'
       result() {
         %text
-        #|Title
         #|T_(B)other(N)
         #|I_L_lower
         #|L_(B)subdir(N)
         #|__L_(B)subsub(N)
         #|____L_(R)old(N)
       }
-      When call do_tree "${PREFIX}" 'Title' -i L
+      When call do_tree '' -i L
       The status should be success
       The output should equal "$(result)"
     End
 
     It 'does not display matching directories'
-      result() {
-        %text
-        #|Title
-        #|L_root
-      }
-      When call do_tree "${PREFIX}" 'Title' t
+      When call do_tree '' t
       The status should be success
-      The output should equal "$(result)"
+      The output should equal 'L_root'
     End
 
     It 'does not consider file extension when matching'
-      When call do_tree "${PREFIX}" 'Title' g
+      When call do_tree '' g
       The status should be success
       The output should equal ''
     End
 
     It 'might not display anything'
-      When call do_tree "${PREFIX}" 'Title' z
+      When call do_tree '' z
       The status should be success
       The output should equal ''
     End
 
-    It 'does not display an empty title'
-      When call do_tree "${PREFIX}" '' t
-      The status should be success
-      The output should equal 'L_root'
+    It 'defensively aborts on invalid prefix start'
+      When run do_tree_prefix '_XI_'
+      The output should be blank
+      The error should equal 'Invalid tree prefix: "XI_"'
+      The status should equal 1
+    End
+
+    It 'defensively aborts on invalid prefix end'
+      When run do_tree_prefix '_IX'
+      The output should be blank
+      The error should equal 'Invalid tree prefix: "X"'
+      The status should equal 1
     End
   End
 End

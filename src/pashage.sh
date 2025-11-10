@@ -913,7 +913,8 @@ do_list_or_show() {
 		if [ "${LIST_VIEW-no}" = "yes" ]; then
 			do_list ''
 		else
-			do_tree "${PREFIX}" "Password Store"
+			printf 'Password Store\n'
+			do_tree ''
 		fi
 	elif [ -f "${PREFIX}/$1.age" ]; then
 		SECRET="$(do_decrypt "${PREFIX}/$1.age")"
@@ -925,7 +926,8 @@ do_list_or_show() {
 		if [ "${LIST_VIEW-no}" = "yes" ]; then
 			do_list "${1%/}"
 		else
-			do_tree "${PREFIX}/$1" "$1"
+			printf '%s\n' "${1%/}"
+			do_tree "${1%/}"
 		fi
 	elif [ -f "${PREFIX}/$1.gpg" ]; then
 		SECRET="$(do_decrypt_gpg "${PREFIX}/$1.gpg")"
@@ -1035,92 +1037,112 @@ do_show() {
 	esac
 }
 
-# Display the tree rooted at the given directory
-#   $1: root directory
-#   $2: title
+# Display a list of secret as a tree
+#   $1: path relative to prefix
 #  ...: (optional) grep arguments to filter
 do_tree() {
-	( cd "$1" && shift && do_tree_cwd "$@" )
-}
+	REVERSE=""
+	BEGIN_GPG_NAME="${RED_TEXT}"
+	END_GPG_NAME="${NORMAL_TEXT}"
+	LIST_EMPTY="${2+no}"
+	LIST_EMPTY="${LIST_EMPTY:-yes}"
+	ENTRY_LIST="$(do_list "$@")"
+	while read -r LINE; do
+		REVERSE="${LINE#"${1-}${1:+/}"}${REVERSE:+"${NL}"}${REVERSE}"
+	done <<-EOF
+		${ENTRY_LIST}
+	EOF
+	unset BEGIN_GPG_NAME
+	unset END_GPG_NAME
+	unset LIST_EMPTY
+	unset ENTRY_LIST
 
-# Display the subtree rooted at the current directory
-#   $1: title
-#  ...: (optional) grep arguments to filter
-do_tree_cwd() {
-	ACC=""
-	PREV=""
-	TITLE="$1"
-	shift
+	GRAPH="_"
+	TREE=""
+	PREV_LINE=""
+	while read -r LINE; do
+		LINE_COPY="${LINE}"
+		# Skip common directory prefix
+		while ! [ "${LINE_COPY%%/*}" = "${LINE_COPY}" ] \
+		    && ! [ "${PREV_LINE%%/*}" = "${PREV_LINE}" ] \
+		    && [ "${LINE_COPY%%/*}" = "${PREV_LINE%%/*}" ]
+		do
+			LINE_COPY="${LINE_COPY#*/}"
+			PREV_LINE="${PREV_LINE#*/}"
+		done
 
-	for ENTRY in *; do
-		[ -e "${ENTRY}" ] || continue
-		ITEM="$(do_tree_item "${ENTRY}" "$@")"
-		[ -z "${ITEM}" ] && continue
+		# Output obsolete directories
+		while ! [ "${PREV_LINE%/*}" = "${PREV_LINE}" ]; do
+			PREV_LINE="${PREV_LINE%/*}"
+			do_tree_prefix "${GRAPH%?}"
+			GRAPH="${GRAPH%??}I"
+			TREE="${PREV_LINE##*/}${NORMAL_TEXT}${NL}${TREE}"
+			TREE="${CGRAPH}${BLUE_TEXT}${TREE}"
+			unset CGRAPH
+		done
 
-		if [ -n "${PREV}" ]; then
-			ACC="$(printf '%s\n' "${PREV}" | do_tree_prefix "${ACC}" "${TREE_T}" "${TREE_I}")"
+		[ -z "${LINE}" ] && continue
+
+		# Prepare new directories
+		while ! [ "${LINE_COPY%/*}" = "${LINE_COPY}" ]; do
+			LINE_COPY="${LINE_COPY%/*}"
+			GRAPH="${GRAPH}_"
+		done
+		unset LINE_COPY
+
+		if [ -n "${LINE##*/}" ]; then
+			do_tree_prefix "${GRAPH}"
+			GRAPH="${GRAPH%?}I"
+			TREE="${CGRAPH}${LINE##*/}${NL}${TREE}"
+			unset CGRAPH
 		fi
 
-		PREV="${ITEM}"
-	done
-	unset ENTRY
+		PREV_LINE="${LINE}"
+	done <<-EOF
+		${REVERSE}
 
-	if [ -n "${PREV}" ]; then
-		ACC="$(printf '%s\n' "${PREV}" | do_tree_prefix "${ACC}" "${TREE_L}" "${TREE__}")"
-	fi
-
-	if [ $# -eq 0 ] || [ -n "${ACC}" ]; then
-		[ -n "${TITLE}" ] && printf '%s\n' "${TITLE}"
-	fi
-
-	[ -n "${ACC}" ] && printf '%s\n' "${ACC}"
-
-	unset ACC
-	unset PREV
-	unset TITLE
-}
-
-# Display a node in a tree
-#   $1: item name
-#  ...: (optional) grep arguments to filter
-do_tree_item() {
-	ITEM_NAME="$1"
-	shift
-
-	if [ -d "${ITEM_NAME}" ]; then
-		do_tree "${ITEM_NAME}" \
-		    "${BLUE_TEXT}${ITEM_NAME}${NORMAL_TEXT}" \
-		    "$@"
-	elif [ "${ITEM_NAME%.age}.age" = "${ITEM_NAME}" ]; then
-		if [ $# -eq 0 ] \
-		    || printf '%s\n' "${ITEM_NAME%.age}" | grep -q "$@"
-		then
-			printf '%s\n' "${ITEM_NAME%.age}"
-		fi
-	elif [ "${ITEM_NAME%.gpg}.gpg" = "${ITEM_NAME}" ]; then
-		if [ $# -eq 0 ] \
-		    || printf '%s\n' "${ITEM_NAME%.gpg}" | grep -q "$@"
-		then
-			printf '%s\n' \
-			     "${RED_TEXT}${ITEM_NAME%.gpg}${NORMAL_TEXT}"
-		fi
-	fi
-
-	unset ITEM_NAME
-}
-
-# Add a tree prefix
-#   $1: optional title before the first line
-#   $2: prefix of the first line
-#   $3: prefix of the following lines
-do_tree_prefix() {
-	[ -n "$1" ] && printf '%s\n' "$1"
-	IFS= read -r LINE
-	printf '%s%s\n' "$2" "${LINE}"
-	while IFS= read -r LINE; do
-		printf '%s%s\n' "$3" "${LINE}"
-	done
+	EOF
+	# Note the extra blank line above to flush the first directories
+	unset GRAPH
 	unset LINE
+	unset PREV_LINE
+
+	printf '%s' "${TREE}"
+	unset TREE
+}
+
+
+# Convert a tree prefix into user-facing representation
+#   $1: encoded tree prefix
+#   CGRAPH: output user-facing representation
+do_tree_prefix() {
+	CGRAPH=""
+	while [ -n "${1#?}" ]; do
+		case "${1%"${1#?}"}" in
+		    (_)
+			CGRAPH="${CGRAPH}${TREE__}"
+			;;
+		    (I)
+			CGRAPH="${CGRAPH}${TREE_I}"
+			;;
+		    (*)
+			die "Invalid tree prefix: \"$1\""
+			;;
+		esac
+		set -- "${1#?}"
+	done
+
+	case "$1" in
+	    (_)
+		CGRAPH="${CGRAPH}${TREE_L}"
+		;;
+	    (I)
+		CGRAPH="${CGRAPH}${TREE_T}"
+		;;
+	    (*)
+		die "Invalid tree prefix: \"$1\""
+		;;
+	esac
 }
 
 
@@ -1286,7 +1308,7 @@ cmd_find() {
 		do_list '' "$@"
 	else
 		printf 'Search pattern: %s\n' "$*"
-		do_tree "${PREFIX}" '' "$@"
+		do_tree '' "$@"
 	fi
 }
 

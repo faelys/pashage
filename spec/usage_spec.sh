@@ -606,7 +606,7 @@ Describe 'Command-Line Parsing'
       When call cmd_find -i pattern
       The status should be success
       The output should equal 'Search pattern: -i pattern'
-      The error should equal '$ do_tree /prefix  -i pattern'
+      The error should equal '$ do_tree  -i pattern'
     End
 
     It 'interprets the raw list flag'

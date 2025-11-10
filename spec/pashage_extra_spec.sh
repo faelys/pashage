@@ -609,7 +609,7 @@ Describe 'Integrated Command Functions'
         #||- (B)extra(N)
         #||  |- (B)subdir(N)
         #||  |  `- file
-        #||  `- (R)subdir(N)
+        #||  `- (R)subdir.gpg(N)
         #|`- (B)subdir(N)
         #|   `- file
       }
@@ -1793,6 +1793,20 @@ Describe 'Integrated Command Functions'
         #|                   --qrcode[=line-number],-q[line-number]] pass-name
       }
       The error should equal 'Unexpected SHOW value "invalid"'
+    End
+
+    It 'includes invalid argument middle in do_tree_prefix'
+      When run do_tree_prefix '_X_I'
+      The status should equal 1
+      The output should be blank
+      The error should equal 'Invalid tree prefix: "X_I"'
+    End
+
+    It 'includes invalid argument ending in do_tree_prefix'
+      When run do_tree_prefix 'IX'
+      The status should equal 1
+      The output should be blank
+      The error should equal 'Invalid tree prefix: "X"'
     End
 
     It 'includes interactive yesno'
