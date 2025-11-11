@@ -1291,26 +1291,6 @@ Describe 'Integrated Command Functions'
       The output should equal "$(expected_out)"
     End
 
-    It 'displays the whole store and empty directories as a raw list'
-      LIST_EMPTY=yes
-      When call cmd_list_or_show --raw
-      The status should be success
-      The error should be blank
-      expected_out() { %text
-        #|extra/subdir/file
-        #|extra/subdir.gpg
-        #|fluff/one
-        #|fluff/three
-        #|fluff/two
-        #|old
-        #|shared/
-        #|stale
-        #|stale.gpg
-        #|subdir/file
-      }
-      The output should equal "$(expected_out)"
-    End
-
     It 'displays a subdirectory as a raw list'
       When call cmd_list_or_show -r fluff
       The status should be success

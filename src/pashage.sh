@@ -850,8 +850,8 @@ do_insert() {
 # Display the entry list rooted at the given relative directory
 #   $1: path relative to prefix
 #  ...: (optional) grep arguments to filter
-#   BEGIN_GPG_NAME: (optional) marker before gpg secret name
-#   END_GPG_NAME: (optional) marker after gpg secret name
+#   BEGIN_GPG_NAME: marker before gpg secret name
+#   END_GPG_NAME: marker after gpg secret name
 #   HAS_ITEMS: (output) set to `yes` when something has been printed
 #   LIST_EMPTY: include empty directories in output when set to `yes`
 # Note that this function is recrusive and cannot use variables to hold state
@@ -865,7 +865,7 @@ do_list() {
 			set -- "${ENTRY}" "$@"
 			HAS_ITEMS=no
 			do_list "$@"
-			if [ "${LIST_EMPTY-}${HAS_ITEMS}" = 'yesno' ]; then
+			if [ "${LIST_EMPTY}${HAS_ITEMS}" = 'yesno' ]; then
 				printf '%s/\n' "$1"
 			fi
 			HAS_ITEMS=yes
@@ -893,9 +893,9 @@ do_list() {
 					ITEM_NAME="${ITEM_NAME%.gpg}"
 				fi
 				printf '%s%s%s\n' \
-				    "${BEGIN_GPG_NAME-}" \
+				    "${BEGIN_GPG_NAME}" \
 				    "${ITEM_NAME}" \
-				    "${END_GPG_NAME-}"
+				    "${END_GPG_NAME}"
 				HAS_ITEMS=yes
 			fi
 		fi
@@ -911,7 +911,13 @@ do_list() {
 do_list_or_show() {
 	if [ -z "$1" ]; then
 		if [ "${LIST_VIEW-no}" = "yes" ]; then
+			BEGIN_GPG_NAME=''
+			END_GPG_NAME=''
+			LIST_EMPTY='no'
 			do_list ''
+			unset BEGIN_GPG_NAME
+			unset END_GPG_NAME
+			unset LIST_EMPTY
 		else
 			printf 'Password Store\n'
 			do_tree ''
@@ -924,7 +930,13 @@ do_list_or_show() {
 		unset SECRET
 	elif [ -d "${PREFIX}/$1" ]; then
 		if [ "${LIST_VIEW-no}" = "yes" ]; then
+			BEGIN_GPG_NAME=''
+			END_GPG_NAME=''
+			LIST_EMPTY='no'
 			do_list "${1%/}"
+			unset BEGIN_GPG_NAME
+			unset END_GPG_NAME
+			unset LIST_EMPTY
 		else
 			printf '%s\n' "${1%/}"
 			do_tree "${1%/}"
@@ -1305,7 +1317,13 @@ cmd_find() {
 	fi
 
 	if [ "${LIST_VIEW}" = yes ]; then
+		BEGIN_GPG_NAME=''
+		END_GPG_NAME=''
+		LIST_EMPTY='no'
 		do_list '' "$@"
+		unset BEGIN_GPG_NAME
+		unset END_GPG_NAME
+		unset LIST_EMPTY
 	else
 		printf 'Search pattern: %s\n' "$*"
 		do_tree '' "$@"

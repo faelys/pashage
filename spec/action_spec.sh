@@ -1805,6 +1805,9 @@ Describe 'Action Functions'
         #|subdir/subsub/old
         #|subdir.gpg
       }
+      BEGIN_GPG_NAME=''
+      END_GPG_NAME=''
+      LIST_EMPTY='no'
       When call do_list ''
       The status should be success
       The output should equal "$(result)"
@@ -1820,6 +1823,8 @@ Describe 'Action Functions'
         #|subdir/subsub/old
         #|subdir.gpg
       }
+      BEGIN_GPG_NAME=''
+      END_GPG_NAME=''
       LIST_EMPTY=yes
       When call do_list ''
       The status should be success
@@ -1833,18 +1838,27 @@ Describe 'Action Functions'
         #|other/lower.gpg
         #|subdir/subsub/old
       }
+      BEGIN_GPG_NAME=''
+      END_GPG_NAME=''
+      LIST_EMPTY='no'
       When call do_list '' -i L
       The status should be success
       The output should equal "$(result)"
     End
 
     It 'does not display matching directories'
+      BEGIN_GPG_NAME=''
+      END_GPG_NAME=''
+      LIST_EMPTY='no'
       When call do_list '' t
       The status should be success
       The output should equal 'root'
     End
 
     It 'might not display anything'
+      BEGIN_GPG_NAME=''
+      END_GPG_NAME=''
+      LIST_EMPTY='no'
       When call do_list '' z
       The status should be success
       The output should equal ''
@@ -1861,6 +1875,7 @@ Describe 'Action Functions'
       }
       BEGIN_GPG_NAME='['
       END_GPG_NAME=']'
+      LIST_EMPTY='no'
       When call do_list ''
       The status should be success
       The output should equal "$(result)"
