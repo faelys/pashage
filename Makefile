@@ -1,5 +1,5 @@
 # pashage - age-backed POSIX password manager
-# Copyright (C) 2024  Natasha Kerensikova
+# Copyright (C) 2024-2025  Natasha Kerensikova
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
@@ -19,6 +19,7 @@ PLATFORM != uname | cut -d _ -f 1 | tr '[:upper:]' '[:lower:]'
 
 pashage: bin/pashage-$(PLATFORM).sh
 	cp -i "bin/pashage-$(PLATFORM).sh" "$@"
+	chmod a+x "$@"
 
 .PHONY: all check clean cov1 cov2 tests validate
 
