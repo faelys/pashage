@@ -736,7 +736,7 @@ do_grep() {
 	unset HEADER
 }
 
-# Wrapper around grep filter to added a header when a match is found
+# Wrapper around grep filter to add a header when a match is found
 #   ... grep arguments
 #   HEADER header to print before matches, if any
 do_grep_filter() {
