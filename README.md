@@ -308,7 +308,7 @@ Flags:
 - `-f` or `--force`: replace existing secrets without asking
 - `-i` or `--in-place`: when the secret already exists, replace only its
   first line and re-use the following lines
-- `-m` or `--multiline`: read lines from standard input append after the
+- `-m` or `--multiline`: read lines from standard input to append after the
   generated data into the secret file
 - `-n` or `--no-symbols`: generate a secret using only alphanumeric
   characters
@@ -473,7 +473,7 @@ echo, and reads it a second time for confirmation.
 Flags:
 - `-e` or `--echo`: read a single line once without manipulating the
   standard input
-- `-m` or `--multiline`: an arbitrary amount of lines from the standard
+- `-m` or `--multiline`: read an arbitrary amount of lines from the standard
   input, without trying to manipulate the console, until the end of input
   or a blank line is entered
 - `-f` or `--force`: overwrite an existing secret without asking

@@ -142,7 +142,7 @@ replace existing secrets without asking
 when the secret already exists, replace only its first line and re-use the
 following lines
 .It Fl m,--multiline
-read lines from standard input append after the generated data into the secret
+read lines from standard input to append after the generated data into the secret
 file
 .It Fl n,--no-symbols
 generate a secret using only alphanumeric characters
@@ -237,7 +237,7 @@ The options are as follows:
 .It Fl e,--echo
 read a single line once without manipulating the standard input
 .It Fl m,--multiline
-an arbitrary amount of lines from the standard input, without trying to
+read an arbitrary amount of lines from the standard input, without trying to
 manipulate the console, until the end of input or a blank line is entered
 .It Fl f,--force
 overwrite an existing secret without asking
