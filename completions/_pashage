@@ -78,6 +78,8 @@ function _pashage {
 		_pashage_entries
 		;;
 	   (find)
+		_arguments -s -w -S \
+		    '(-r --raw)'{-r,--raw}'[raw list]'
 		;;
 	   (generate)
 		_arguments -s -w -S \
@@ -112,11 +114,16 @@ function _pashage {
 		    '(-f --force)'{-f,--force}'[overwrite without asking]'
 		;;
 	   (ls|list)
+		_arguments -s -w -S \
+		    '(-r --raw)'{-r,--raw}'[raw list]'
 		_pashage_dirs
 		;;
 	   (random)
 		;;
 	   (reencrypt)
+		_arguments -s -w -S \
+		    '(-i --interactive)'{-i,--interactive}'[ask for each entry]'
+		_pashage_entries_and_dirs
 		;;
 	   (remove|rm|delete)
 		_arguments -s -w -S \
