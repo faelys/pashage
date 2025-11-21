@@ -121,6 +121,36 @@ The following features are currently under consideration:
     + OTP support
     + extension support
 
+## Dependencies
+
+Required dependencies:
+
+- POSIX-compliant shell, including POSIX-compliant utilities `[`, `basename`,
+`cat`, `cp`, `dd`, `diff`, `dirname`, `echo`, `find`, `grep`, `head`, `mkdir`,
+`mktemp`, `mv`, `printf`, `rm`, `stty`, `tail`, `tr`, and `true`;
+- [age](https://age-encryption.org/) encryption tool.
+
+Optional dependencies:
+
+- [feh](https://feh.finalrewind.org/)
+to display QR-codes graphically
+- [git](https://git-scm.com/)
+to track storage revision and replicate it
+- [GnuPG](https://gnupg.org/)
+to display GnuPG-encrypted password-store secrets
+- [GraphicsMagick](http://www.graphicsmagick.org/)
+to display QR-codes graphically
+- [ImageMagick](https://imagemagick.org/)
+to display QR-codes graphically
+- [openssl](https://www.openssl.org/)
+to encode and decode base-64 when interacting with clipboard
+- [qrencode](https://github.com/fukuchi/libqrencode)
+to generate QR-codes
+- [wl-clipboard](https://github.com/bugaevc/wl-clipboard)
+to copy and paste on Wayland
+- [xclip](https://github.com/astrand/xclip)
+to copy and paste on X11
+
 ## Manual
 
 **pashage** is a _password manager_, which means it manages a database of
