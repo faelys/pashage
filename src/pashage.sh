@@ -990,7 +990,7 @@ do_reencrypt_dir() {
 			if ! [ -e "${ENTRY}/.age-recipients" ] \
 			    || [ "${DECISION}" = force ]
 			then
-				( do_reencrypt_dir "${ENTRY}" )
+				do_reencrypt_dir "${ENTRY}"
 			fi
 		elif [ "${ENTRY}" = "${ENTRY%.age}.age" ]; then
 			ENTRY="${ENTRY#"${PREFIX}"/}"
