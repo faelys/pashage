@@ -439,7 +439,9 @@ do_deinit() {
 	scm_begin
 	scm_rm "${TARGET}"
 	if ! [ "${DECISION}" = keep ]; then
+		RECURSIVE=no
 		do_reencrypt_dir "${PREFIX}/$1"
+		unset RECURSIVE
 	fi
 	scm_commit "Deinitialize ${LOC}"
 	rmdir -p -- "${PREFIX}/$1" 2>/dev/null || true
@@ -770,7 +772,9 @@ do_init() {
 	printf '%s\n' "$@" >>"${TARGET}"
 	scm_add "${TARGET#"${PREFIX}/"}"
 	if ! [ "${DECISION}" = keep ]; then
+		RECURSIVE=no
 		do_reencrypt_dir "${SUBDIR}"
+		unset RECURSIVE
 	fi
 	scm_commit "Set age recipients at ${LOC}"
 	printf '%s\n' "Password store recipients set at ${LOC}"
@@ -955,6 +959,7 @@ do_list_or_show() {
 # Re-encrypts a file or a directory
 #   $1: entry name
 #   DECISION: whether to ask before re-encryption
+#   RECURSIVE: whether to also re-encrypt subfolders with their own recipients
 do_reencrypt() {
 	scm_begin
 
@@ -984,11 +989,12 @@ do_reencrypt() {
 # Recursively re-encrypts a directory
 #   $1: absolute directory path
 #   DECISION: whether to ask before re-encryption
+#   RECURSIVE: whether to also re-encrypt subfolders with their own recipients
 do_reencrypt_dir() {
 	for ENTRY in "${1%/}"/*; do
 		if [ -d "${ENTRY}" ]; then
 			if ! [ -e "${ENTRY}/.age-recipients" ] \
-			    || [ "${DECISION}" = force ]
+			    || [ "${RECURSIVE}" = yes ]
 			then
 				do_reencrypt_dir "${ENTRY}"
 			fi
@@ -1702,6 +1708,7 @@ cmd_reencrypt() {
 	DECISION=default
 	OVERWRITE=yes
 	PARSE_ERROR=no
+	RECURSIVE=no
 
 	while [ $# -ge 1 ]; do
 		case "$1" in

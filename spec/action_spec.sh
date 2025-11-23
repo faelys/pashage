@@ -1984,7 +1984,6 @@ Describe 'Action Functions'
 
   Describe 'do_reencrypt'
     PREFIX="${SHELLSPEC_WORKDIR}/prefix"
-    DECISION=default
 
     do_decrypt() {
       mocklog do_decrypt "$@"
@@ -2017,6 +2016,7 @@ Describe 'Action Functions'
     AfterEach cleanup
 
     It 're-encrypts a single file'
+      DECISION=default
       result() {
         %text:expand
         #|$ scm_begin
@@ -2033,6 +2033,8 @@ Describe 'Action Functions'
     End
 
     It 'recursively re-encrypts a directory'
+      DECISION=default
+      RECURSIVE=no
       result() {
         %text:expand
         #|$ scm_begin
@@ -2053,6 +2055,8 @@ Describe 'Action Functions'
     End
 
     It 'recursively re-encrypts the whole store as /'
+      DECISION=default
+      RECURSIVE=no
       result() {
         %text:expand
         #|$ scm_begin
@@ -2077,6 +2081,8 @@ Describe 'Action Functions'
     End
 
     It 'recursively re-encrypts the whole store as the empty string'
+      DECISION=default
+      RECURSIVE=no
       result() {
         %text:expand
         #|$ scm_begin
@@ -2102,6 +2108,7 @@ Describe 'Action Functions'
 
     It 'asks for confirmation before each file'
       DECISION=interactive
+      RECURSIVE=no
       YESNO_NEXT=n
       yesno() {
         mocklog yesno "$@"
