@@ -122,6 +122,7 @@ function _pashage {
 		;;
 	   (reencrypt)
 		_arguments -s -w -S \
+		    '(-d --deep)'{-d,--deep}'[re-encrypt subfolders with their own recipients]' \
 		    '(-i --interactive)'{-i,--interactive}'[ask for each entry]'
 		_pashage_entries_and_dirs
 		;;

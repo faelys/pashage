@@ -126,6 +126,7 @@ Describe 'Command-Line Parsing'
     mocklog do_reencrypt "$@"
     %text:expand >&2
     #|DECISION=${DECISION}
+    #|RECURSIVE=${RECURSIVE}
   }
   do_reencrypt_dir() {
     mocklog do_reencrypt_dir "$@"
@@ -2238,12 +2239,57 @@ Describe 'Command-Line Parsing'
         #|$ check_sneaky_path sub/file-2
         #|$ do_reencrypt file-1
         #|DECISION=default
+        #|RECURSIVE=no
         #|$ do_reencrypt dir/
         #|DECISION=default
+        #|RECURSIVE=no
         #|$ do_reencrypt sub/file-2
         #|DECISION=default
+        #|RECURSIVE=no
       }
       When call cmd_reencrypt file-1 dir/ sub/file-2
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'deeply re-encrypts with a long option'
+      result() {
+        %text
+        #|$ check_sneaky_path arg
+        #|$ do_reencrypt arg
+        #|DECISION=default
+        #|RECURSIVE=yes
+      }
+      When call cmd_reencrypt --deep arg
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'deeply re-encrypts with a short option'
+      result() {
+        %text
+        #|$ check_sneaky_path arg
+        #|$ do_reencrypt arg
+        #|DECISION=default
+        #|RECURSIVE=yes
+      }
+      When call cmd_reencrypt -d arg
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'deeply and interactively re-encrypts with short options'
+      result() {
+        %text
+        #|$ check_sneaky_path arg
+        #|$ do_reencrypt arg
+        #|DECISION=interactive
+        #|RECURSIVE=yes
+      }
+      When call cmd_reencrypt -di arg
       The status should be success
       The output should be blank
       The error should equal "$(result)"
@@ -2255,6 +2301,7 @@ Describe 'Command-Line Parsing'
         #|$ check_sneaky_path arg
         #|$ do_reencrypt arg
         #|DECISION=interactive
+        #|RECURSIVE=no
       }
       When call cmd_reencrypt --interactive arg
       The status should be success
@@ -2268,8 +2315,23 @@ Describe 'Command-Line Parsing'
         #|$ check_sneaky_path arg
         #|$ do_reencrypt arg
         #|DECISION=interactive
+        #|RECURSIVE=no
       }
       When call cmd_reencrypt -i arg
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'interactively and deeply re-encrypts with short options'
+      result() {
+        %text
+        #|$ check_sneaky_path arg
+        #|$ do_reencrypt arg
+        #|DECISION=interactive
+        #|RECURSIVE=yes
+      }
+      When call cmd_reencrypt -id arg
       The status should be success
       The output should be blank
       The error should equal "$(result)"
@@ -2281,6 +2343,7 @@ Describe 'Command-Line Parsing'
         #|$ check_sneaky_path -s
         #|$ do_reencrypt -s
         #|DECISION=default
+        #|RECURSIVE=no
       }
       When call cmd_reencrypt -- -s
       The status should be success
@@ -2289,7 +2352,7 @@ Describe 'Command-Line Parsing'
     End
 
     usage_text() { %text
-      #|Usage: prg reencrypt [--interactive,-i] pass-name|subfolder ...
+      #|Usage: prg reencrypt [--deep,-d] [--interactive,-i] pass-name|subfolder ...
     }
 
     It 'reports a bad option'

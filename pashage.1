@@ -298,6 +298,7 @@ subcommand, then directly displays on the standard output without storing it.
 .Ss reencrypt
 .Nm
 .Cm reencrypt
+.Op Fl d,--deep
 .Op Fl i,--interactive
 .Ar pass-name|subfolder
 .Ar ...
@@ -307,6 +308,8 @@ recursively in the given subfolders.
 .Pp
 The options are as follows:
 .Bl -tag -compact -width \-i,--interactive
+.It Fl d,--deep
+re-encrypt subfolders with their own recipient list
 .It Fl i,--interactive
 asks whether to re-encrypt or not for each secret
 .El

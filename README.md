@@ -606,13 +606,14 @@ Environment:
 Syntax:
 
 ```
-pashage reencrypt [--interactive,-i] pass-name|subfolder ...
+pashage reencrypt [--deep,-d] [--interactive,-i] pass-name|subfolder ...
 ```
 
 This subcommand re-encrypts in place the given secrets, and all the secrets
 recursively in the given subfolders.
 
 Flags:
+- `-d` or `--deep`: re-encrypt subfolders with their own recipient list
 - `-i` or `--interactive`: asks whether to re-encrypt or not for each secret
 
 Environment:

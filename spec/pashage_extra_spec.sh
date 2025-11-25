@@ -1464,7 +1464,7 @@ Describe 'Integrated Command Functions'
 
   Describe 'cmd_reencrypt'
     usage_text() { %text
-      #|Usage: prg reencrypt [--interactive,-i] pass-name|subfolder ...
+      #|Usage: prg reencrypt [--deep,-d] [--interactive,-i] pass-name|subfolder ...
     }
 
     It 'reencrypts a single file'
@@ -1557,6 +1557,35 @@ Describe 'Integrated Command Functions'
       The status should be success
       The error should be blank
       The output should equal 'Re-encrypt extra/subdir/file? [y/n]Re-encrypt stale? [y/n]Re-encrypt subdir/file? [y/n]'
+      expected_file() { %text
+        #|ageRecipient:myself
+        #|age:0-password
+      }
+      The contents of file "${PREFIX}/stale.age" \
+        should equal "$(expected_file)"
+      expected_log() { %text
+        #|Re-encrypt /
+        #|
+        #| stale.age | 1 -
+        #| 1 file changed, 1 deletion(-)
+        setup_log
+      }
+      The result of function check_git_log should be successful
+    End
+
+    It 'reencrypts directories deeply, recursively, and interactively'
+      Data
+        #|n
+        #|n
+        #|n
+        #|n
+        #|y
+        #|n
+      End
+      When call cmd_reencrypt -id ''
+      The status should be success
+      The error should be blank
+      The output should equal 'Re-encrypt extra/subdir/file? [y/n]Re-encrypt fluff/one? [y/n]Re-encrypt fluff/three? [y/n]Re-encrypt fluff/two? [y/n]Re-encrypt stale? [y/n]Re-encrypt subdir/file? [y/n]'
       expected_file() { %text
         #|ageRecipient:myself
         #|age:0-password

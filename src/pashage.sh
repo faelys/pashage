@@ -1712,12 +1712,23 @@ cmd_reencrypt() {
 
 	while [ $# -ge 1 ]; do
 		case "$1" in
+		    -d|--deep)
+			RECURSIVE=yes
+			shift ;;
 		    -i|--interactive)
 			DECISION=interactive
 			shift ;;
 		    --)
 			shift
 			break ;;
+		    -[di]?*)
+			REST="${1#??}"
+			FIRST="${1%"${REST}"}"
+			shift
+			set -- "${FIRST}" "-${REST}" "$@"
+			unset FIRST
+			unset REST
+			;;
 		    -*)
 			PARSE_ERROR=yes
 			break ;;
@@ -1924,11 +1935,12 @@ EOF
 			;;
 		    reencrypt)
 			cat <<EOF
-${F}${PROGRAM} reencrypt [--interactive,-i] pass-name|subfolder ...
+${F}${PROGRAM} reencrypt [--deep,-d] [--interactive,-i] pass-name|subfolder ...
 EOF
 			[ "${VERBOSE}" = yes ] && cat <<EOF
 ${I}    Re-encrypt in-place a secret or all the secrets in a subfolder,
-${I}    optionally asking before each one.
+${I}    optionally including subfolders with their own recipients,
+${I}    and optionally asking before each one.
 EOF
 			;;
 		    version)

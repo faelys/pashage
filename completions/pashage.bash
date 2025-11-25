@@ -111,7 +111,7 @@ _pashage()
 				_pashage_complete_entries
 				;;
 			re-encrypt|reencrypt)
-				COMPREPLY+=($(compgen -W "-i --interactive" -- ${cur}))
+				COMPREPLY+=($(compgen -W "-d --deep -i --interactive" -- ${cur}))
 				_pashage_complete_entries
 				;;
 			git)

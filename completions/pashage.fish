@@ -103,6 +103,8 @@ complete -f -c pashage -n 'not __fish_pashage_any_command' \
 # Option completion
 complete -f -c pashage -n '__fish_pashage_opt_command gen generate show' \
     -s 'c' -l 'clip' -d 'paste secret into clipboard'
+complete -f -c pashage -n '__fish_pashage_command re-encrypt reencrypt' \
+    -s 'd' -l 'deep' -d 're-encrypt subfolders with their own recipients'
 complete -f -c pashage -n '__fish_pashage_command insert' \
     -s 'e' -l 'echo' -d 'non-hidden password entry'
 complete -f -c pashage -n '__fish_pashage_command copy cp move mv' \
