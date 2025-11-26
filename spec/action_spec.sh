@@ -2002,9 +2002,11 @@ Describe 'Action Functions'
     scm_commit() { mocklog scm_commit "$@"; }
 
     setup() {
-      @mkdir -p "${PREFIX}/subdir/subsub"
+      @mkdir -p "${PREFIX}/subdir/other" "${PREFIX}/subdir/subsub"
+      %putsn id >"${PREFIX}/subdir/other/.age-recipients"
       %putsn data >"${PREFIX}/root.age"
       %putsn data >"${PREFIX}/subdir/middle.age"
+      %putsn data >"${PREFIX}/subdir/other/unrelated.age"
       %putsn data >"${PREFIX}/subdir/subsub/deep.age"
     }
 
@@ -2042,6 +2044,32 @@ Describe 'Action Functions'
         #|$ do_encrypt subdir/middle-XXXXXXXXX.age
         #|$ mv -f -- ${PREFIX}/subdir/middle-XXXXXXXXX.age ${PREFIX}/subdir/middle.age
         #|$ scm_add subdir/middle.age
+        #|$ do_decrypt ${PREFIX}/subdir/subsub/deep.age
+        #|$ do_encrypt subdir/subsub/deep-XXXXXXXXX.age
+        #|$ mv -f -- ${PREFIX}/subdir/subsub/deep-XXXXXXXXX.age ${PREFIX}/subdir/subsub/deep.age
+        #|$ scm_add subdir/subsub/deep.age
+        #|$ scm_commit Re-encrypt subdir/
+      }
+      When call do_reencrypt subdir/
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'recursively and deeply re-encrypts a directory'
+      DECISION=default
+      RECURSIVE=yes
+      result() {
+        %text:expand
+        #|$ scm_begin
+        #|$ do_decrypt ${PREFIX}/subdir/middle.age
+        #|$ do_encrypt subdir/middle-XXXXXXXXX.age
+        #|$ mv -f -- ${PREFIX}/subdir/middle-XXXXXXXXX.age ${PREFIX}/subdir/middle.age
+        #|$ scm_add subdir/middle.age
+        #|$ do_decrypt ${PREFIX}/subdir/other/unrelated.age
+        #|$ do_encrypt subdir/other/unrelated-XXXXXXXXX.age
+        #|$ mv -f -- ${PREFIX}/subdir/other/unrelated-XXXXXXXXX.age ${PREFIX}/subdir/other/unrelated.age
+        #|$ scm_add subdir/other/unrelated.age
         #|$ do_decrypt ${PREFIX}/subdir/subsub/deep.age
         #|$ do_encrypt subdir/subsub/deep-XXXXXXXXX.age
         #|$ mv -f -- ${PREFIX}/subdir/subsub/deep-XXXXXXXXX.age ${PREFIX}/subdir/subsub/deep.age
@@ -2119,6 +2147,37 @@ Describe 'Action Functions'
         %text:expand
         #|$ scm_begin
         #|$ yesno Re-encrypt subdir/middle?
+        #|$ yesno Re-encrypt subdir/subsub/deep?
+        #|$ do_decrypt ${PREFIX}/subdir/subsub/deep.age
+        #|$ do_encrypt subdir/subsub/deep-XXXXXXXXX.age
+        #|$ mv -f -- ${PREFIX}/subdir/subsub/deep-XXXXXXXXX.age ${PREFIX}/subdir/subsub/deep.age
+        #|$ scm_add subdir/subsub/deep.age
+        #|$ scm_commit Re-encrypt subdir/
+      }
+      When call do_reencrypt subdir
+      The status should be success
+      The output should be blank
+      The error should equal "$(result)"
+    End
+
+    It 'asks for confirmation before each file in deep re-encryption'
+      DECISION=interactive
+      RECURSIVE=yes
+      YESNO_NEXT=n
+      yesno() {
+        mocklog yesno "$@"
+        ANSWER="${YESNO_NEXT}"
+        YESNO_NEXT=y
+      }
+      result() {
+        %text:expand
+        #|$ scm_begin
+        #|$ yesno Re-encrypt subdir/middle?
+        #|$ yesno Re-encrypt subdir/other/unrelated?
+        #|$ do_decrypt ${PREFIX}/subdir/other/unrelated.age
+        #|$ do_encrypt subdir/other/unrelated-XXXXXXXXX.age
+        #|$ mv -f -- ${PREFIX}/subdir/other/unrelated-XXXXXXXXX.age ${PREFIX}/subdir/other/unrelated.age
+        #|$ scm_add subdir/other/unrelated.age
         #|$ yesno Re-encrypt subdir/subsub/deep?
         #|$ do_decrypt ${PREFIX}/subdir/subsub/deep.age
         #|$ do_encrypt subdir/subsub/deep-XXXXXXXXX.age
