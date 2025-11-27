@@ -1445,10 +1445,7 @@ Describe 'Action Functions'
         #|(B)subdir/(G)match(N):
         #|other
       }
-      start_do_grep(){
-        ( cd "${PREFIX}" && do_grep '' "$@" )
-      }
-      When call start_do_grep ot
+      When call do_grep "${PREFIX}" ot
       The status should be success
       The output should equal "$(result)"
     End
@@ -1460,10 +1457,7 @@ Describe 'Action Functions'
         #|other
         #|suffix
       }
-      start_do_grep(){
-        ( cd "${PREFIX}" && do_grep '' "$@" )
-      }
-      When call start_do_grep -vea
+      When call do_grep "${PREFIX}" -vea
       The status should be success
       The output should equal "$(result)"
     End

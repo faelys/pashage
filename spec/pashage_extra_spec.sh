@@ -877,7 +877,7 @@ Describe 'Integrated Command Functions'
       When run cmd_grep foo
       The status should equal 1
       The error should equal \
-        "Fatal(1): false -d -i ${IDENTITIES_FILE} -- file.age"
+        "Fatal(1): false -d -i ${IDENTITIES_FILE} -- ${PREFIX}/extra/subdir/file.age"
       The output should be blank
       The result of function check_git_log should be successful
     End

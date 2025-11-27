@@ -1197,7 +1197,7 @@ Describe 'Command-Line Parsing'
       When call cmd_grep -i pattern
       The status should be success
       The output should be blank
-      The error should equal '$ do_grep  -i pattern'
+      The error should equal "$ do_grep ${PREFIX} -i pattern"
     End
 
     It 'reports a lack of argument'

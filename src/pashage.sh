@@ -714,23 +714,28 @@ do_generate_show() {
 #   $1: current subdirectory name
 #   ... grep arguments
 do_grep() {
-	SUBDIR="$1"
-	shift
-
-	glob_exists ./*
+	glob_exists "$1"/*
 	[ "${ANSWER}" = y ] || return 0
 	unset ANSWER
 
-	for ARG in *; do
+	for ARG in "$1"/*; do
 		if [ -d "${ARG}" ]; then
-			( cd "${ARG}" && do_grep "${SUBDIR}${ARG}/" "$@" )
+			shift
+			set -- "${ARG}" "$@"
+			do_grep "$@"
 		elif [ "${ARG}" = "${ARG%.age}.age" ]; then
-			HEADER="${BLUE_TEXT}${SUBDIR}${BOLD_TEXT}"
-			HEADER="${HEADER}${ARG%.age}${NORMAL_TEXT}:"
+			HEADER="${ARG%/*}"
+			HEADER="${HEADER#"${PREFIX}"}"
+			HEADER="${HEADER#/}"
+			HEADER="${BLUE_TEXT}${HEADER}${HEADER:+/}"
+			HEADER="${HEADER}${BOLD_TEXT}${ARG##*/}"
+			HEADER="${HEADER%.age}${NORMAL_TEXT}:"
 			SECRET="$(do_decrypt "${ARG}")"
+			shift
 			do_grep_filter "$@" <<-EOF
 				${SECRET}
 			EOF
+			set -- a "$@"
 		fi
 	done
 
@@ -1448,7 +1453,7 @@ cmd_grep() {
 		exit 1
 	fi
 
-	( cd "${PREFIX}" && do_grep "" "$@" )
+	do_grep "${PREFIX}" "$@"
 }
 
 cmd_gitconfig() {
