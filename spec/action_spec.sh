@@ -1424,7 +1424,7 @@ Describe 'Action Functions'
     grep() { @grep "$1"; }
 
     setup() {
-      @mkdir -p "${PREFIX}/subdir"
+      @mkdir -p "${PREFIX}/empty" "${PREFIX}/subdir"
       %putsn data >"${PREFIX}/non-match.age"
       %text >"${PREFIX}/subdir/match.age"
       #|non-match
@@ -1448,6 +1448,7 @@ Describe 'Action Functions'
       When call do_grep "${PREFIX}" ot
       The status should be success
       The output should equal "$(result)"
+      The error should be blank
     End
 
     It 'outputs all the matching lines'
@@ -1460,6 +1461,28 @@ Describe 'Action Functions'
       When call do_grep "${PREFIX}" -vea
       The status should be success
       The output should equal "$(result)"
+      The error should be blank
+    End
+
+    It 'outputs nothing without matches'
+      When call do_grep "${PREFIX}" z
+      The status should be success
+      The output should be blank
+      The error should be blank
+    End
+
+    It 'correctly displays matches in the root'
+      result(){
+        %text
+        #|(B)(G)non-match(N):
+        #|data
+        #|(B)subdir/(G)match(N):
+        #|non-match
+      }
+      When call do_grep "${PREFIX}" a
+      The status should be success
+      The output should equal "$(result)"
+      The error should be blank
     End
   End
 
