@@ -140,20 +140,6 @@ Describe 'Internal Helper Functions'
     The status should equal 1
   End
 
-  Describe 'glob_exists'
-    It 'answers y when the glob matches something'
-      When call glob_exists /*
-      The status should be success
-      The variable ANSWER should equal y
-    End
-
-    It 'answers n when the glob does not match anything'
-      When call glob_exists non-existent/*
-      The status should be success
-      The variable ANSWER should equal n
-    End
-  End
-
   Describe 'set_LOCAL_RECIPIENT_FILE'
     PREFIX="${SHELLSPEC_WORKDIR}/prefix/store"
     setup() {

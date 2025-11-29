@@ -61,17 +61,6 @@ die() {
 	exit 1
 }
 
-# Checks whether a globs expands correctly
-# This lets the shell expand the glob as an argument list, and counts on
-# the glob being passed unchanged as $1 otherwise.
-glob_exists() {
-	if [ -e "$1" ]; then
-		ANSWER=y
-	else
-		ANSWER=n
-	fi
-}
-
 # Always-successful grep filter
 #   ... grep arguments
 grep_filter() {
@@ -714,10 +703,6 @@ do_generate_show() {
 #   $1: current subdirectory name
 #   ... grep arguments
 do_grep() {
-	glob_exists "$1"/*
-	[ "${ANSWER}" = y ] || return 0
-	unset ANSWER
-
 	for ARG in "$1"/*; do
 		if [ -d "${ARG}" ]; then
 			shift
