@@ -1207,13 +1207,13 @@ cmd_copy_move() {
 
 	if [ "${PARSE_ERROR}" = yes ] || [ $# -lt 2 ]; then
 		if [ "${COMMAND}" = "c${COMMAND#c}" ]; then
-			cmd_usage 'Usage: ' copy >&2
+			cmd_usage no 'Usage: ' copy >&2
 			exit 1
 		elif [ "${COMMAND}" = "m${COMMAND#m}" ]; then
-			cmd_usage 'Usage: ' move >&2
+			cmd_usage no 'Usage: ' move >&2
 			exit 1
 		else
-			cmd_usage 'Usage: ' copy move >&2
+			cmd_usage no 'Usage: ' copy move >&2
 			exit 1
 		fi
 	fi
@@ -1271,7 +1271,7 @@ cmd_delete() {
 	done
 
 	if [ "${PARSE_ERROR}" = yes ] || [ $# -eq 0 ]; then
-		cmd_usage 'Usage: ' delete >&2
+		cmd_usage no 'Usage: ' delete >&2
 		exit 1
 	fi
 	unset PARSE_ERROR
@@ -1285,7 +1285,7 @@ cmd_delete() {
 
 cmd_edit() {
 	if [ $# -eq 0 ]; then
-		cmd_usage 'Usage: ' edit >&2
+		cmd_usage no 'Usage: ' edit >&2
 		exit 1
 	fi
 
@@ -1308,7 +1308,7 @@ cmd_find() {
 	esac
 
 	if [ $# -eq 0 ]; then
-		cmd_usage 'Usage: ' find >&2
+		cmd_usage no 'Usage: ' find >&2
 		exit 1
 	fi
 
@@ -1394,7 +1394,7 @@ cmd_generate() {
 	done
 
 	if [ "${PARSE_ERROR}" = yes ] || [ $# -eq 0 ] || [ $# -gt 3 ]; then
-		cmd_usage 'Usage: ' generate >&2
+		cmd_usage no 'Usage: ' generate >&2
 		exit 1
 	fi
 
@@ -1434,7 +1434,7 @@ cmd_git() {
 
 cmd_grep() {
 	if [ $# -eq 0 ]; then
-		cmd_usage 'Usage: ' grep >&2
+		cmd_usage no 'Usage: ' grep >&2
 		exit 1
 	fi
 
@@ -1461,7 +1461,7 @@ cmd_gitconfig() {
 cmd_help() {
 	cmd_version
 	printf '\n'
-	cmd_usage '    '
+	cmd_usage yes '    '
 }
 
 cmd_init() {
@@ -1522,7 +1522,7 @@ cmd_init() {
 	done
 
 	if [ "${PARSE_ERROR}" = yes ] || [ $# -eq 0 ]; then
-		cmd_usage 'Usage: ' init >&2
+		cmd_usage no 'Usage: ' init >&2
 		exit 1
 	fi
 
@@ -1578,7 +1578,7 @@ cmd_insert() {
             || [ $# -lt 1 ] \
             || [ "${ECHO}${MULTILINE}" = yesyes ]
 	then
-		cmd_usage 'Usage: ' insert >&2
+		cmd_usage no 'Usage: ' insert >&2
 		exit 1
 	fi
 	unset PARSE_ERROR
@@ -1653,13 +1653,13 @@ cmd_list_or_show() {
 
 	if [ "${PARSE_ERROR}" = yes ]; then
 		if [ "${COMMAND}" = "l${COMMAND#l}" ]; then
-			cmd_usage 'Usage: ' list >&2
+			cmd_usage no 'Usage: ' list >&2
 			exit 1
 		elif [ "${COMMAND}" = "s${COMMAND#s}" ]; then
-			cmd_usage 'Usage: ' show >&2
+			cmd_usage no 'Usage: ' show >&2
 			exit 1
 		else
-			cmd_usage 'Usage: ' list show >&2
+			cmd_usage no 'Usage: ' list show >&2
 			exit 1
 		fi
 	fi
@@ -1687,7 +1687,7 @@ cmd_move() {
 
 cmd_random() {
 	if [ $# -gt 2 ]; then
-		cmd_usage 'Usage: ' random >&2
+		cmd_usage no 'Usage: ' random >&2
 		exit 1
 	fi
 
@@ -1728,7 +1728,7 @@ cmd_reencrypt() {
 	done
 
 	if [ "${PARSE_ERROR}" = yes ] || [ $# -eq 0 ]; then
-		cmd_usage 'Usage: ' reencrypt >&2
+		cmd_usage no 'Usage: ' reencrypt >&2
 		exit 1
 	fi
 
@@ -1743,9 +1743,13 @@ cmd_reencrypt() {
 }
 
 # Outputs the whole usage text
-#   $1: indentation
+#   $1: output help text after command syntax when "yes"
+#   $2: indentation
 #   ... commands to document
 cmd_usage(){
+	VERBOSE="${1-yes}"
+	shift
+
 	if [ $# -eq 0 ]; then
 		F='    '
 		I='    '
@@ -1764,9 +1768,6 @@ cmd_usage(){
 		echo 'Usage:'
 		set -- list show copy delete edit find generate git gitconfig \
 		    grep help init insert move random reencrypt version
-		VERBOSE=yes
-	else
-		VERBOSE=no
 	fi
 
 	NON_BLANK="${PROGRAM}"
@@ -1948,6 +1949,8 @@ EOF
 
 		F="${I}"
 	done
+
+	unset VERBOSE
 }
 
 cmd_version() {

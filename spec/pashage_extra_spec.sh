@@ -1652,15 +1652,23 @@ Describe 'Integrated Command Functions'
   Describe 'cmd_usage'
     It 'defaults to four-space indentation'
       PROGRAM=prg
+      When call cmd_usage no
+      The status should be success
+      The error should be blank
+      The output should equal "$(cmd_usage no '    ')"
+    End
+
+    It 'defaults to verbose four-space indentation'
+      PROGRAM=prg
       When call cmd_usage
       The status should be success
       The error should be blank
-      The output should equal "$(cmd_usage '    ')"
+      The output should equal "$(cmd_usage yes '    ')"
     End
 
     It 'fails with an unknown command'
       PROGRAM=prg
-      When run cmd_usage 'Usage: ' bad version
+      When run cmd_usage no 'Usage: ' bad version
       The status should equal 1
       The output should be blank
       The error should equal 'cmd_usage: unknown command "bad"'

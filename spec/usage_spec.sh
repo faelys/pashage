@@ -1218,7 +1218,7 @@ Describe 'Command-Line Parsing'
       result() {
         %text | @sed 's/\$$//'
         #|$ cmd_version
-        #|$ cmd_usage     $
+        #|$ cmd_usage yes     $
       }
       When call cmd_help
       The status should be success
@@ -2408,7 +2408,7 @@ Describe 'Command-Line Parsing'
     End
 
     It 'rejects unknown commands'
-      When run cmd_usage '> ' foo
+      When run cmd_usage no '> ' foo
       The output should be blank
       The error should equal 'cmd_usage: unknown command "foo"'
       The status should equal 1
