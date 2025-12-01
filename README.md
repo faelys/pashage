@@ -443,11 +443,15 @@ Environment:
 Syntax:
 
 ```
-pashage help
+pashage help [subcommand ...]
 ```
 
-This subcommand displays on the standard output the version and help text,
-including all subcommands and flags and a brief description.
+This subcommand displays on the standard output the help text for the
+given subcommands.
+
+Without arguments, this subcommand displays on the standard output the
+version and help text, including all subcommands and flags and a brief
+description.
 
 This subcommand is not affected by the environment.
 

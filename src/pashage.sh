@@ -1459,9 +1459,13 @@ cmd_gitconfig() {
 }
 
 cmd_help() {
-	cmd_version
-	printf '\n'
-	cmd_usage yes '    '
+	if [ $# -eq 0 ]; then
+		cmd_version
+		printf '\nUsage:\n'
+		cmd_usage yes '    ' "$@"
+	else
+		cmd_usage yes '' "$@"
+	fi
 }
 
 cmd_init() {
@@ -1765,7 +1769,6 @@ cmd_usage(){
 	fi
 
 	if [ $# -eq 0 ]; then
-		echo 'Usage:'
 		set -- list show copy delete edit find generate git gitconfig \
 		    grep help init insert move random reencrypt version
 	fi

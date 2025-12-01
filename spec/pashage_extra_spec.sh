@@ -970,6 +970,21 @@ Describe 'Integrated Command Functions'
       The output should include ' prg random '
       The output should include ' prg reencrypt '
     End
+
+    It 'displays help text for specific commands with help text'
+      PROGRAM=prg
+      When call cmd_help git move
+      The status should be success
+      The output should not include 'prg copy '
+      The output should not include 'prg delete '
+      The output should include 'prg git'
+      The output should include ' git repository,'
+      The output should not include 'prg gitconfig'
+      The output should include 'prg move '
+      The output should include 'Renames or moves'
+      The output should not include 'prg random '
+      The output should not include 'prg reencrypt '
+    End
   End
 
   Describe 'cmd_init'

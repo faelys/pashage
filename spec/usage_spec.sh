@@ -1212,9 +1212,13 @@ Describe 'Command-Line Parsing'
   Describe 'cmd_help'
     COMMAND=help
 
-    It 'displays version and usage'
+    It 'displays version and usage without arguments'
       cmd_usage() { mocklog cmd_usage "$@"; }
       cmd_version() { mocklog cmd_version "$@"; }
+      expected_output() { %text
+        #|
+        #|Usage:
+      }
       result() {
         %text | @sed 's/\$$//'
         #|$ cmd_version
@@ -1222,8 +1226,17 @@ Describe 'Command-Line Parsing'
       }
       When call cmd_help
       The status should be success
-      The output should be blank
+      The output should equal "$(expected_output)"
       The error should equal "$(result)"
+    End
+
+    It 'displays only usage with arguments'
+      cmd_usage() { mocklog cmd_usage "$@"; }
+      cmd_version() { mocklog cmd_version "$@"; }
+      When call cmd_help foo bar
+      The status should be success
+      The output should be blank
+      The error should equal '$ cmd_usage yes  foo bar'
     End
   End
 
@@ -2378,13 +2391,6 @@ Describe 'Command-Line Parsing'
     GENERATED_LENGTH='$GENERATED_LENGTH'
     cat() { @cat; }
 
-    It 'displays a human-reable usage string'
-      When call cmd_usage
-      The status should be success
-      The first line of output should equal 'Usage:'
-      The error should be blank
-    End
-
     It 'includes help about all commands'
       When call cmd_usage
       The status should be success
@@ -2405,6 +2411,21 @@ Describe 'Command-Line Parsing'
       The output should include 'prg reencrypt'
       The output should include 'prg [show]'
       The output should include 'prg version'
+    End
+
+    It 'displays terse help about the given commands'
+      When call cmd_usage no '> ' version edit version
+      The status should be success
+      The output should match pattern '*prg version*prg edit*prg version*'
+      The lines of output should equal 3
+    End
+
+    It 'displays verbose help about the given commands'
+      When call cmd_usage yes '> ' version edit version
+      The status should be success
+      The output should match pattern \
+        '*prg version*Show*prg edit*Insert*prg version*Show*'
+      The lines of output should equal 6
     End
 
     It 'rejects unknown commands'
