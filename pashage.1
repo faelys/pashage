@@ -358,7 +358,9 @@ The following environment variables affect the execution of
 .\" but that compresses the second columns way too much.
 .Bl -tag -width XXXXXXXX
 .It Ev CLICOLOR
-when set to a non-empty value, use ANSI escape sequences to color the output
+when set to a non-empty value, and
+.Ev NO_COLOR
+is unset or empty, use ANSI escape sequences to color the output
 .It Ev EDITOR
 editor command to use instead of
 .Xr vi 1
@@ -369,6 +371,8 @@ is not set
 when it contains
 .Qq UTF ,
 the tree is displayed using Unicode graphic characters instead of ASCII
+.It NO_COLOR
+when set to a non-empty value, no ANSI escape sequence is output
 .It Ev PASHAGE_AGE
 external command to use instead of
 .Xr age 1
