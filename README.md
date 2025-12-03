@@ -308,8 +308,8 @@ Flags:
   rather than a tree
 
 Environment:
-- `CLICOLOR`: when set to a non-empty value, and `NO_COLOR` is unset or empty,
-  use ANSI escape sequences to color the output
+- `CLICOLOR_FORCE`: when set to a non-empty value, and `NO_COLOR` is unset
+  or empty, use ANSI escape sequences to color the output
 - `LC_CTYPE`: when it contains `UTF`, the tree is displayed using Unicode
   graphic characters instead of ASCII
 - `NO_COLOR`: when set to a non-empty value, no ANSI escape sequence is output
@@ -349,8 +349,8 @@ Flags:
   storing it into the database
 
 Environment:
-- `CLICOLOR`: when set to a non-empty value, and `NO_COLOR` is unset or empty,
-  use ANSI escape sequences to color the output
+- `CLICOLOR_FORCE`: when set to a non-empty value, and `NO_COLOR` is unset
+  or empty, use ANSI escape sequences to color the output
 - `NO_COLOR`: when set to a non-empty value, no ANSI escape sequence is output
 - `PASHAGE_AGE`: external command to use instead of `age`
 - `PASHAGE_DIR`: database directory to use instead of `~/.passage/store`
@@ -425,8 +425,8 @@ filter them through `grep(1)` using the given options, and outputs all the
 matching lines and the corresponding secret.
 
 Environment:
-- `CLICOLOR`: when set to a non-empty value, and `NO_COLOR` is unset or empty,
-  use ANSI escape sequences to color the output
+- `CLICOLOR_FORCE`: when set to a non-empty value, and `NO_COLOR` is unset
+  or empty, use ANSI escape sequences to color the output
 - `NO_COLOR`: when set to a non-empty value, no ANSI escape sequence is output
 - `PASHAGE_AGE`: external command to use instead of `age`
 - `PASHAGE_DIR`: database directory to use instead of `~/.passage/store`
@@ -547,8 +547,8 @@ Flags:
 - `-r` or `--raw`: display the results as a raw list of secrets
 
 Environment:
-- `CLICOLOR`: when set to a non-empty value, and `NO_COLOR` is unset or empty,
-  use ANSI escape sequences to color the output
+- `CLICOLOR_FORCE`: when set to a non-empty value, and `NO_COLOR` is unset
+  or empty, use ANSI escape sequences to color the output
 - `LC_CTYPE`: when it contains `UTF`, the tree is displayed using Unicode
   graphic characters instead of ASCII
 - `NO_COLOR`: when set to a non-empty value, no ANSI escape sequence is output
