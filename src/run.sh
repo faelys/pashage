@@ -60,7 +60,7 @@ RED_TEXT=""
 BLUE_TEXT=""
 UNDERLINE_TEXT=""
 NO_UNDERLINE_TEXT=""
-if [ -z "${NO_COLOR-}" ] && [ -n "${CLICOLOR_FORCE-}" ]; then
+if [ -z "${NO_COLOR-}" ] && { [ -t 1 ] || [ -n "${CLICOLOR_FORCE-}" ]; }; then
 	BOLD_TEXT="$(printf '\033[1m')"
 	NORMAL_TEXT="$(printf '\033[0m')"
 	RED_TEXT="$(printf '\033[31m')"
