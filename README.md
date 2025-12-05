@@ -309,7 +309,8 @@ Flags:
 
 Environment:
 - `CLICOLOR_FORCE`: when set to a non-empty value, and `NO_COLOR` is unset
-  or empty, use ANSI escape sequences to color the output
+  or empty, use ANSI escape sequences to color the output even when not
+  writing to a terminal
 - `LC_CTYPE`: when it contains `UTF`, the tree is displayed using Unicode
   graphic characters instead of ASCII
 - `NO_COLOR`: when set to a non-empty value, no ANSI escape sequence is output
@@ -350,7 +351,8 @@ Flags:
 
 Environment:
 - `CLICOLOR_FORCE`: when set to a non-empty value, and `NO_COLOR` is unset
-  or empty, use ANSI escape sequences to color the output
+  or empty, use ANSI escape sequences to color the output even when not
+  writing to a terminal
 - `NO_COLOR`: when set to a non-empty value, no ANSI escape sequence is output
 - `PASHAGE_AGE`: external command to use instead of `age`
 - `PASHAGE_DIR`: database directory to use instead of `~/.passage/store`
@@ -426,7 +428,8 @@ matching lines and the corresponding secret.
 
 Environment:
 - `CLICOLOR_FORCE`: when set to a non-empty value, and `NO_COLOR` is unset
-  or empty, use ANSI escape sequences to color the output
+  or empty, use ANSI escape sequences to color the output even when not
+  writing to a terminal
 - `NO_COLOR`: when set to a non-empty value, no ANSI escape sequence is output
 - `PASHAGE_AGE`: external command to use instead of `age`
 - `PASHAGE_DIR`: database directory to use instead of `~/.passage/store`
@@ -548,7 +551,8 @@ Flags:
 
 Environment:
 - `CLICOLOR_FORCE`: when set to a non-empty value, and `NO_COLOR` is unset
-  or empty, use ANSI escape sequences to color the output
+  or empty, use ANSI escape sequences to color the output even when not
+  writing to a terminal
 - `LC_CTYPE`: when it contains `UTF`, the tree is displayed using Unicode
   graphic characters instead of ASCII
 - `NO_COLOR`: when set to a non-empty value, no ANSI escape sequence is output
