@@ -109,9 +109,6 @@ the password store.
 
 The following features are currently under consideration:
 
-- v1.0.0:
-    + completion for various shells
-    + better logic for recursivity in re-encryption
 - v1.1.0:
     + partial display of secrets on standard output
     + successive clipboard copy of several lines from a single decryption
